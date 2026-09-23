@@ -141,7 +141,7 @@ exports.seatQueue = async (req, res) => {
 
         const sessionId = 'SES-' + Date.now();
         const qrToken = 'QR-' + table.table_no + '-' + crypto.randomBytes(4).toString('hex');
-        const price = parseFloat(buffet_price) || 219.0;
+        const price = parseFloat(buffet_price) || 279.0;
         const count = ticket.guest_count || 2;
 
         // Create DiningSession linked with queue_ticket_id

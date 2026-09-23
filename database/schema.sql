@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS DiningSession (
     queue_ticket_id TEXT UNIQUE REFERENCES QueueTicket(queue_ticket_id),
     qr_token TEXT UNIQUE NOT NULL,
     guest_count INTEGER NOT NULL,
-    buffet_price REAL NOT NULL DEFAULT 219.00,
+    buffet_price REAL NOT NULL DEFAULT 279.00,
     started_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     ends_at DATETIME,
     session_status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK(session_status IN ('ACTIVE', 'CLOSED', 'CANCELLED'))
