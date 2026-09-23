@@ -1,0 +1,87 @@
+<%- include('../partials/header') %>
+
+<div class="container">
+    <div class="card-header" style="border: none; margin-bottom: 20px;">
+        <div>
+            <h1 style="font-size: 1.8rem; font-weight: 700;">🚶‍♂️ จุดส่งอาหาร (Serving Staff Dashboard)</h1>
+            <p style="color: var(--text-secondary);">จัดการรายการอาหารที่ปรุงเสร็จแล้วจากครัว เพื่อนำไปเสิร์ฟยังโต๊ะลูกค้า</p>
+        </div>
+        <div>
+            <span class="badge" style="background: var(--brand-green); color: #fff; font-size: 1rem; padding: 8px 16px;">
+                พร้อมเสิร์ฟ <%= readyItems.length %> รายการ
+            </span>
+        </div>
+    </div>
+
+    <div class="card">
+        <% if (readyItems.length === 0) { %>
+            <div style="text-align: center; padding: 60px 20px;">
+                <div style="font-size: 3rem; margin-bottom: 12px;">✨</div>
+                <h3 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin-bottom: 6px;">
+                    ไม่มีรายการอาหารค้างรอเสิร์ฟ
+                </h3>
+                <p style="color: var(--text-secondary); font-size: 0.95rem;">
+                    เมื่อครัวปรุงอาหารเสร็จ รายการจะปรากฏที่นี่ทันทีแบบ Real-time
+                </p>
+            </div>
+        <% } else { %>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px;">
+                <% readyItems.forEach(item => { %>
+                    <div style="padding: 16px; background: #ffffff; border-radius: var(--border-radius-md); border: 2px solid #10b981; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div>
+                                <span class="badge" style="background: var(--brand-red); color: white; font-size: 1.1rem; padding: 4px 12px; font-weight: 700;">
+                                    โต๊ะ <%= item.table_no %>
+                                </span>
+                            </div>
+                            <span style="font-size: 0.8rem; color: var(--text-secondary);">
+                                <%= new Date(item.ordered_at).toLocaleTimeString('th-TH') %>
+                            </span>
+                        </div>
+
+                        <div>
+                            <div style="font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">
+                                <%= item.item_name %>
+                            </div>
+                            <div style="font-size: 1.1rem; font-weight: 600; color: var(--brand-green);">
+                                จำนวน: <%= item.quantity %> ที่
+                            </div>
+                        </div>
+
+                        <button class="btn btn-success" style="width: 100%; font-size: 1rem; padding: 10px; font-weight: 600;" onclick="confirmServed('<%= item.order_item_id %>')">
+                            ✅ ยืนยันเสิร์ฟแล้ว
+                        </button>
+                    </div>
+                <% }); %>
+            </div>
+        <% } %>
+    </div>
+</div>
+
+<script>
+    const socket = io();
+
+    async function confirmServed(order_item_id) {
+        try {
+            const res = await fetch('/serving/confirm-served', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ order_item_id })
+            });
+            const data = await res.json();
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message || 'เกิดข้อผิดพลาดในการยืนยันเสิร์ฟ');
+            }
+        } catch (err) {
+            alert('เกิดข้อผิดพลาดในการยืนยันเสิร์ฟ');
+        }
+    }
+
+    // Real-time socket events
+    socket.on('order-status-changed', () => location.reload());
+    socket.on('new-order', () => location.reload());
+</script>
+
+<%- include('../partials/footer') %>

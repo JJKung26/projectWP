@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= typeof title !== 'undefined' ? title : 'ระบบสั่งอาหารร้านหมูกระทะ' %></title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <header class="navbar">
+        <a href="/" class="brand">
+            <span>🔥 หมูกระทะ QR Order</span>
+            <span class="brand-badge">PRO</span>
+        </a>
+        <nav class="nav-links">
+            <a href="/cashier/tables" class="nav-link">แคชเชียร์ / โต๊ะ</a>
+            <a href="/kitchen" class="nav-link">ครัว</a>
+            <a href="/serving" class="nav-link">พนักงานเสิร์ฟ</a>
+        </nav>
+    </header>

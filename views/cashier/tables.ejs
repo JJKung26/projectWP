@@ -1,0 +1,666 @@
+<%- include('../partials/header') %>
+
+<div class="container">
+    <!-- Top Statistics and Controls Header -->
+    <div class="card-header" style="border: none; margin-bottom: 16px; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <h1 style="font-size: 1.8rem; font-weight: 700;">📌 แผนผังโต๊ะอาหาร (50 โต๊ะ)</h1>
+            <p style="color: var(--text-secondary);">เปิดโต๊ะ พิมพ์ใบเสร็จ QR Code สำหรับลูกค้า และจัดการคิวรอโต๊ะ</p>
+        </div>
+
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <!-- Tunnelmole Status Indicator -->
+            <div style="background: #f3f4f6; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; border: 1px solid #e5e7eb;">
+                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: '<%= tunnelUrl ? '#10b981' : '#f59e0b' %>';"></span>
+                <span>QR Mode: <strong><%= tunnelUrl ? 'Tunnelmole (Online)' : 'Local Host' %></strong></span>
+            </div>
+
+            <!-- Queue Management Button -->
+            <button class="btn btn-warning" onclick="openQueueModal()" style="display: flex; align-items: center; gap: 8px; font-weight: 600;">
+                <span>🎫 จัดการบัตรคิว</span>
+                <span class="badge" id="queueBadge" style="background: #b91c1c; color: #fff;">
+                    <%= waitingQueues ? waitingQueues.length : 0 %>
+                </span>
+            </button>
+
+            <!-- Table Status Legends -->
+            <span class="badge badge-available">🟢 ว่าง (<%= availableCount %>)</span>
+            <span class="badge badge-occupied">🔴 ไม่ว่าง (<%= occupiedCount %>)</span>
+        </div>
+    </div>
+
+    <!-- Alert Banner when Tables are Full -->
+    <% if (availableCount === 0) { %>
+        <div class="queue-alert-banner">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 1.8rem;">⚠️</span>
+                <div>
+                    <strong style="font-size: 1.1rem;">ขณะนี้โต๊ะเต็มทุกโต๊ะ (50/50 โต๊ะ)!</strong>
+                    <div style="font-size: 0.9rem; opacity: 0.95;">กรุณาออกบัตรคิวให้ลูกค้าที่หน้าร้านผ่านระบบคิว</div>
+                </div>
+            </div>
+            <button class="btn" style="background: #ffffff; color: var(--brand-red); font-weight: 700;" onclick="openIssueQueueModal()">
+                ➕ ออกบัตรคิวทันที
+            </button>
+        </div>
+    <% } %>
+
+    <!-- 50 Dining Tables Grid -->
+    <div class="grid-50-tables">
+        <% tables.forEach(t => { %>
+            <div class="table-card <%= t.table_status.toLowerCase() %>" 
+                 id="table-card-<%= t.table_id %>"
+                 onclick="handleTableClick('<%= t.table_id %>', '<%= t.table_no %>', '<%= t.table_status %>', '<%= t.session_id %>', '<%= t.qr_token %>')">
+                <div class="table-number">โต๊ะ <%= t.table_no %></div>
+                <div style="font-size: 0.85rem; margin-top: 4px;">
+                    <% if (t.table_status === 'OCCUPIED') { %>
+                        <span class="badge badge-occupied">มีลูกค้า (<%= t.guest_count %> ท่าน)</span>
+                    <% } else { %>
+                        <span class="badge badge-available">ว่าง (<%= t.capacity %> ที่นั่ง)</span>
+                    <% } %>
+                </div>
+            </div>
+        <% }); %>
+    </div>
+</div>
+
+<!-- ==========================================================================
+     Modal 1: Open Table Modal
+     ========================================================================== -->
+<div class="modal-overlay" id="openTableModal">
+    <div class="modal-content">
+        <h2 style="margin-bottom: 16px;">🔥 เปิดโต๊ะบริการ: โต๊ะ <span id="openTableNo"></span></h2>
+        <form id="openTableForm" onsubmit="submitOpenTable(event)">
+            <input type="hidden" id="openTableId" name="table_id">
+
+            <!-- Optional: Link with waiting queue ticket -->
+            <div class="form-group" id="linkQueueGroup">
+                <label class="form-label">ผูกกับบัตรคิวที่รออยู่ (ถ้ามี):</label>
+                <select class="form-select" id="openQueueSelect" onchange="onSelectQueueForTable(this.value)">
+                    <option value="">-- ไม่ได้มาจากคิว / ลูกค้า Walk-in ทันที --</option>
+                    <% if (waitingQueues && waitingQueues.length > 0) { %>
+                        <% waitingQueues.forEach(q => { %>
+                            <option value="<%= q.queue_ticket_id %>" data-guests="<%= q.guest_count %>">
+                                คิว <%= q.queue_no %> (<%= q.guest_count %> ท่าน) [<%= q.queue_status %>]
+                            </option>
+                        <% }); %>
+                    <% } %>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">จำนวนลูกค้า (ท่าน)</label>
+                <input type="number" class="form-input" id="guestCount" name="guest_count" min="1" max="20" value="2" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">ราคาบุฟเฟต์ต่อท่าน (บาท)</label>
+                <input type="number" class="form-input" id="buffetPrice" name="buffet_price" value="219" step="0.01" required>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 24px;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('openTableModal')">ยกเลิก</button>
+                <button type="submit" class="btn btn-primary" style="flex-grow: 1;">ยืนยันเปิดโต๊ะ & แสดงใบเสร็จ QR</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ==========================================================================
+     Modal 2: Occupied Table Options
+     ========================================================================== -->
+<div class="modal-overlay" id="occupiedTableModal">
+    <div class="modal-content" style="text-align: center;">
+        <h2 style="margin-bottom: 4px;">โต๊ะ <span id="occTableNo"></span></h2>
+        <p style="color: var(--text-secondary); margin-bottom: 20px;">กำลังเปิดใช้งานอยู่ในขณะนี้</p>
+        
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            <button class="btn btn-primary" onclick="showReceiptSlipModal()">🧾 ดูใบเปิดโต๊ะ & QR Code ลูกค้า</button>
+            <a id="checkBillBtn" class="btn btn-success">💰 เช็คบิล & ชำระเงิน</a>
+            <button class="btn btn-warning btn-sm" onclick="resetTableStatus()">🔄 รีเซ็ตเป็นโต๊ะว่าง</button>
+            <button class="btn btn-secondary" onclick="closeModal('occupiedTableModal')">ปิดหน้าต่าง</button>
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================================================
+     Modal 3: Table Slip Receipt Modal (ใบเปิดโต๊ะ & QR Code สั่งอาหาร)
+     ========================================================================== -->
+<div class="modal-overlay" id="slipModal">
+    <div class="modal-content" style="max-width: 440px; padding: 20px;">
+        <!-- Printable Slip Area -->
+        <div class="receipt-slip print-target" id="slipPrintArea">
+            <div class="slip-header">
+                <div class="slip-title">🔥 ร้านหมูกระทะ ชาบู บุฟเฟต์</div>
+                <div class="slip-subtitle">ใบเปิดโต๊ะ & QR Code สั่งอาหาร</div>
+                <div class="slip-table-badge">โต๊ะ <span id="slipTableNo">-</span></div>
+            </div>
+
+            <div class="slip-details">
+                <div class="slip-row">
+                    <span style="color: var(--text-secondary);">วันที่-เวลา:</span>
+                    <strong id="slipStartedAt">-</strong>
+                </div>
+                <div class="slip-row">
+                    <span style="color: var(--text-secondary);">รหัสบริการ:</span>
+                    <span id="slipSessionId" style="font-family: monospace;">-</span>
+                </div>
+                <div class="slip-row">
+                    <span style="color: var(--text-secondary);">จำนวนลูกค้า:</span>
+                    <strong><span id="slipGuestCount">-</span> ท่าน</strong>
+                </div>
+                <div class="slip-row">
+                    <span style="color: var(--text-secondary);">ราคาบุฟเฟต์:</span>
+                    <strong><span id="slipBuffetPrice">219</span> ฿ / ท่าน</strong>
+                </div>
+                <div class="slip-row" style="border-top: 1px dotted #ccc; padding-top: 4px; margin-top: 4px;">
+                    <span style="color: var(--text-secondary);">ยอดเปิดโต๊ะเริ่มต้น:</span>
+                    <strong style="color: var(--brand-red); font-size: 1.05rem;"><span id="slipEstTotal">-</span> ฿</strong>
+                </div>
+            </div>
+
+            <!-- QR Code Section -->
+            <div class="slip-qr-box">
+                <img id="slipQrImg" class="slip-qr-img" src="" alt="QR Code สั่งอาหาร">
+                <div style="font-size: 0.85rem; font-weight: 600; margin-top: 8px; color: var(--text-primary);">
+                    📱 สแกน QR Code เพื่อสั่งอาหารผ่านมือถือ
+                </div>
+                <div style="font-size: 0.75rem; color: #6b7280; word-break: break-all; margin-top: 4px;" id="slipUrlText">
+                    -
+                </div>
+            </div>
+
+            <div class="slip-footer">
+                <div>อิ่มไม่อั้นในเวลาที่กำหนด • ทานไม่หมดปรับตามกฎของร้าน</div>
+                <div style="margin-top: 4px; font-weight: 500;">ขอบคุณที่ใช้บริการครับ 🙏</div>
+            </div>
+        </div>
+
+        <!-- Non-printable Actions -->
+        <div class="no-print" style="margin-top: 18px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; gap: 8px;">
+                <button class="btn btn-primary" style="flex: 1; font-weight: 600;" onclick="printSlip()">
+                    🖨️ พิมพ์ใบเสร็จ/สลิป
+                </button>
+                <button class="btn btn-secondary" onclick="copySlipUrl()">
+                    📋 คัดลอกลิงก์
+                </button>
+            </div>
+            <button class="btn btn-secondary" style="width: 100%;" onclick="closeModal('slipModal')">
+                เสร็จสิ้น / ปิดหน้าต่าง
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================================================
+     Modal 4: Queue Management Modal (จัดการบัตรคิว)
+     ========================================================================== -->
+<div class="modal-overlay" id="queueModal">
+    <div class="modal-content" style="max-width: 600px; max-height: 90vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h2 style="font-size: 1.4rem; font-weight: 700;">🎫 ระบบบัตรคิวร้านหมูกระทะ</h2>
+            <button class="btn btn-secondary btn-sm" onclick="closeModal('queueModal')">✖</button>
+        </div>
+
+        <!-- Issue New Queue Ticket Form -->
+        <div style="background: #f8f9fa; border: 1px solid #e5e7eb; border-radius: var(--border-radius-md); padding: 16px; margin-bottom: 20px;">
+            <h3 style="font-size: 1.05rem; font-weight: 600; margin-bottom: 12px; color: var(--brand-red);">
+                ➕ ออกบัตรคิวใหม่
+            </h3>
+            <form id="issueQueueForm" onsubmit="submitIssueQueue(event)" style="display: flex; gap: 10px; align-items: flex-end;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="margin-bottom: 4px;">จำนวนลูกค้า (ท่าน):</label>
+                    <input type="number" class="form-input" id="newQueueGuestCount" min="1" max="20" value="2" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="white-space: nowrap; height: 42px;">
+                    ออกบัตรคิว & พิมพ์
+                </button>
+            </form>
+        </div>
+
+        <!-- Current Waiting Queues List -->
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h3 style="font-size: 1.1rem; font-weight: 600;">
+                    📋 คิวที่กำลังรอ (<span id="waitingCountDisplay">0</span> คิว)
+                </h3>
+                <button class="btn btn-secondary btn-sm" onclick="loadQueues()">🔄 รีเฟรชคิว</button>
+            </div>
+
+            <div id="queueListContainer" style="display: flex; flex-direction: column; gap: 10px;">
+                <div style="text-align: center; padding: 24px; color: var(--text-secondary);">
+                    กำลังโหลดรายการคิว...
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================================================
+     Modal 5: Queue Ticket Slip Modal (ใบบัตรคิวสำหรับลูกค้า)
+     ========================================================================== -->
+<div class="modal-overlay" id="queueSlipModal">
+    <div class="modal-content" style="max-width: 380px; padding: 20px;">
+        <div class="receipt-slip print-target" id="queueSlipPrintArea">
+            <div class="slip-header">
+                <div class="slip-title">🔥 ร้านหมูกระทะ ชาบู บุฟเฟต์</div>
+                <div class="slip-subtitle">ใบบัตรคิว (Queue Ticket)</div>
+                <div class="queue-no-badge" id="qsQueueNo" style="font-size: 3rem; margin: 8px 0; color: var(--brand-red);">-</div>
+            </div>
+
+            <div class="slip-details">
+                <div class="slip-row">
+                    <span style="color: var(--text-secondary);">วันที่:</span>
+                    <strong id="qsDate">-</strong>
+                </div>
+                <div class="slip-row">
+                    <span style="color: var(--text-secondary);">เวลาที่ออกคิว:</span>
+                    <strong id="qsTime">-</strong>
+                </div>
+                <div class="slip-row">
+                    <span style="color: var(--text-secondary);">จำนวนลูกค้า:</span>
+                    <strong><span id="qsGuests">-</span> ท่าน</strong>
+                </div>
+                <div class="slip-row" style="border-top: 1px dotted #ccc; padding-top: 6px; margin-top: 6px;">
+                    <span style="color: var(--text-secondary);">จำนวนคิวรอข้างหน้า:</span>
+                    <strong style="color: var(--brand-orange); font-size: 1.1rem;"><span id="qsAhead">-</span> คิว</strong>
+                </div>
+            </div>
+
+            <div class="slip-footer">
+                <div>โปรดรอพนักงานเรียกหมายเลขคิวของท่าน</div>
+                <div style="margin-top: 4px; font-weight: 500;">ขอบคุณที่กรุณารอครับ 🙏</div>
+            </div>
+        </div>
+
+        <div class="no-print" style="margin-top: 16px; display: flex; gap: 10px;">
+            <button class="btn btn-primary" style="flex: 1;" onclick="printSlip()">🖨️ พิมพ์บัตรคิว</button>
+            <button class="btn btn-secondary" onclick="closeModal('queueSlipModal')">ปิด</button>
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================================================
+     Modal 6: Seat Queue to Available Table Selector Modal
+     ========================================================================== -->
+<div class="modal-overlay" id="seatQueueModal">
+    <div class="modal-content" style="max-width: 420px;">
+        <h2 style="margin-bottom: 12px;">🍽️ จัดโต๊ะสำหรับคิว <span id="seatQueueNo"></span></h2>
+        <p style="color: var(--text-secondary); margin-bottom: 16px;">
+            ลูกค้าจำนวน <strong id="seatQueueGuests">-</strong> ท่าน
+        </p>
+        
+        <form onsubmit="submitSeatQueue(event)">
+            <input type="hidden" id="seatQueueTicketId">
+            <div class="form-group">
+                <label class="form-label">เลือกโต๊ะว่างที่ต้องการจัด:</label>
+                <select class="form-select" id="seatTableSelect" required>
+                    <% const availTables = tables.filter(t => t.table_status === 'AVAILABLE'); %>
+                    <% if (availTables.length === 0) { %>
+                        <option value="">-- ไม่มีโต๊ะว่างในขณะนี้ --</option>
+                    <% } else { %>
+                        <% availTables.forEach(at => { %>
+                            <option value="<%= at.table_id %>">โต๊ะ <%= at.table_no %> (<%= at.capacity %> ที่นั่ง)</option>
+                        <% }); %>
+                    <% } %>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">ราคาบุฟเฟต์ต่อท่าน (บาท)</label>
+                <input type="number" class="form-input" id="seatBuffetPrice" value="219" step="0.01" required>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('seatQueueModal')">ยกเลิก</button>
+                <button type="submit" class="btn btn-primary" style="flex: 1;" <%= availTables.length === 0 ? 'disabled' : '' %>>
+                    ยืนยันเปิดโต๊ะให้คิวนี้
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Audio for Queue Calling chime -->
+<audio id="queueChime" preload="auto">
+    <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+    const socket = io();
+    let selectedTable = {};
+    let currentCustomerUrl = '';
+
+    // Click handler on table card
+    function handleTableClick(tableId, tableNo, status, sessionId, qrToken) {
+        selectedTable = { tableId, tableNo, status, sessionId, qrToken };
+        if (status === 'AVAILABLE') {
+            document.getElementById('openTableId').value = tableId;
+            document.getElementById('openTableNo').innerText = tableNo;
+            document.getElementById('openQueueSelect').value = '';
+            document.getElementById('guestCount').value = 2;
+            openModal('openTableModal');
+        } else if (status === 'OCCUPIED') {
+            document.getElementById('occTableNo').innerText = tableNo;
+            document.getElementById('checkBillBtn').href = `/cashier/bill/${sessionId}`;
+            openModal('occupiedTableModal');
+        }
+    }
+
+    // Auto-fill guests when choosing queue in open table
+    function onSelectQueueForTable(queueTicketId) {
+        if (!queueTicketId) return;
+        const select = document.getElementById('openQueueSelect');
+        const selectedOpt = select.options[select.selectedIndex];
+        const guests = selectedOpt.getAttribute('data-guests');
+        if (guests) {
+            document.getElementById('guestCount').value = guests;
+        }
+    }
+
+    // Submit open table form
+    async function submitOpenTable(e) {
+        e.preventDefault();
+        const table_id = document.getElementById('openTableId').value;
+        const guest_count = document.getElementById('guestCount').value;
+        const buffet_price = document.getElementById('buffetPrice').value;
+        const queue_ticket_id = document.getElementById('openQueueSelect').value || null;
+
+        try {
+            const res = await fetch('/cashier/open-table', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ table_id, guest_count, buffet_price, queue_ticket_id })
+            });
+            const data = await res.json();
+            if (data.success) {
+                closeModal('openTableModal');
+                // Populate slip details immediately
+                displaySlipData({
+                    table_no: data.table_no,
+                    session_id: data.session_id,
+                    guest_count: data.guest_count,
+                    buffet_price: data.buffet_price,
+                    started_at: data.started_at,
+                    customer_url: data.customer_url,
+                    qr_image: data.qr_image
+                });
+                openModal('slipModal');
+            } else {
+                alert(data.message || 'เกิดข้อผิดพลาดในการเปิดโต๊ะ');
+            }
+        } catch (err) {
+            alert('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+        }
+    }
+
+    // Show slip modal for occupied table
+    async function showReceiptSlipModal() {
+        closeModal('occupiedTableModal');
+        try {
+            const res = await fetch(`/cashier/qr/${selectedTable.qrToken}`);
+            const data = await res.json();
+            if (data.success) {
+                displaySlipData(data);
+                openModal('slipModal');
+            } else {
+                alert(data.message || 'ไม่สามารถโหลดข้อมูลโต๊ะได้');
+            }
+        } catch (err) {
+            alert('ไม่สามารถโหลดข้อมูลใบเปิดโต๊ะได้');
+        }
+    }
+
+    // Populate Slip Modal fields
+    function displaySlipData(data) {
+        document.getElementById('slipTableNo').innerText = data.table_no;
+        document.getElementById('slipStartedAt').innerText = data.started_at;
+        document.getElementById('slipSessionId').innerText = data.session_id;
+        document.getElementById('slipGuestCount').innerText = data.guest_count;
+        document.getElementById('slipBuffetPrice').innerText = data.buffet_price;
+        const estTotal = (parseFloat(data.guest_count) || 0) * (parseFloat(data.buffet_price) || 0);
+        document.getElementById('slipEstTotal').innerText = estTotal.toLocaleString();
+        document.getElementById('slipQrImg').src = data.qr_image;
+        document.getElementById('slipUrlText').innerText = data.customer_url;
+        currentCustomerUrl = data.customer_url;
+    }
+
+    // Print Receipt Slip
+    function printSlip() {
+        window.print();
+    }
+
+    // Copy URL to clipboard
+    function copySlipUrl() {
+        if (!currentCustomerUrl) return;
+        navigator.clipboard.writeText(currentCustomerUrl).then(() => {
+            alert('คัดลอกลิงก์เรียบร้อยแล้ว: ' + currentCustomerUrl);
+        }).catch(() => {
+            prompt('คัดลอกลิงก์:', currentCustomerUrl);
+        });
+    }
+
+    // Reset Table Status
+    async function resetTableStatus() {
+        if (!confirm(`ยืนยันการรีเซ็ตโต๊ะ ${selectedTable.tableNo} เป็นว่างหรือไม่?`)) return;
+        try {
+            const res = await fetch('/cashier/reset-table', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ table_id: selectedTable.tableId })
+            });
+            const data = await res.json();
+            if (data.success) {
+                closeModal('occupiedTableModal');
+                location.reload();
+            }
+        } catch (err) {
+            alert('เกิดข้อผิดพลาดในการรีเซ็ตโต๊ะ');
+        }
+    }
+
+    // =========================================================================
+    // Queue Management Functions
+    // =========================================================================
+    function openQueueModal() {
+        loadQueues();
+        openModal('queueModal');
+    }
+
+    function openIssueQueueModal() {
+        openModal('queueModal');
+        document.getElementById('newQueueGuestCount').focus();
+    }
+
+    async function loadQueues() {
+        const container = document.getElementById('queueListContainer');
+        container.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-secondary);">กำลังโหลด...</div>';
+
+        try {
+            const res = await fetch('/cashier/queue/list');
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById('waitingCountDisplay').innerText = data.totalWaiting;
+                const badge = document.getElementById('queueBadge');
+                if (badge) badge.innerText = data.totalWaiting;
+
+                if (data.queues.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; padding: 30px; color: var(--text-secondary);">ไม่มีคิวที่กำลังรอในขณะนี้ 👍</div>';
+                    return;
+                }
+
+                let html = '';
+                data.queues.forEach(q => {
+                    const isCalled = q.queue_status === 'CALLED';
+                    html += `
+                        <div class="queue-card-item" style="${isCalled ? 'border-left: 4px solid #f59e0b; background: #fffbeb;' : ''}">
+                            <div style="display: flex; align-items: center; gap: 14px;">
+                                <div class="queue-no-badge">${q.queue_no}</div>
+                                <div>
+                                    <div style="font-weight: 600; font-size: 1rem;">จำนวน ${q.guest_count} ท่าน</div>
+                                    <div style="font-size: 0.8rem; color: var(--text-secondary);">
+                                        สถานะ: <span class="badge ${isCalled ? 'badge-occupied' : 'badge-available'}">${q.queue_status}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <button class="btn btn-warning btn-sm" onclick="callQueue('${q.queue_ticket_id}')">
+                                    📢 เรียกคิว
+                                </button>
+                                <button class="btn btn-success btn-sm" onclick="openSeatModal('${q.queue_ticket_id}', '${q.queue_no}', ${q.guest_count})">
+                                    🍽️ จัดโต๊ะ
+                                </button>
+                                <button class="btn btn-secondary btn-sm" style="color: #ef4444;" onclick="cancelQueue('${q.queue_ticket_id}')">
+                                    ❌ ยกเลิก
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            }
+        } catch (err) {
+            container.innerHTML = '<div style="color: red; text-align: center;">เกิดข้อผิดพลาดในการโหลดคิว</div>';
+        }
+    }
+
+    async function submitIssueQueue(e) {
+        e.preventDefault();
+        const guest_count = document.getElementById('newQueueGuestCount').value;
+
+        try {
+            const res = await fetch('/cashier/queue/issue', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ guest_count })
+            });
+            const data = await res.json();
+            if (data.success) {
+                // Show Queue Ticket Slip
+                document.getElementById('qsQueueNo').innerText = data.ticket.queue_no;
+                document.getElementById('qsDate').innerText = data.ticket.queue_date;
+                document.getElementById('qsTime').innerText = data.ticket.created_at;
+                document.getElementById('qsGuests').innerText = data.ticket.guest_count;
+                document.getElementById('qsAhead').innerText = data.ticket.count_ahead;
+
+                closeModal('queueModal');
+                openModal('queueSlipModal');
+                loadQueues();
+            } else {
+                alert(data.message || 'เกิดข้อผิดพลาดในการออกคิว');
+            }
+        } catch (err) {
+            alert('เกิดข้อผิดพลาดในการออกบัตรคิว');
+        }
+    }
+
+    async function callQueue(queue_ticket_id) {
+        try {
+            const res = await fetch('/cashier/queue/call', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ queue_ticket_id })
+            });
+            const data = await res.json();
+            if (data.success) {
+                playChime();
+                alert(`📢 เรียกคิว ${data.queue_no} เรียบร้อยแล้ว!`);
+                loadQueues();
+            }
+        } catch (err) {
+            alert('เกิดข้อผิดพลาดในการเรียกคิว');
+        }
+    }
+
+    function openSeatModal(queue_ticket_id, queue_no, guest_count) {
+        document.getElementById('seatQueueTicketId').value = queue_ticket_id;
+        document.getElementById('seatQueueNo').innerText = queue_no;
+        document.getElementById('seatQueueGuests').innerText = guest_count;
+        closeModal('queueModal');
+        openModal('seatQueueModal');
+    }
+
+    async function submitSeatQueue(e) {
+        e.preventDefault();
+        const queue_ticket_id = document.getElementById('seatQueueTicketId').value;
+        const table_id = document.getElementById('seatTableSelect').value;
+        const buffet_price = document.getElementById('seatBuffetPrice').value;
+
+        if (!table_id) {
+            alert('กรุณาเลือกโต๊ะว่าง');
+            return;
+        }
+
+        try {
+            const res = await fetch('/cashier/queue/seat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ queue_ticket_id, table_id, buffet_price })
+            });
+            const data = await res.json();
+            if (data.success) {
+                closeModal('seatQueueModal');
+                displaySlipData(data);
+                openModal('slipModal');
+            } else {
+                alert(data.message || 'ไม่สามารถจัดคิวเข้าโต๊ะได้');
+            }
+        } catch (err) {
+            alert('เกิดข้อผิดพลาดในการจัดคิวเข้าโต๊ะ');
+        }
+    }
+
+    async function cancelQueue(queue_ticket_id) {
+        if (!confirm('ยืนยันการยกเลิกบัตรคิวนี้หรือไม่?')) return;
+        try {
+            const res = await fetch('/cashier/queue/cancel', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ queue_ticket_id })
+            });
+            const data = await res.json();
+            if (data.success) {
+                loadQueues();
+            }
+        } catch (err) {
+            alert('เกิดข้อผิดพลาดในการยกเลิกคิว');
+        }
+    }
+
+    function playChime() {
+        const chime = document.getElementById('queueChime');
+        if (chime) {
+            chime.play().catch(() => {});
+        }
+    }
+
+    // Modal Helpers
+    function openModal(id) { document.getElementById(id).classList.add('active'); }
+    function closeModal(id) { 
+        document.getElementById(id).classList.remove('active'); 
+        if (id === 'slipModal') {
+            location.reload();
+        }
+    }
+
+    // Socket.IO Listeners
+    socket.on('table-status-changed', () => {
+        // Keep UI synced
+        const isSlipOpen = document.getElementById('slipModal').classList.contains('active');
+        const isQueueSlipOpen = document.getElementById('queueSlipModal').classList.contains('active');
+        if (!isSlipOpen && !isQueueSlipOpen) {
+            location.reload();
+        }
+    });
+
+    socket.on('queue-updated', () => {
+        loadQueues();
+    });
+
+    socket.on('queue-called', (data) => {
+        playChime();
+    });
+</script>
+
+<%- include('../partials/footer') %>

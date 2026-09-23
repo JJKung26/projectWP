@@ -1,0 +1,175 @@
+<%- include('../partials/header') %>
+
+<div class="container" style="max-width: 800px;">
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <h1 style="font-size: 1.6rem; font-weight: 700;">🧾 สรุปรายการบิลค่าใช้จ่าย</h1>
+                <p style="color: var(--text-secondary);">โต๊ะ <%= session.table_no %> | จำนวนลูกค้า <%= session.guest_count %> ท่าน</p>
+            </div>
+            <div>
+                <span class="badge badge-occupied">กำลังใช้งาน</span>
+            </div>
+        </div>
+
+        <!-- Table Summary Table -->
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
+            <thead>
+                <tr style="border-bottom: 2px solid #e5e7eb; text-align: left;">
+                    <th style="padding: 10px;">รายการ</th>
+                    <th style="padding: 10px; text-align: center;">ประเภท</th>
+                    <th style="padding: 10px; text-align: center;">จำนวน</th>
+                    <th style="padding: 10px; text-align: right;">ราคา/หน่วย</th>
+                    <th style="padding: 10px; text-align: right;">รวม (บาท)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Buffet Charge -->
+                <tr style="border-bottom: 1px solid #f3f4f6;">
+                    <td style="padding: 12px 10px; font-weight: 600;">บุฟเฟต์หมูกระทะ (ผู้ใหญ่)</td>
+                    <td style="padding: 12px 10px; text-align: center;"><span class="badge badge-cooking">BUFFET</span></td>
+                    <td style="padding: 12px 10px; text-align: center;"><%= session.guest_count %> ท่าน</td>
+                    <td style="padding: 12px 10px; text-align: right;"><%= session.buffet_price.toFixed(2) %></td>
+                    <td style="padding: 12px 10px; text-align: right; font-weight: 600;"><%= buffetTotal.toFixed(2) %></td>
+                </tr>
+
+                <!-- Alacarte Items -->
+                <% items.forEach(i => { %>
+                    <tr style="border-bottom: 1px solid #f3f4f6;">
+                        <td style="padding: 12px 10px;"><%= i.item_name %></td>
+                        <td style="padding: 12px 10px; text-align: center;">
+                            <span class="badge <%= i.charge_type === 'ALACARTE' ? 'badge-cancelled' : 'badge-served' %>">
+                                <%= i.charge_type %>
+                            </span>
+                        </td>
+                        <td style="padding: 12px 10px; text-align: center;"><%= i.quantity %></td>
+                        <td style="padding: 12px 10px; text-align: right;"><%= i.unit_price_at_order.toFixed(2) %></td>
+                        <td style="padding: 12px 10px; text-align: right;">
+                            <%= (i.quantity * i.unit_price_at_order).toFixed(2) %>
+                        </td>
+                    </tr>
+                <% }); %>
+            </tbody>
+        </table>
+
+        <!-- Totals Breakdown -->
+        <div style="background: #f9fafb; padding: 20px; border-radius: var(--border-radius-md); margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span>ยอดรวมก่อนภาษี (Subtotal):</span>
+                <span style="font-weight: 600;"><%= subtotal.toFixed(2) %> บาท</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: var(--text-secondary);">
+                <span>ภาษีมูลค่าเพิ่ม VAT 7%:</span>
+                <span><%= taxAmount.toFixed(2) %> บาท</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 1.4rem; font-weight: 700; color: var(--brand-red); border-top: 1px solid #e5e7eb; padding-top: 10px;">
+                <span>ยอดชำระสุทธิ (NET TOTAL):</span>
+                <span><%= netAmount.toFixed(2) %> บาท</span>
+            </div>
+        </div>
+
+        <!-- Payment Actions -->
+        <div style="display: flex; gap: 16px;">
+            <a href="/cashier/tables" class="btn btn-secondary">ย้อนกลับ</a>
+            <button class="btn btn-success" style="flex-grow: 1; font-size: 1.1rem;" onclick="openPaymentModal('<%= session.session_id %>', '<%= netAmount %>')">
+                💳 ดำเนินการชำระเงิน
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Payment Processing -->
+<div class="modal-overlay" id="paymentModal">
+    <div class="modal-content">
+        <h2 style="margin-bottom: 12px;">ชำระเงิน: โต๊ะ <%= session.table_no %></h2>
+        <p style="font-size: 1.3rem; font-weight: 700; color: var(--brand-red); margin-bottom: 20px;">
+            ยอดชำระสุทธิ: <%= netAmount.toFixed(2) %> บาท
+        </p>
+
+        <form id="paymentForm" onsubmit="submitPayment(event)">
+            <input type="hidden" id="paySessionId" value="<%= session.session_id %>">
+            
+            <div class="form-group">
+                <label class="form-label">ช่องทางการชำระเงิน</label>
+                <select class="form-select" id="payMethod" onchange="togglePayDetails(this.value)" required>
+                    <option value="CASH">💵 เงินสด (Cash)</option>
+                    <option value="PROMPTPAY">📱 PromptPay QR Code (สแกนจ่าย)</option>
+                    <option value="CREDIT_CARD">💳 บัตรเครดิต / เดบิต</option>
+                </select>
+            </div>
+
+            <!-- Cash details -->
+            <div id="cashDetails" class="form-group">
+                <label class="form-label">รับเงินมา (บาท)</label>
+                <input type="number" class="form-input" id="amountReceived" value="<%= Math.ceil(netAmount) %>" step="1" oninput="calcChange('<%= netAmount %>')">
+                <div style="margin-top: 8px; font-weight: 600; color: var(--brand-green);">
+                    เงินทอน: <span id="changeAmount">0.00</span> บาท
+                </div>
+            </div>
+
+            <!-- PromptPay QR details -->
+            <div id="promptpayDetails" class="form-group" style="display: none; text-align: center;">
+                <div style="padding: 16px; background: #eef2ff; border-radius: 12px; border: 1px solid #c7d2fe;">
+                    <p style="font-weight: 600; color: #3730a3; margin-bottom: 8px;">PromptPay QR Simulation</p>
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=PROMPTPAY-MOOKRATA-<%= netAmount %>" alt="PromptPay QR" style="border-radius: 8px;">
+                    <p style="font-size: 0.85rem; color: #4338ca; margin-top: 8px;">(จำลองการสแกนชำระเงินของลูกค้า)</p>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 24px;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('paymentModal')">ยกเลิก</button>
+                <button type="submit" class="btn btn-success" style="flex-grow: 1;">ยืนยันการรับชำระเงิน</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openPaymentModal(sessionId, netAmount) {
+        document.getElementById('paySessionId').value = sessionId;
+        calcChange(netAmount);
+        document.getElementById('paymentModal').classList.add('active');
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('active');
+    }
+
+    function togglePayDetails(method) {
+        document.getElementById('cashDetails').style.display = method === 'CASH' ? 'block' : 'none';
+        document.getElementById('promptpayDetails').style.display = method === 'PROMPTPAY' ? 'block' : 'none';
+    }
+
+    function calcChange(netAmount) {
+        const received = parseFloat(document.getElementById('amountReceived').value) || 0;
+        const change = Math.max(0, received - netAmount);
+        document.getElementById('changeAmount').innerText = change.toFixed(2);
+    }
+
+    async function submitPayment(e) {
+        e.preventDefault();
+        const session_id = document.getElementById('paySessionId').value;
+        const payment_method = document.getElementById('payMethod').value;
+        const amount_received = parseFloat(document.getElementById('amountReceived').value) || 0;
+
+        try {
+            const res = await fetch('/cashier/payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ session_id, payment_method, amount_received })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                alert(`✅ ชำระเงินสำเร็จ!\nเลขที่ใบเสร็จ: ${data.receipt_no}\nยอดชำระ: ${data.net_amount.toFixed(2)} บาท`);
+                window.location.href = '/cashier/tables';
+            } else {
+                alert(data.message);
+            }
+        } catch (err) {
+            alert('เกิดข้อผิดพลาดในการชำระเงิน');
+        }
+    }
+</script>
+
+<%- include('../partials/footer') %>

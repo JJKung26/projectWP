@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ติดตามสถานะออเดอร์ - โต๊ะ <%= session.table_no %></title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body style="padding-bottom: 40px; background: #f4f5f7;">
+
+    <!-- Top Header -->
+    <div style="background: linear-gradient(135deg, #1e1f29 0%, #121319 100%); color: #fff; padding: 16px; border-radius: 0 0 20px 20px;">
+        <h2 style="font-size: 1.3rem;">⏳ สถานะออเดอร์ (โต๊ะ <%= session.table_no %>)</h2>
+        <p style="font-size: 0.85rem; color: #9ca3af;">ติดตามการจัดเตรียมอาหารจากห้องครัวแบบ Real-time</p>
+    </div>
+
+    <!-- Quick Navigation Bar -->
+    <div class="container" style="margin-top: 12px; margin-bottom: 16px;">
+        <div style="display: flex; gap: 8px;">
+            <a href="/menu?token=<%= token %>" class="btn btn-secondary btn-sm" style="flex: 1;">📋 สั่งอาหารเพิ่ม</a>
+            <a href="/orders?token=<%= token %>" class="btn btn-primary btn-sm" style="flex: 1;">⏳ สถานะออเดอร์</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <% if (orders.length === 0) { %>
+            <div class="card" style="text-align: center; padding: 40px 20px;">
+                <div style="font-size: 2.5rem; margin-bottom: 8px;">🍽️</div>
+                <p style="color: var(--text-secondary);">ยังไม่มีรายการอาหารที่สั่งในขณะนี้</p>
+                <a href="/menu?token=<%= token %>" class="btn btn-primary" style="margin-top: 16px;">ไปที่หน้าสั่งอาหาร</a>
+            </div>
+        <% } else { %>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">รายการที่สั่งไว้ทั้งหมด (<%= orders.length %> รายการ)</h3>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <% orders.forEach(item => { %>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f9fafb; border-radius: var(--border-radius-sm); border-left: 4px solid '<%= item.item_status === 'PENDING' ? '#f59e0b' : (item.item_status === 'COOKING' ? '#3b82f6' : (item.item_status === 'READY' ? '#10b981' : '#6b7280')) %>';">
+                            <div>
+                                <div style="font-weight: 600;"><%= item.item_name %> x <%= item.quantity %></div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary);">
+                                    เวลาสั่ง: <%= new Date(item.ordered_at).toLocaleTimeString('th-TH') %>
+                                </div>
+                            </div>
+                            <div>
+                                <% if (item.item_status === 'PENDING') { %>
+                                    <span class="badge badge-pending">🕒 รอคิว</span>
+                                <% } else if (item.item_status === 'COOKING') { %>
+                                    <span class="badge badge-cooking">🍳 กำลังทำ</span>
+                                <% } else if (item.item_status === 'READY') { %>
+                                    <span class="badge badge-ready">🔔 พร้อมเสิร์ฟ</span>
+                                <% } else if (item.item_status === 'SERVED') { %>
+                                    <span class="badge badge-served">✅ เสิร์ฟแล้ว</span>
+                                <% } else if (item.item_status === 'CANCELLED') { %>
+                                    <span class="badge badge-cancelled">❌ ยกเลิก (<%= item.cancel_reason || 'ของหมด' %>)</span>
+                                <% } %>
+                            </div>
+                        </div>
+                    <% }); %>
+                </div>
+            </div>
+        <% } %>
+    </div>
+
+    <script>
+        const socket = io();
+        socket.on('order-status-changed', (data) => {
+            location.reload();
+        });
+    </script>
+</body>
+</html>
