@@ -54,7 +54,7 @@ exports.openTable = async (req, res) => {
 
         const sessionId = 'SES-' + Date.now();
         const qrToken = 'QR-' + table.table_no + '-' + crypto.randomBytes(4).toString('hex');
-        const price = parseFloat(buffet_price) || 219.0;
+        const price = parseFloat(buffet_price) || 279.0;
         const count = parseInt(guest_count) || 1;
 
         // Create DiningSession
