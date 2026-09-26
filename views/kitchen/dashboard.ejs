@@ -1,61 +1,69 @@
 <%- include('../partials/header') %>
+<%
+    // SQLite CURRENT_TIMESTAMP is UTC without a zone marker
+    const toTime = s => new Date(String(s).replace(' ', 'T') + 'Z')
+        .toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok' });
+    const pending = orderItems.filter(i => i.item_status === 'PENDING').length;
+    const cooking = orderItems.filter(i => i.item_status === 'COOKING').length;
+    const soldOut = menuItems.filter(m => m.availability === 0).length;
+%>
 
 <div class="container">
-    <div class="card-header" style="border: none; margin-bottom: 20px;">
+    <div class="page-head">
         <div>
-            <h1 style="font-size: 1.8rem; font-weight: 700;">👨‍🍳 หน้าจอพนักงานครัว (Kitchen Dashboard)</h1>
-            <p style="color: var(--text-secondary);">จัดการคิวออเดอร์ ปรับสถานะทำอาหาร และเปิด/ปิดสต็อกวัตถุดิบ</p>
+            <div class="eyebrow">ครัว</div>
+            <h1>คิวออเดอร์</h1>
+            <p>เรียงตามเวลาสั่ง รายการเก่าสุดอยู่ก่อน</p>
+        </div>
+        <div class="stat-strip">
+            <div class="stat">
+                <div class="stat-label"><span class="dot warn"></span>รอทำ</div>
+                <div class="stat-value"><%= pending %></div>
+            </div>
+            <div class="stat">
+                <div class="stat-label"><span class="dot" style="background: var(--info);"></span>กำลังทำ</div>
+                <div class="stat-value"><%= cooking %></div>
+            </div>
         </div>
     </div>
 
-    <!-- Kitchen Tabs -->
-    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-        <button class="btn btn-primary" id="btnOrdersTab" onclick="showTab('ordersTab')">🍳 คิวออเดอร์อาหาร</button>
-        <button class="btn btn-secondary" id="btnStockTab" onclick="showTab('stockTab')">📦 จัดการสต็อกวัตถุดิบ</button>
+    <div class="tabs" role="tablist">
+        <button class="tab active" id="btnOrdersTab" role="tab" onclick="showTab('ordersTab')">
+            ออเดอร์ <span class="count-pill"><%= orderItems.length %></span>
+        </button>
+        <button class="tab" id="btnStockTab" role="tab" onclick="showTab('stockTab')">
+            สต็อกวัตถุดิบ<% if (soldOut > 0) { %> <span class="badge badge-cancelled plain">หมด <%= soldOut %></span><% } %>
+        </button>
     </div>
 
-    <!-- Tab 1: Live Order Queue -->
     <div id="ordersTab">
         <% if (orderItems.length === 0) { %>
-            <div class="card" style="text-align: center; padding: 50px;">
-                <div style="font-size: 3rem; margin-bottom: 10px;">✅</div>
-                <h3>ยังไม่มีคิวออเดอร์ในขณะนี้</h3>
-                <p style="color: var(--text-secondary);">เมื่อมีลูกค้าสั่งอาหาร ระบบจะแสดงรายการที่นี่อัตโนมัติแบบ Real-time</p>
+            <div class="card empty">
+                <div class="empty-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4 10-10"/></svg>
+                </div>
+                <h3>ไม่มีออเดอร์ค้าง</h3>
+                <p>ออเดอร์ใหม่จะขึ้นที่นี่ทันทีที่ลูกค้ากดส่ง</p>
             </div>
         <% } else { %>
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
-                <% orderItems.forEach(item => { %>
-                    <div class="card" style="margin-bottom: 0; border-left: 5px solid '<%= item.item_status === 'PENDING' ? '#f59e0b' : '#3b82f6' %>';">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <span style="font-size: 1.2rem; font-weight: 700; color: var(--brand-red);">โต๊ะ <%= item.table_no %></span>
-                            <span class="badge <%= item.item_status === 'PENDING' ? 'badge-pending' : 'badge-cooking' %>">
-                                <%= item.item_status === 'PENDING' ? 'รอคิว' : 'กำลังทำ' %>
-                            </span>
+            <div class="ticket-grid">
+                <% orderItems.forEach(item => { const isCooking = item.item_status === 'COOKING'; %>
+                    <div class="ticket<%= isCooking ? ' is-cooking' : '' %>">
+                        <div class="ticket-head">
+                            <span class="ticket-table">โต๊ะ <%= item.table_no %></span>
+                            <span class="ticket-time"><%= isCooking ? 'กำลังทำ · ' : '' %><%= toTime(item.ordered_at) %></span>
                         </div>
-
-                        <div style="font-size: 1.1rem; font-weight: 600; margin-bottom: 4px;"><%= item.item_name %></div>
-                        <div style="font-size: 1.3rem; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">
-                            จำนวน: <%= item.quantity %> ถาด/จาน
+                        <div class="ticket-body">
+                            <img class="ticket-thumb" src="<%= item.image_url %>" alt="" onerror="this.style.visibility='hidden'">
+                            <div class="ticket-item"><%= item.item_name %></div>
+                            <div class="ticket-qty"><small>×</small><%= item.quantity %></div>
                         </div>
-
-                        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 16px;">
-                            เวลาสั่ง: <%= new Date(item.ordered_at).toLocaleTimeString('th-TH') %>
-                        </div>
-
-                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                            <% if (item.item_status === 'PENDING') { %>
-                                <button class="btn btn-warning btn-sm" style="flex: 1;" onclick="updateStatus('<%= item.order_item_id %>', 'COOKING')">
-                                    🍳 เริ่มทำ
-                                </button>
+                        <div class="ticket-actions">
+                            <% if (!isCooking) { %>
+                                <button class="btn btn-secondary btn-sm" onclick="updateStatus('<%= item.order_item_id %>', 'COOKING')">เริ่มทำ</button>
                             <% } %>
-                            <% if (item.item_status === 'COOKING' || item.item_status === 'PENDING') { %>
-                                <button class="btn btn-success btn-sm" style="flex: 1;" onclick="updateStatus('<%= item.order_item_id %>', 'READY')">
-                                    ✅ ทำเสร็จแล้ว
-                                </button>
-                            <% } %>
-                            <button class="btn btn-danger btn-sm" onclick="cancelItem('<%= item.order_item_id %>')">
-                                ❌ วัตถุดิบหมด
-                            </button>
+                            <button class="btn btn-success btn-sm" onclick="updateStatus('<%= item.order_item_id %>', 'READY')">เสร็จแล้ว</button>
+                            <button class="btn btn-ghost btn-sm" style="flex: 0 0 auto; color: var(--danger);" onclick="cancelItem('<%= item.order_item_id %>')" title="ยกเลิกเพราะวัตถุดิบหมด">ของหมด</button>
                         </div>
                     </div>
                 <% }); %>
@@ -63,26 +71,20 @@
         <% } %>
     </div>
 
-    <!-- Tab 2: Stock Management -->
     <div id="stockTab" style="display: none;">
-        <div class="card">
-            <h3 style="margin-bottom: 16px;">เปิด / ปิด สต็อกวัตถุดิบชั่วคราว</h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px;">
-                <% menuItems.forEach(mi => { %>
-                    <div style="padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <div style="font-weight: 600;"><%= mi.item_name %></div>
-                            <span class="badge <%= mi.availability === 1 ? 'badge-available' : 'badge-cancelled' %>">
-                                <%= mi.availability === 1 ? 'มีของ' : 'ของหมด' %>
-                            </span>
-                        </div>
-                        <button class="btn btn-sm <%= mi.availability === 1 ? 'btn-danger' : 'btn-success' %>"
-                                onclick="toggleStock('<%= mi.menu_item_id %>', '<%= mi.availability === 1 ? 0 : 1 %>')">
-                            <%= mi.availability === 1 ? 'ปิด' : 'เปิด' %>
-                        </button>
+        <p class="muted" style="margin-bottom: 14px;">ปิดสวิตช์เมื่อวัตถุดิบหมด เมนูนั้นจะขึ้นว่า "หมดชั่วคราว" ในมือถือลูกค้าทันที</p>
+        <div class="stock-grid">
+            <% menuItems.forEach(mi => { const on = mi.availability === 1; %>
+                <div class="stock-row<%= on ? '' : ' off' %>">
+                    <img src="<%= mi.image_url %>" alt="" onerror="this.style.visibility='hidden'">
+                    <div>
+                        <div class="name"><%= mi.item_name %></div>
+                        <span class="badge <%= on ? 'badge-available' : 'badge-cancelled' %>"><%= on ? 'มีของ' : 'หมด' %></span>
                     </div>
-                <% }); %>
-            </div>
+                    <button class="switch" role="switch" aria-checked="<%= on %>" aria-label="<%= mi.item_name %>"
+                            onclick="toggleStock('<%= mi.menu_item_id %>', '<%= on ? 0 : 1 %>')"></button>
+                </div>
+            <% }); %>
         </div>
     </div>
 </div>
@@ -93,7 +95,12 @@
     function showTab(tabId) {
         document.getElementById('ordersTab').style.display = tabId === 'ordersTab' ? 'block' : 'none';
         document.getElementById('stockTab').style.display = tabId === 'stockTab' ? 'block' : 'none';
+        document.getElementById('btnOrdersTab').classList.toggle('active', tabId === 'ordersTab');
+        document.getElementById('btnStockTab').classList.toggle('active', tabId === 'stockTab');
+        location.hash = tabId === 'stockTab' ? 'stock' : '';
     }
+    // Stay on the stock tab after a toggle reloads the page
+    if (location.hash === '#stock') showTab('stockTab');
 
     async function updateStatus(order_item_id, status) {
         try {
@@ -138,10 +145,7 @@
         }
     }
 
-    // Real-time listener
-    socket.on('new-order', () => {
-        location.reload();
-    });
+    socket.on('new-order', () => location.reload());
 </script>
 
 <%- include('../partials/footer') %>

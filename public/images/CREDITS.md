@@ -1,0 +1,62 @@
+# Menu photo credits
+
+All menu photos come from Wikimedia Commons, resized and cropped to 4:3.
+
+- `pork_belly.jpg`: [Freshly prepared raw pork belly with red onions and chili peppers.jpg](https://commons.wikimedia.org/wiki/File:Freshly_prepared_raw_pork_belly_with_red_onions_and_chili_peppers.jpg) by Shixart1985, CC BY 2.0
+- `pork_collar.jpg`: [SZ 深圳 Shenzhen 福田 Futian 皇庭廣場 Wongtee Plaza shop 漢陽廷自助烤肉 Hayaco Barbecue Restaurant raw beef n pork slices September 2025 N13P 08.jpg](https://commons.wikimedia.org/wiki/File:SZ_%E6%B7%B1%E5%9C%B3_Shenzhen_%E7%A6%8F%E7%94%B0_Futian_%E7%9A%87%E5%BA%AD%E5%BB%A3%E5%A0%B4_Wongtee_Plaza_shop_%E6%BC%A2%E9%99%BD%E5%BB%B7%E8%87%AA%E5%8A%A9%E7%83%A4%E8%82%89_Hayaco_Barbecue_Restaurant_raw_beef_n_pork_slices_September_2025_N13P_08.jpg) by WCPCLM 2002258, CC0
+- `marinated_pork.jpg`: [Marinated pork sliced butt at Asian supermarket in New Jersey.jpg](https://commons.wikimedia.org/wiki/File:Marinated_pork_sliced_butt_at_Asian_supermarket_in_New_Jersey.jpg) by Tomwsulcer, CC0
+- `blackpepper_pork.jpg`: [Pork stir-fried with black pepper (37000148695).jpg](https://commons.wikimedia.org/wiki/File:Pork_stir-fried_with_black_pepper_(37000148695).jpg) by NuCastiel from Bangkok, Thailand, CC BY 2.0
+- `bacon.jpg`: [Raw bacon.jpg](https://commons.wikimedia.org/wiki/File:Raw_bacon.jpg) by ryan.dowd, CC BY-SA 2.0
+- `pork_liver.jpg`: [Pork liver.jpg](https://commons.wikimedia.org/wiki/File:Pork_liver.jpg) by Fumikas Sagisavas, CC0
+- `sliced_beef.jpg`: [Raw Beef Ribeye Slices for Hot Pot.jpg](https://commons.wikimedia.org/wiki/File:Raw_Beef_Ribeye_Slices_for_Hot_Pot.jpg) by Ceeseven, CC BY-SA 4.0
+- `shrimp.jpg`: [Raw shrimp.jpg](https://commons.wikimedia.org/wiki/File:Raw_shrimp.jpg) by Fumikas Sagisavas, CC0
+- `squid.jpg`: [Chilled squid rings.jpg](https://commons.wikimedia.org/wiki/File:Chilled_squid_rings.jpg) by François Nguyen, CC BY 2.0
+- `jellyfish.jpg`: [Jellyfish sesame oil and chili sauce.jpg](https://commons.wikimedia.org/wiki/File:Jellyfish_sesame_oil_and_chili_sauce.jpg) by Holly Cheng, CC BY-SA 3.0
+- `cabbage.jpg`: [Napa Cabbage.jpg](https://commons.wikimedia.org/wiki/File:Napa_Cabbage.jpg) by SarKaLay စာကလေး, CC BY-SA 4.0
+- `morning_glory.jpg`: [Water spinach.jpg](https://commons.wikimedia.org/wiki/File:Water_spinach.jpg) by Fumikas Sagisavas, CC0
+- `enoki.jpg`: [Flammulina velutipes 1 2017-01-18.jpg](https://commons.wikimedia.org/wiki/File:Flammulina_velutipes_1_2017-01-18.jpg) by FASTILY, CC BY-SA 4.0
+- `eryngii.jpg`: [Pleurotus eryngii of private cultivation.jpg](https://commons.wikimedia.org/wiki/File:Pleurotus_eryngii_of_private_cultivation.jpg) by Chatama, Public domain
+- `corn.jpg`: [Corn on the cob (sweet corn).jpg](https://commons.wikimedia.org/wiki/File:Corn_on_the_cob_(sweet_corn).jpg) by Nutrition, Food Safety & Health, CC0
+- `glass_noodle.jpg`: [Sweet potato vermicelli (1).jpg](https://commons.wikimedia.org/wiki/File:Sweet_potato_vermicelli_(1).jpg) by Fumikas Sagisavas, CC0
+- `fishball.jpg`: [Fishball.jpg](https://commons.wikimedia.org/wiki/File:Fishball.jpg) by Wing11803, CC BY-SA 4.0
+- `fish_tofu.jpg`: [Fish tofu.jpg](https://commons.wikimedia.org/wiki/File:Fish_tofu.jpg) by Fumikas Sagisavas, CC0
+- `sausage.jpg`: [Chicken sausages - Tapa.JPG](https://commons.wikimedia.org/wiki/File:Chicken_sausages_-_Tapa.JPG) by Tamorlan, CC BY-SA 3.0
+- `crabstick.jpg`: [Kanikama.jpg](https://commons.wikimedia.org/wiki/File:Kanikama.jpg) by Original uploader was Natto at ja.wikipedia, CC BY-SA 3.0
+- `french_fries.jpg`: [French Fries.JPG](https://commons.wikimedia.org/wiki/File:French_Fries.JPG) by StockSnap, CC0
+- `gyoza.jpg`: [Gyoza - Tora.jpg](https://commons.wikimedia.org/wiki/File:Gyoza_-_Tora.jpg) by Francesc Fort, CC BY-SA 4.0
+- `drink_refill.jpg`: [Cha yen.JPG](https://commons.wikimedia.org/wiki/File:Cha_yen.JPG) by Takeaway, CC BY-SA 3.0
+- `orange_juice.jpg`: [Orange juice 1 edit1.jpg](https://commons.wikimedia.org/wiki/File:Orange_juice_1_edit1.jpg) by Agency of the United States Department of Agriculture Edited Version by: Arad, Public domain
+- `singha.jpg`: [Singha Beer in bottle and glass.jpg](https://commons.wikimedia.org/wiki/File:Singha_Beer_in_bottle_and_glass.jpg) by Slyronit, CC BY-SA 4.0
+- `icecream.jpg`: [Coconut Ice Cream, Bangkok.jpg](https://commons.wikimedia.org/wiki/File:Coconut_Ice_Cream,_Bangkok.jpg) by Anilakeo, CC BY-SA 4.0
+- `grass_jelly.jpg`: [GrassJellyBlocks.jpg](https://commons.wikimedia.org/wiki/File:GrassJellyBlocks.jpg) by Sjschen, CC BY-SA 4.0
+- `chicken_marinated.jpg`: [(202502) Raw marinated chicken 01.jpg](https://commons.wikimedia.org/wiki/File:(202502)_Raw_marinated_chicken_01.jpg) by Roy Zuo, CC BY-SA 4.0
+- `chicken_wings.jpg`: [Raw chicken wings.jpg](https://commons.wikimedia.org/wiki/File:Raw_chicken_wings.jpg) by ProjectManhattan, CC BY-SA 3.0
+- `dory.jpg`: [Chilled Basa Fish Fillet.jpg](https://commons.wikimedia.org/wiki/File:Chilled_Basa_Fish_Fillet.jpg) by François Nguyen, CC BY 2.0
+- `mussels.jpg`: [3 - hoi men puu.jpg](https://commons.wikimedia.org/wiki/File:3_-_hoi_men_puu.jpg) by Susan Slater, CC BY-SA 4.0
+- `cockles.jpg`: [Kkomak (Tegillarca granosa) 2 (cropped).jpg](https://commons.wikimedia.org/wiki/File:Kkomak_(Tegillarca_granosa)_2_(cropped).jpg) by 국립국어원, CC BY-SA 2.0 kr
+- `squid_skewer.jpg`: [DZ3 0611 Fresh marinated squid skewers ready for the grill at a Thai street-food stall in Sattahip.jpg](https://commons.wikimedia.org/wiki/File:DZ3_0611_Fresh_marinated_squid_skewers_ready_for_the_grill_at_a_Thai_street-food_stall_in_Sattahip.jpg) by PattayaPatrol, CC BY-SA 4.0
+- `beef_yakiniku.jpg`: [Assorted Raw Beef Slices for Yakiniku.jpg](https://commons.wikimedia.org/wiki/File:Assorted_Raw_Beef_Slices_for_Yakiniku.jpg) by Ceeseven, CC BY-SA 4.0
+- `choy_sum.jpg`: [Choy-sum.jpg](https://commons.wikimedia.org/wiki/File:Choy-sum.jpg) by Pokman817, CC BY-SA 3.0
+- `lettuce.jpg`: [Green Oak Leaf lettuce J1.jpg](https://commons.wikimedia.org/wiki/File:Green_Oak_Leaf_lettuce_J1.jpg) by Jamain, CC BY-SA 3.0
+- `shiitake.jpg`: [Fresh shiitake mushrooms.jpg](https://commons.wikimedia.org/wiki/File:Fresh_shiitake_mushrooms.jpg) by Fumikas Sagisavas, CC0
+- `straw_mushroom.jpg`: [Oyster Mushroom and Straw Mushroom.jpg](https://commons.wikimedia.org/wiki/File:Oyster_Mushroom_and_Straw_Mushroom.jpg) by Peachyeung316, CC BY-SA 4.0
+- `carrot.jpg`: [Sliced carrots img.jpg](https://commons.wikimedia.org/wiki/File:Sliced_carrots_img.jpg) by KISUMAR123, CC0
+- `baby_corn.jpg`: [Baby corn 1.jpg](https://commons.wikimedia.org/wiki/File:Baby_corn_1.jpg) by Quinn Dombrowski, CC BY-SA 2.0
+- `silken_tofu.jpg`: [Japanese SilkyTofu (Kinugoshi Tofu).JPG](https://commons.wikimedia.org/wiki/File:Japanese_SilkyTofu_(Kinugoshi_Tofu).JPG) by DryPot, CC BY-SA 3.0
+- `pork_ball.jpg`: [Porkball.jpg](https://commons.wikimedia.org/wiki/File:Porkball.jpg) by Terry Su from Sapporo, Japan, CC BY 2.0
+- `egg_tofu.jpg`: [Fried Egg Tofu (53000846832).jpg](https://commons.wikimedia.org/wiki/File:Fried_Egg_Tofu_(53000846832).jpg) by Choo Yut Shing from Singapore, Singapore, CC BY 2.0
+- `popcorn_chicken.jpg`: [Popcorn Chicken (54442218769).jpg](https://commons.wikimedia.org/wiki/File:Popcorn_Chicken_(54442218769).jpg) by Choo Yut Shing from Singapore, Singapore, CC BY 2.0
+- `spring_roll.jpg`: [Fried Spring Rolls (54538849838).jpg](https://commons.wikimedia.org/wiki/File:Fried_Spring_Rolls_(54538849838).jpg) by Choo Yut Shing, CC BY 2.0
+- `rice.jpg`: [Steamed rice in bowl 01.jpg](https://commons.wikimedia.org/wiki/File:Steamed_rice_in_bowl_01.jpg) by Anna Frodesiak, CC0
+- `egg_noodle.jpg`: [Fresh Egg Noodles and Fresh Rice Noodle Rolls from Ng Pik Kee Noodle Factory.jpg](https://commons.wikimedia.org/wiki/File:Fresh_Egg_Noodles_and_Fresh_Rice_Noodle_Rolls_from_Ng_Pik_Kee_Noodle_Factory.jpg) by Peachyeung316, CC BY-SA 4.0
+- `instant_noodle.jpg`: [Instant noodles at home.jpg](https://commons.wikimedia.org/wiki/File:Instant_noodles_at_home.jpg) by Peachyeung316, CC BY-SA 4.0
+- `egg.jpg`: [Brown chicken eggs (1).jpg](https://commons.wikimedia.org/wiki/File:Brown_chicken_eggs_(1).jpg) by Justus Blümer from Deutschland, CC BY 2.0
+- `water.jpg`: [Big Bottles of Water.jpg](https://commons.wikimedia.org/wiki/File:Big_Bottles_of_Water.jpg) by mycurrency.com, CC BY-SA 4.0
+- `coconut.jpg`: [Coconut Drink, Pangandaran.JPG](https://commons.wikimedia.org/wiki/File:Coconut_Drink,_Pangandaran.JPG) by Crisco 1492, CC BY-SA 3.0
+- `soda.jpg`: [Tumbler of cola with ice.jpg](https://commons.wikimedia.org/wiki/File:Tumbler_of_cola_with_ice.jpg) by Simon Cousins from High Wycombe, England, CC BY 2.0
+- `leo.jpg`: [Leo (5312378708).jpg](https://commons.wikimedia.org/wiki/File:Leo_(5312378708).jpg) by Ryan Snyder, CC BY 2.0
+- `ice.jpg`: [Ice cubes (53470454612).jpg](https://commons.wikimedia.org/wiki/File:Ice_cubes_(53470454612).jpg) by Leonie Bourke, CC BY-SA 2.0
+- `tubtim.jpg`: [Tub tim krob in Singapore - 20050520.jpg](https://commons.wikimedia.org/wiki/File:Tub_tim_krob_in_Singapore_-_20050520.jpg) by Chensiyuan at English Wikipedia, CC BY-SA 3.0
+- `bualoy.jpg`: [Bualoy kaiwan - Thai food.JPG](https://commons.wikimedia.org/wiki/File:Bualoy_kaiwan_-_Thai_food.JPG) by User:Mattes, Public domain
+- `lodchong.jpg`: [Lot chong - Bangkok - 2017-07-11 (003).jpg](https://commons.wikimedia.org/wiki/File:Lot_chong_-_Bangkok_-_2017-07-11_(003).jpg) by Iudexvivorum, CC0
+- `hero.jpg`: [Mookata หมูกระทะ in Ban Na, Nakhon Nayok.jpg](https://commons.wikimedia.org/wiki/File:Mookata_%E0%B8%AB%E0%B8%A1%E0%B8%B9%E0%B8%81%E0%B8%A3%E0%B8%B0%E0%B8%97%E0%B8%B0_in_Ban_Na,_Nakhon_Nayok.jpg) by Chainwit., CC BY-SA 4.0

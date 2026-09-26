@@ -5,7 +5,7 @@ exports.getDashboard = async (req, res) => {
     try {
         // Items ready to be served
         const readyItems = await db.query(`
-            SELECT oi.*, mi.item_name, t.table_no, fo.session_id, fo.ordered_at
+            SELECT oi.*, mi.item_name, mi.image_url, t.table_no, fo.session_id, fo.ordered_at
             FROM OrderItem oi
             JOIN FoodOrder fo ON oi.order_id = fo.order_id
             JOIN DiningSession ds ON fo.session_id = ds.session_id
@@ -17,7 +17,7 @@ exports.getDashboard = async (req, res) => {
 
         res.render('serving/dashboard', {
             readyItems,
-            title: 'พนักงานเสิร์ฟ (Serving Staff Dashboard)'
+            title: 'จุดเสิร์ฟ'
         });
     } catch (err) {
         console.error('Error loading serving dashboard:', err);
