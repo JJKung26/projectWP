@@ -1,0 +1,11 @@
+# Dependencies — install with `npm install`
+node_modules/
+
+# Local SQLite database — created and seeded from database/schema.sql + seed.sql on startup
+data/*.db
+data/*.db-journal
+
+# Environment and OS files
+.env
+.DS_Store
+npm-debug.log*
