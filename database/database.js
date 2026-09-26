@@ -36,12 +36,36 @@ function initDatabase() {
         }
         console.log('Database schema created/verified successfully.');
 
-        db.exec(seedSql, (err) => {
-            if (err) {
-                console.error('Error executing seed.sql:', err.message);
-                return;
-            }
-            console.log('Database seeded successfully.');
+        migrate(() => {
+            db.exec(seedSql, (err) => {
+                if (err) {
+                    console.error('Error executing seed.sql:', err.message);
+                    return;
+                }
+                console.log('Database seeded successfully.');
+            });
+        });
+    });
+}
+
+// Columns added after the first release. CREATE TABLE IF NOT EXISTS won't add
+// them to a database that already exists, so add any that are missing.
+const addedColumns = [
+    ['Category', 'sort_order', 'INTEGER NOT NULL DEFAULT 0'],
+    ['MenuItem', 'description', 'TEXT']
+];
+
+function migrate(done) {
+    let pending = addedColumns.length;
+    addedColumns.forEach(([table, column, type]) => {
+        db.all(`PRAGMA table_info(${table})`, (err, cols) => {
+            const finish = () => { if (--pending === 0) done(); };
+            if (err || cols.some(c => c.name === column)) return finish();
+            db.run(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`, (err) => {
+                if (err) console.error(`Error adding ${table}.${column}:`, err.message);
+                else console.log(`Added column ${table}.${column}`);
+                finish();
+            });
         });
     });
 }
