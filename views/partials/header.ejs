@@ -7,15 +7,26 @@
     <link rel="stylesheet" href="/css/style.css">
     <script src="/socket.io/socket.io.js"></script>
 </head>
-<body>
-    <header class="navbar">
+<body class="staff">
+    <header class="navbar no-print">
         <a href="/" class="brand">
-            <span>🔥 หมูกระทะ QR Order</span>
-            <span class="brand-badge">PRO</span>
+            <svg class="brand-logo" viewBox="0 0 100 100" aria-hidden="true">
+                <circle cx="50" cy="50" r="50" fill="#c8401a"/>
+                <path d="M24 60 Q50 20 76 60 Z" fill="#fff"/>
+                <path d="M18 60h64" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+                <path d="M35 54l5-8M47 54l3-11M57 54l2-9M67 54l-1-6" stroke="#c8401a" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+            <span class="brand-name">ร้านหมูกระทะ บุฟเฟต์</span>
+            <span class="brand-sub">หลังร้าน</span>
         </a>
         <nav class="nav-links">
-            <a href="/cashier/tables" class="nav-link">แคชเชียร์ / โต๊ะ</a>
-            <a href="/kitchen" class="nav-link">ครัว</a>
-            <a href="/serving" class="nav-link">พนักงานเสิร์ฟ</a>
+            <a href="/cashier/tables" class="nav-link" data-match="/cashier">แคชเชียร์</a>
+            <a href="/kitchen" class="nav-link" data-match="/kitchen">ครัว</a>
+            <a href="/serving" class="nav-link" data-match="/serving">เสิร์ฟ</a>
         </nav>
     </header>
+    <script>
+        document.querySelectorAll('.nav-link').forEach(a => {
+            if (location.pathname.startsWith(a.dataset.match)) a.classList.add('active');
+        });
+    </script>

@@ -1,159 +1,329 @@
+<%
+    const SHOP_NAME = 'ร้านหมูกระทะ บุฟเฟต์';
+    const sections = categories
+        .map(cat => ({ ...cat, items: menuItems.filter(m => m.category_id === cat.category_id) }))
+        .filter(cat => cat.items.length > 0);
+%>
 <!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>เมนูสั่งอาหาร - โต๊ะ <%= session.table_no %></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#ffffff">
+    <title>เมนู · โต๊ะ <%= session.table_no %></title>
     <link rel="stylesheet" href="/css/style.css">
     <script src="/socket.io/socket.io.js"></script>
 </head>
-<body style="padding-bottom: 90px; background: #f4f5f7;">
+<body class="cust">
+<div class="cust-shell">
 
-    <!-- Customer Mobile Top Header -->
-    <div style="background: linear-gradient(135deg, #e63946 0%, #c1121f 100%); color: #fff; padding: 16px; border-radius: 0 0 20px 20px; box-shadow: var(--shadow-md);">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <h2 style="font-size: 1.4rem; font-weight: 700;">🔥 ร้านหมูกระทะ ชาบู</h2>
-                <p style="font-size: 0.9rem; opacity: 0.9;">โต๊ะ <%= session.table_no %> • จำนวน <%= session.guest_count %> ท่าน</p>
-            </div>
-            <span class="badge" style="background: rgba(255,255,255,0.2); color: #fff;">บุฟเฟต์ <%= session.buffet_price %>฿</span>
+    <header class="hero" style="background-image: url('/images/hero.jpg');">
+        <div class="hero-bar">
+            <span class="table-pill">
+                <span>โต๊ะ <%= session.table_no %></span>
+                <span class="sep"></span>
+                <span><%= session.guest_count %> ท่าน</span>
+            </span>
+            <a class="round-btn" href="/orders?token=<%= token %>" aria-label="ออเดอร์ของโต๊ะ">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>
+            </a>
         </div>
+    </header>
+
+    <div class="shop-head">
+        <svg class="shop-logo" viewBox="0 0 100 100" aria-hidden="true">
+            <circle cx="50" cy="50" r="50" fill="#c8401a"/>
+            <circle cx="50" cy="50" r="41" fill="none" stroke="#fff" stroke-opacity="0.45" stroke-width="1.5"/>
+            <path d="M27 55 Q50 22 73 55 Z" fill="#fff"/>
+            <path d="M22 55h56" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+            <path d="M36 50l4-6M46 50l3-9M55 50l2-7M64 50l-1-5" stroke="#c8401a" stroke-width="2" stroke-linecap="round"/>
+            <text x="50" y="74" text-anchor="middle" fill="#fff" font-family="Mitr, sans-serif" font-size="12">หมูกระทะ</text>
+        </svg>
+        <h1><%= SHOP_NAME %></h1>
+        <p>บุฟเฟต์ <%= session.buffet_price %> บาท/ท่าน · สั่งได้ไม่อั้น รายการที่มีราคาคิดเพิ่ม</p>
     </div>
 
-    <!-- Quick Navigation Bar for Customer -->
-    <div class="container" style="margin-top: 12px; margin-bottom: 12px;">
-        <div style="display: flex; gap: 8px;">
-            <a href="/menu?token=<%= token %>" class="btn btn-primary btn-sm" style="flex: 1;">📋 เมนูอาหาร</a>
-            <a href="/orders?token=<%= token %>" class="btn btn-secondary btn-sm" style="flex: 1;">⏳ สถานะออเดอร์</a>
-        </div>
-    </div>
-
-    <div class="container">
-        <!-- Category Filter Tabs -->
-        <div class="category-tabs">
-            <button class="category-tab active" onclick="filterCategory('ALL', this)">ทั้งหมด</button>
-            <% categories.forEach(cat => { %>
-                <button class="category-tab" onclick="filterCategory('<%= cat.category_id %>', this)">
-                    <%= cat.category_name %>
-                </button>
-            <% }); %>
-        </div>
-
-        <!-- Menu Item Grid -->
-        <div class="menu-grid">
-            <% menuItems.forEach(item => { %>
-                <div class="menu-card item-category-<%= item.category_id %>" id="menu-card-<%= item.menu_item_id %>">
-                    <div style="position: relative;">
-                        <img src="<%= item.image_url || '/images/default_food.jpg' %>" 
-                             alt="<%= item.item_name %>"
-                             onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1544025162-d76694265947?w=400';">
-                        <% if (item.availability === 0) { %>
-                            <div style="position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.6); color: #fff; display:flex; align-items:center; justify-content:center; font-weight:700;">
-                                วัตถุดิบหมดชั่วคราว
-                            </div>
-                        <% } %>
-                    </div>
-                    <div class="menu-card-body">
-                        <div class="menu-card-title"><%= item.item_name %></div>
-                        <div class="menu-card-price">
-                            <% if (item.charge_type === 'BUFFET') { %>
-                                บุฟเฟต์ (0 บาท)
-                            <% } else { %>
-                                <%= item.unit_price.toFixed(2) %> บาท
-                            <% } %>
-                        </div>
-                        
-                        <% if (item.availability === 1) { %>
-                            <div class="quantity-control">
-                                <button class="quantity-btn" onclick="updateQty('<%= item.menu_item_id %>', -1)">-</button>
-                                <span class="quantity-val" id="qty-<%= item.menu_item_id %>">0</span>
-                                <button class="quantity-btn" onclick="updateQty('<%= item.menu_item_id %>', 1)">+</button>
-                            </div>
-                        <% } %>
-                    </div>
-                </div>
-            <% }); %>
-        </div>
-    </div>
-
-    <!-- Floating Bottom Cart Bar -->
-    <div class="cart-bar" id="cartBar" style="display: none;">
-        <div>
-            <div style="font-size: 0.85rem; opacity: 0.8;">เลือกแล้ว</div>
-            <div style="font-size: 1.1rem; font-weight: 700;"><span id="cartCount">0</span> รายการ</div>
-        </div>
-        <button class="btn btn-primary" onclick="submitOrder('<%= token %>')">
-            🚀 ส่งออเดอร์เข้าครัว
+    <nav class="cat-bar" aria-label="หมวดหมู่">
+        <button class="cat-tool" onclick="openSearch()" aria-label="ค้นหาเมนู">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
         </button>
+        <button class="cat-tool" onclick="openCatSheet()" aria-label="หมวดหมู่ทั้งหมด">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1" fill="currentColor"/><circle cx="4.5" cy="12" r="1" fill="currentColor"/><circle cx="4.5" cy="18" r="1" fill="currentColor"/></svg>
+        </button>
+        <div class="cat-scroll">
+            <% sections.forEach((cat, i) => { %>
+                <a class="category-tab<%= i === 0 ? ' active' : '' %>" href="#cat-<%= cat.category_id %>" data-cat="<%= cat.category_id %>"><%= cat.category_name %></a>
+            <% }); %>
+        </div>
+    </nav>
+
+    <div class="search-bar">
+        <label class="search-field">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+            <input type="search" id="searchInput" placeholder="ค้นหาชื่อเมนู" oninput="filterMenu(this.value)" autocomplete="off">
+        </label>
+        <button class="search-cancel" onclick="closeSearch()">ยกเลิก</button>
     </div>
+
+    <main>
+        <% sections.forEach(cat => { %>
+            <section class="menu-section" id="cat-<%= cat.category_id %>" data-cat="<%= cat.category_id %>">
+                <h2><%= cat.category_name %></h2>
+                <% cat.items.forEach(item => { const soldOut = item.availability === 0; %>
+                    <article class="menu-row<%= soldOut ? ' sold-out' : '' %>" data-name="<%= item.item_name %> <%= item.description || '' %>">
+                        <div class="menu-thumb">
+                            <img src="<%= item.image_url %>" alt="<%= item.item_name %>" loading="lazy" onerror="this.style.visibility='hidden'">
+                            <% if (soldOut) { %><span class="sold-tag">หมดชั่วคราว</span><% } %>
+                        </div>
+                        <div class="menu-info">
+                            <div class="menu-name"><%= item.item_name %></div>
+                            <% if (item.description) { %><div class="menu-desc"><%= item.description %></div><% } %>
+                            <div class="menu-foot">
+                                <% if (item.charge_type === 'BUFFET') { %>
+                                    <span class="price">รวมในบุฟเฟต์</span>
+                                <% } else { %>
+                                    <span class="price paid">฿<%= item.unit_price.toFixed(0) %></span>
+                                <% } %>
+                                <% if (!soldOut) { %><div class="ctl" data-id="<%= item.menu_item_id %>"></div><% } %>
+                            </div>
+                        </div>
+                    </article>
+                <% }); %>
+            </section>
+        <% }); %>
+
+        <p class="no-result" id="noResult">ไม่พบเมนูที่ค้นหา</p>
+        <p class="photo-credit">ภาพประกอบจาก Wikimedia Commons · <a href="/images/CREDITS.md">เครดิตภาพ</a></p>
+    </main>
+</div>
+
+    <!-- Cart bar -->
+    <button type="button" class="cart-bar" id="cartBar" onclick="openSheet('sheet')">
+        <span class="cnt" id="cartCount">0</span>
+        <span>ดูรายการที่เลือก</span>
+        <span class="extra" id="cartExtra"></span>
+    </button>
+
+    <div class="sheet-overlay" id="sheetOverlay" onclick="closeSheets()"></div>
+
+    <!-- Review sheet -->
+    <section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+        <div class="sheet-grip"></div>
+        <div class="sheet-head">
+            <h3 id="sheetTitle">รายการที่จะส่งเข้าครัว</h3>
+            <button class="icon-btn" onclick="closeSheets()" aria-label="ปิด">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"/></svg>
+            </button>
+        </div>
+        <div class="sheet-body" id="sheetBody"></div>
+        <div class="sheet-foot">
+            <div class="sheet-total">
+                <span>ค่าใช้จ่ายเพิ่มจากบุฟเฟต์</span>
+                <b id="sheetExtra">฿0</b>
+            </div>
+            <button class="btn btn-primary btn-lg btn-block" id="sendBtn" onclick="submitOrder()">ส่งออเดอร์เข้าครัว</button>
+        </div>
+    </section>
+
+    <!-- Category list sheet -->
+    <section class="sheet" id="catSheet" role="dialog" aria-modal="true" aria-labelledby="catSheetTitle">
+        <div class="sheet-grip"></div>
+        <div class="sheet-head">
+            <h3 id="catSheetTitle">หมวดหมู่ทั้งหมด</h3>
+            <button class="icon-btn" onclick="closeSheets()" aria-label="ปิด">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6l4 4 4-4"/></svg>
+            </button>
+        </div>
+        <div class="sheet-body">
+            <ul class="cat-list">
+                <% sections.forEach(cat => { %>
+                    <li><a href="#cat-<%= cat.category_id %>" data-cat="<%= cat.category_id %>" onclick="closeSheets()">
+                        <span><%= cat.category_name %><small><%= cat.items.length %></small></span>
+                        <svg class="tick" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>
+                    </a></li>
+                <% }); %>
+            </ul>
+        </div>
+    </section>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script>
-        const socket = io();
-        const cart = {}; // { menu_item_id: quantity }
+        const TOKEN = '<%= token %>';
+        const ITEMS = <%- JSON.stringify(Object.fromEntries(menuItems.map(m => [m.menu_item_id, {
+            name: m.item_name, img: m.image_url, price: m.charge_type === 'ALACARTE' ? m.unit_price : 0, available: m.availability === 1
+        }]))).replace(/</g, '\\u003c') %>;
+        const STORE_KEY = 'cart:' + TOKEN;
 
-        function filterCategory(catId, btn) {
-            document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
-            btn.classList.add('active');
+        // Cart survives the page reload triggered by stock updates
+        let cart = {};
+        try { cart = JSON.parse(sessionStorage.getItem(STORE_KEY)) || {}; } catch (e) { cart = {}; }
+        Object.keys(cart).forEach(id => { if (!ITEMS[id] || !ITEMS[id].available) delete cart[id]; });
 
-            const cards = document.querySelectorAll('.menu-card');
-            cards.forEach(card => {
-                if (catId === 'ALL' || card.classList.contains(`item-category-${catId}`)) {
-                    card.style.display = 'flex';
-                } else {
-                    card.style.display = 'none';
-                }
+        function save() {
+            try { sessionStorage.setItem(STORE_KEY, JSON.stringify(cart)); } catch (e) { }
+        }
+
+        const plusIcon = '<svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg>';
+
+        function controlHtml(id) {
+            const q = cart[id] || 0;
+            if (q === 0) {
+                return `<button class="add-btn" onclick="setQty('${id}', 1)" aria-label="เพิ่ม ${ITEMS[id].name}">${plusIcon}</button>`;
+            }
+            return `<div class="qty">
+                <button onclick="setQty('${id}', ${q - 1})" aria-label="ลด">−</button>
+                <span>${q}</span>
+                <button onclick="setQty('${id}', ${q + 1})" aria-label="เพิ่ม">+</button>
+            </div>`;
+        }
+
+        function renderControl(id) {
+            const el = document.querySelector(`.ctl[data-id="${id}"]`);
+            if (el) el.innerHTML = controlHtml(id);
+        }
+
+        function setQty(id, q) {
+            q = Math.max(0, Math.min(20, q));
+            if (q === 0) delete cart[id]; else cart[id] = q;
+            save();
+            renderControl(id);
+            renderCart();
+            if (document.getElementById('sheet').classList.contains('open')) renderSheet();
+        }
+
+        function totals() {
+            let count = 0, extra = 0;
+            Object.entries(cart).forEach(([id, q]) => { count += q; extra += q * ITEMS[id].price; });
+            return { count, extra };
+        }
+
+        function renderCart() {
+            const { count, extra } = totals();
+            document.getElementById('cartCount').textContent = count;
+            document.getElementById('cartExtra').textContent = extra > 0 ? `+฿${extra}` : '';
+            document.getElementById('cartBar').classList.toggle('show', count > 0);
+            if (count === 0 && document.getElementById('sheet').classList.contains('open')) closeSheets();
+        }
+
+        function renderSheet() {
+            document.getElementById('sheetBody').innerHTML = Object.entries(cart).map(([id, q]) => {
+                const it = ITEMS[id];
+                return `<div class="sheet-line">
+                    <img src="${it.img}" alt="">
+                    <div class="nm">${it.name}<small>${it.price ? '฿' + it.price + ' / ชิ้น' : 'รวมในบุฟเฟต์'}</small></div>
+                    ${controlHtml(id)}
+                </div>`;
+            }).join('');
+            document.getElementById('sheetExtra').textContent = '฿' + totals().extra;
+        }
+
+        function openSheet(id) {
+            if (id === 'sheet') renderSheet();
+            document.getElementById(id).classList.add('open');
+            document.getElementById('sheetOverlay').classList.add('open');
+        }
+
+        function closeSheets() {
+            document.querySelectorAll('.sheet').forEach(s => s.classList.remove('open'));
+            document.getElementById('sheetOverlay').classList.remove('open');
+        }
+
+        function openCatSheet() {
+            const current = document.querySelector('.category-tab.active')?.dataset.cat;
+            document.querySelectorAll('.cat-list a').forEach(a => {
+                const on = a.dataset.cat === current;
+                a.classList.toggle('current', on);
+                a.querySelector('.tick').style.visibility = on ? 'visible' : 'hidden';
             });
+            openSheet('catSheet');
         }
 
-        function updateQty(itemId, delta) {
-            const current = cart[itemId] || 0;
-            const updated = Math.max(0, current + delta);
-            if (updated === 0) delete cart[itemId];
-            else cart[itemId] = updated;
-
-            document.getElementById(`qty-${itemId}`).innerText = updated;
-            renderCartBar();
+        // Search
+        function openSearch() {
+            document.body.classList.add('searching');
+            window.scrollTo(0, 0);
+            document.getElementById('searchInput').focus();
         }
 
-        function renderCartBar() {
-            let totalCount = 0;
-            Object.values(cart).forEach(qty => totalCount += qty);
-            
-            const cartBar = document.getElementById('cartBar');
-            document.getElementById('cartCount').innerText = totalCount;
-            cartBar.style.display = totalCount > 0 ? 'flex' : 'none';
+        function closeSearch() {
+            document.getElementById('searchInput').value = '';
+            filterMenu('');
+            document.body.classList.remove('searching');
         }
 
-        async function submitOrder(token) {
-            const items = [];
-            Object.keys(cart).forEach(menu_item_id => {
-                items.push({ menu_item_id, quantity: cart[menu_item_id] });
+        function filterMenu(q) {
+            q = q.trim().toLowerCase();
+            let any = false;
+            document.querySelectorAll('.menu-section').forEach(sec => {
+                let shown = 0;
+                sec.querySelectorAll('.menu-row').forEach(row => {
+                    const hit = !q || row.dataset.name.toLowerCase().includes(q);
+                    row.style.display = hit ? '' : 'none';
+                    if (hit) shown++;
+                });
+                sec.style.display = shown ? '' : 'none';
+                if (shown) any = true;
             });
+            document.getElementById('noResult').style.display = any ? 'none' : 'block';
+        }
 
+        let toastTimer;
+        function toast(msg, isError) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.toggle('error', !!isError);
+            t.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+        }
+
+        async function submitOrder() {
+            const items = Object.entries(cart).map(([menu_item_id, quantity]) => ({ menu_item_id, quantity }));
             if (items.length === 0) return;
-
+            const btn = document.getElementById('sendBtn');
+            btn.disabled = true;
+            btn.textContent = 'กำลังส่ง…';
             try {
                 const res = await fetch('/orders', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token, items })
+                    body: JSON.stringify({ token: TOKEN, items })
                 });
                 const data = await res.json();
                 if (data.success) {
-                    alert('✅ ' + data.message);
-                    window.location.href = `/orders?token=${token}`;
-                } else {
-                    alert(data.message);
+                    cart = {};
+                    save();
+                    window.location.href = `/orders?token=${TOKEN}&sent=1`;
+                    return;
                 }
+                toast(data.message || 'ส่งออเดอร์ไม่สำเร็จ', true);
             } catch (err) {
-                alert('เกิดข้อผิดพลาดในการส่งคำสั่งซื้อ');
+                toast('เชื่อมต่อไม่ได้ ลองใหม่อีกครั้ง', true);
             }
+            btn.disabled = false;
+            btn.textContent = 'ส่งออเดอร์เข้าครัว';
         }
 
-        // Real-time stock update event listener
-        socket.on('stock-updated', (data) => {
-            location.reload();
-        });
+        // Highlight the tab of the section being read
+        const tabs = [...document.querySelectorAll('.category-tab')];
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(e => {
+                if (!e.isIntersecting || document.body.classList.contains('searching')) return;
+                tabs.forEach(t => {
+                    const on = t.dataset.cat === e.target.dataset.cat;
+                    t.classList.toggle('active', on);
+                    if (on) t.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+                });
+            });
+        }, { rootMargin: '-60px 0px -75% 0px' });
+        document.querySelectorAll('.menu-section').forEach(s => observer.observe(s));
+
+        document.querySelectorAll('.ctl').forEach(el => renderControl(el.dataset.id));
+        renderCart();
+
+        const socket = io();
+        socket.on('stock-updated', () => location.reload());
     </script>
 </body>
 </html>

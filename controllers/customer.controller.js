@@ -45,7 +45,7 @@ exports.getMenu = async (req, res) => {
             return res.status(400).render('error', { message: 'รอบการใช้บริการของคุณจบแล้วหรือ QR Code ไม่ถูกต้อง' });
         }
 
-        const categories = await db.query('SELECT * FROM Category ORDER BY category_id ASC');
+        const categories = await db.query('SELECT * FROM Category ORDER BY sort_order ASC, category_id ASC');
         const menuItems = await db.query('SELECT * FROM MenuItem ORDER BY category_id ASC, menu_item_id ASC');
 
         res.render('customer/menu', {

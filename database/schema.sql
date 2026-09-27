@@ -43,7 +43,8 @@ CREATE TABLE IF NOT EXISTS DiningSession (
 -- 5. Category
 CREATE TABLE IF NOT EXISTS Category (
     category_id TEXT PRIMARY KEY,
-    category_name TEXT UNIQUE NOT NULL
+    category_name TEXT UNIQUE NOT NULL,
+    sort_order INTEGER NOT NULL DEFAULT 0
 );
 
 -- 6. MenuItem
@@ -51,6 +52,7 @@ CREATE TABLE IF NOT EXISTS MenuItem (
     menu_item_id TEXT PRIMARY KEY,
     category_id TEXT NOT NULL REFERENCES Category(category_id),
     item_name TEXT NOT NULL,
+    description TEXT,
     charge_type TEXT NOT NULL DEFAULT 'BUFFET' CHECK(charge_type IN ('BUFFET', 'ALACARTE')),
     unit_price REAL NOT NULL DEFAULT 0.0,
     availability INTEGER NOT NULL DEFAULT 1 CHECK(availability IN (0, 1)),

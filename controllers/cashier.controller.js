@@ -115,7 +115,7 @@ exports.getQrCode = async (req, res) => {
         `, [token]);
 
         if (!session) {
-            return res.status(404).json({ success: false, message: 'Session หรือ QR Token ไม่ถูกต้อง' });
+            return res.status(404).json({ success: false, message: 'รหัสโต๊ะหรือ QR ไม่ถูกต้อง' });
         }
 
         const baseUrl = tunnel.getPublicUrl(req);
@@ -201,7 +201,7 @@ exports.processPayment = async (req, res) => {
     try {
         const session = await db.get('SELECT * FROM DiningSession WHERE session_id = ? AND session_status = "ACTIVE"', [session_id]);
         if (!session) {
-            return res.status(400).json({ success: false, message: 'Session นี้ถูกปิดไปแล้วหรือไม่มีอยู่จริง' });
+            return res.status(400).json({ success: false, message: 'รอบการใช้บริการนี้ปิดไปแล้วหรือไม่มีอยู่จริง' });
         }
 
         // Get items and calculate final amount
@@ -270,6 +270,9 @@ exports.processPayment = async (req, res) => {
 exports.resetTable = async (req, res) => {
     const { table_id } = req.body;
     try {
+        // Cancel the open session too, otherwise its QR keeps accepting orders
+        await db.run(`UPDATE DiningSession SET session_status = 'CANCELLED', ends_at = CURRENT_TIMESTAMP
+                      WHERE table_id = ? AND session_status = 'ACTIVE'`, [table_id]);
         await db.run('UPDATE DiningTable SET table_status = "AVAILABLE" WHERE table_id = ?', [table_id]);
         const io = req.app.get('socketio');
         if (io) {

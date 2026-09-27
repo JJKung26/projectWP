@@ -19,7 +19,7 @@ exports.getDashboard = async (req, res) => {
         res.render('kitchen/dashboard', {
             orderItems,
             menuItems,
-            title: 'ห้องครัว (Kitchen Dashboard)'
+            title: 'ครัว'
         });
     } catch (err) {
         console.error('Error loading kitchen dashboard:', err);

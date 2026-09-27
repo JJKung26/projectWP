@@ -1,75 +1,97 @@
+<%
+    // SQLite CURRENT_TIMESTAMP is UTC without a zone marker
+    const toTime = s => new Date(String(s).replace(' ', 'T') + 'Z')
+        .toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok' });
+    const statusInfo = {
+        PENDING:   { cls: 'badge-pending',   label: 'รอคิวครัว' },
+        COOKING:   { cls: 'badge-cooking',   label: 'กำลังเตรียม' },
+        READY:     { cls: 'badge-ready',     label: 'กำลังนำไปเสิร์ฟ' },
+        SERVED:    { cls: 'badge-served',    label: 'เสิร์ฟแล้ว' },
+        CANCELLED: { cls: 'badge-cancelled', label: 'ยกเลิก' }
+    };
+    const count = st => orders.filter(o => o.item_status === st).reduce((n, o) => n + o.quantity, 0);
+    const groups = [];
+    orders.forEach(o => {
+        let g = groups.find(x => x.order_id === o.order_id);
+        if (!g) { g = { order_id: o.order_id, ordered_at: o.ordered_at, items: [] }; groups.push(g); }
+        g.items.push(o);
+    });
+%>
 <!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ติดตามสถานะออเดอร์ - โต๊ะ <%= session.table_no %></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#ffffff">
+    <title>ออเดอร์ · โต๊ะ <%= session.table_no %></title>
     <link rel="stylesheet" href="/css/style.css">
     <script src="/socket.io/socket.io.js"></script>
 </head>
-<body style="padding-bottom: 40px; background: #f4f5f7;">
+<body class="cust" style="background: var(--paper);">
 
-    <!-- Top Header -->
-    <div style="background: linear-gradient(135deg, #1e1f29 0%, #121319 100%); color: #fff; padding: 16px; border-radius: 0 0 20px 20px;">
-        <h2 style="font-size: 1.3rem;">⏳ สถานะออเดอร์ (โต๊ะ <%= session.table_no %>)</h2>
-        <p style="font-size: 0.85rem; color: #9ca3af;">ติดตามการจัดเตรียมอาหารจากห้องครัวแบบ Real-time</p>
-    </div>
+    <header class="app-bar">
+        <a class="icon-btn" href="/menu?token=<%= token %>" aria-label="กลับไปเมนู">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+        </a>
+        <h1>ออเดอร์ของโต๊ะ <%= session.table_no %></h1>
+        <span class="muted" style="font-size: 0.85rem; padding-right: 8px;"><%= session.guest_count %> ท่าน</span>
+    </header>
 
-    <!-- Quick Navigation Bar -->
-    <div class="container" style="margin-top: 12px; margin-bottom: 16px;">
-        <div style="display: flex; gap: 8px;">
-            <a href="/menu?token=<%= token %>" class="btn btn-secondary btn-sm" style="flex: 1;">📋 สั่งอาหารเพิ่ม</a>
-            <a href="/orders?token=<%= token %>" class="btn btn-primary btn-sm" style="flex: 1;">⏳ สถานะออเดอร์</a>
-        </div>
-    </div>
-
-    <div class="container">
+    <main class="cust-wrap cust-shell">
         <% if (orders.length === 0) { %>
-            <div class="card" style="text-align: center; padding: 40px 20px;">
-                <div style="font-size: 2.5rem; margin-bottom: 8px;">🍽️</div>
-                <p style="color: var(--text-secondary);">ยังไม่มีรายการอาหารที่สั่งในขณะนี้</p>
-                <a href="/menu?token=<%= token %>" class="btn btn-primary" style="margin-top: 16px;">ไปที่หน้าสั่งอาหาร</a>
+            <div class="empty">
+                <div class="empty-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2"/></svg>
+                </div>
+                <h3>ยังไม่ได้สั่งอะไรเลย</h3>
+                <p>เลือกเมนูแล้วกดส่งเข้าครัว สถานะจะอัปเดตที่หน้านี้เอง</p>
+                <a href="/menu?token=<%= token %>" class="btn btn-primary" style="margin-top: 18px;">ไปเลือกเมนู</a>
             </div>
         <% } else { %>
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">รายการที่สั่งไว้ทั้งหมด (<%= orders.length %> รายการ)</h3>
-                </div>
-
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <% orders.forEach(item => { %>
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f9fafb; border-radius: var(--border-radius-sm); border-left: 4px solid '<%= item.item_status === 'PENDING' ? '#f59e0b' : (item.item_status === 'COOKING' ? '#3b82f6' : (item.item_status === 'READY' ? '#10b981' : '#6b7280')) %>';">
-                            <div>
-                                <div style="font-weight: 600;"><%= item.item_name %> x <%= item.quantity %></div>
-                                <div style="font-size: 0.8rem; color: var(--text-secondary);">
-                                    เวลาสั่ง: <%= new Date(item.ordered_at).toLocaleTimeString('th-TH') %>
-                                </div>
-                            </div>
-                            <div>
-                                <% if (item.item_status === 'PENDING') { %>
-                                    <span class="badge badge-pending">🕒 รอคิว</span>
-                                <% } else if (item.item_status === 'COOKING') { %>
-                                    <span class="badge badge-cooking">🍳 กำลังทำ</span>
-                                <% } else if (item.item_status === 'READY') { %>
-                                    <span class="badge badge-ready">🔔 พร้อมเสิร์ฟ</span>
-                                <% } else if (item.item_status === 'SERVED') { %>
-                                    <span class="badge badge-served">✅ เสิร์ฟแล้ว</span>
-                                <% } else if (item.item_status === 'CANCELLED') { %>
-                                    <span class="badge badge-cancelled">❌ ยกเลิก (<%= item.cancel_reason || 'ของหมด' %>)</span>
-                                <% } %>
-                            </div>
-                        </div>
-                    <% }); %>
-                </div>
+            <div class="status-summary">
+                <div><b><%= count('PENDING') %></b><small>รอคิว</small></div>
+                <div><b><%= count('COOKING') %></b><small>กำลังเตรียม</small></div>
+                <div><b><%= count('READY') %></b><small>กำลังมา</small></div>
+                <div><b><%= count('SERVED') %></b><small>เสิร์ฟแล้ว</small></div>
             </div>
+
+            <% groups.forEach((g, gi) => { %>
+                <section class="order-group">
+                    <div class="order-group-head">
+                        <span>รอบที่ <%= groups.length - gi %></span>
+                        <span class="num">สั่งเมื่อ <%= toTime(g.ordered_at) %> น.</span>
+                    </div>
+                    <div class="order-list">
+                        <% g.items.forEach(item => { const st = statusInfo[item.item_status] || statusInfo.PENDING; %>
+                            <div class="order-line<%= item.item_status === 'CANCELLED' ? ' cancelled' : '' %>">
+                                <img src="<%= item.image_url %>" alt="" onerror="this.style.visibility='hidden'">
+                                <div class="nm">
+                                    <%= item.item_name %>
+                                    <small>× <%= item.quantity %><% if (item.item_status === 'CANCELLED') { %> · <%= item.cancel_reason || 'วัตถุดิบหมด' %><% } %></small>
+                                </div>
+                                <span class="badge <%= st.cls %>"><%= st.label %></span>
+                            </div>
+                        <% }); %>
+                    </div>
+                </section>
+            <% }); %>
+
+            <a href="/menu?token=<%= token %>" class="btn btn-secondary btn-block" style="margin-top: 22px;">สั่งเพิ่ม</a>
         <% } %>
-    </div>
+    </main>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script>
+        if (new URLSearchParams(location.search).get('sent')) {
+            const t = document.getElementById('toast');
+            t.textContent = 'ส่งออเดอร์เข้าครัวแล้ว';
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2600);
+            history.replaceState(null, '', location.pathname + '?token=<%= token %>');
+        }
         const socket = io();
-        socket.on('order-status-changed', (data) => {
-            location.reload();
-        });
+        socket.on('order-status-changed', () => location.reload());
     </script>
 </body>
 </html>
