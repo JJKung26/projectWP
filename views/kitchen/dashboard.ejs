@@ -37,7 +37,7 @@
     </div>
 
     <div id="ordersTab">
-        <% if (orderItems.length === 0) { %>
+        <% if (!orderRounds || orderRounds.length === 0) { %>
             <div class="card empty">
                 <div class="empty-icon">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4 10-10"/></svg>
@@ -46,27 +46,124 @@
                 <p>ออเดอร์ใหม่จะขึ้นที่นี่ทันทีที่ลูกค้ากดส่ง</p>
             </div>
         <% } else { %>
-            <div class="ticket-grid">
-                <% orderItems.forEach(item => { const isCooking = item.item_status === 'COOKING'; %>
-                    <div class="ticket<%= isCooking ? ' is-cooking' : '' %>">
-                        <div class="ticket-head">
-                            <span class="ticket-table">โต๊ะ <%= item.table_no %></span>
-                            <span class="ticket-time"><%= isCooking ? 'กำลังทำ · ' : '' %><%= toTime(item.ordered_at) %></span>
-                        </div>
-                        <div class="ticket-body">
-                            <img class="ticket-thumb" src="<%= item.image_url %>" alt="" onerror="this.style.visibility='hidden'">
-                            <div class="ticket-item"><%= item.item_name %></div>
-                            <div class="ticket-qty"><small>×</small><%= item.quantity %></div>
-                        </div>
-                        <div class="ticket-actions">
-                            <% if (!isCooking) { %>
-                                <button class="btn btn-secondary btn-sm" onclick="updateStatus('<%= item.order_item_id %>', 'COOKING')">เริ่มทำ</button>
-                            <% } %>
-                            <button class="btn btn-success btn-sm" onclick="updateStatus('<%= item.order_item_id %>', 'READY')">เสร็จแล้ว</button>
-                            <button class="btn btn-ghost btn-sm" style="flex: 0 0 auto; color: var(--danger);" onclick="cancelItem('<%= item.order_item_id %>')" title="ยกเลิกเพราะวัตถุดิบหมด">ของหมด</button>
-                        </div>
+            <div class="kitchen-2col-layout">
+                <!-- คอลัมน์ซ้าย: รอคิว WAITING -->
+                <div class="kitchen-col-card">
+                    <div class="kitchen-col-header">
+                        <h2>รอคิว</h2>
+                        <span class="badge-pill-waiting">WAITING (<%= pendingRounds ? pendingRounds.length : 0 %>)</span>
                     </div>
-                <% }); %>
+                    <% if (!pendingRounds || pendingRounds.length === 0) { %>
+                        <div class="empty" style="padding: 40px 10px;">
+                            <p class="muted">ไม่มีรายการรอคิว</p>
+                        </div>
+                    <% } else { %>
+                        <div class="round-card-list">
+                            <% pendingRounds.forEach((round) => { 
+                                const totalItemsCount = round.items.length;
+                                const totalQty = round.items.reduce((acc, curr) => acc + curr.quantity, 0);
+                            %>
+                                <div class="round-card" id="round-card-<%= round.order_id %>">
+                                    <div class="round-card-header">
+                                        <div class="round-card-title-group">
+                                            <span class="round-card-table">โต๊ะ <%= round.table_no %></span>
+                                            <span class="round-card-time">สั่งเมื่อ <%= toTime(round.ordered_at) %> น.</span>
+                                            <span class="round-card-summary font-sm muted">
+                                                <%= totalItemsCount %> รายการ (<%= totalQty %> ชิ้น)
+                                            </span>
+                                        </div>
+                                        <div class="round-card-header-actions">
+                                            <button class="btn btn-secondary btn-sm" onclick="updateRoundStatus('<%= round.order_id %>', 'COOKING')" title="เปลี่ยนสถานะทุกรายการเป็นกำลังทำ">เริ่มทำ</button>
+
+                                            <button class="btn-dropdown-toggle" onclick="toggleKitchenDropdown('<%= round.order_id %>')" id="toggle-btn-<%= round.order_id %>">
+                                                <span class="toggle-text">ซ่อนรายการ</span>
+                                                <svg class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="round-card-dropdown open" id="dropdown-<%= round.order_id %>">
+                                        <div class="round-card-items">
+                                            <% round.items.forEach(item => { %>
+                                                <div class="round-item-row">
+                                                    <img class="round-item-thumb" src="<%= item.image_url %>" alt="" onerror="this.style.visibility='hidden'">
+                                                    <div class="round-item-details">
+                                                        <div class="round-item-name"><%= item.item_name %></div>
+                                                    </div>
+                                                    <div class="round-item-qty">
+                                                        <small>×</small><%= item.quantity %>
+                                                    </div>
+                                                    <div class="round-item-actions">
+                                                        <button class="btn btn-ghost btn-sm text-danger" onclick="cancelItem('<%= item.order_item_id %>')" title="ยกเลิกเพราะวัตถุดิบหมด">ของหมด</button>
+                                                    </div>
+                                                </div>
+                                            <% }); %>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        </div>
+                    <% } %>
+                </div>
+
+                <!-- คอลัมน์ขวา: กำลังทำ PREPARING -->
+                <div class="kitchen-col-card">
+                    <div class="kitchen-col-header">
+                        <h2>กำลังทำ</h2>
+                        <span class="badge-pill-preparing">PREPARING (<%= cookingRounds ? cookingRounds.length : 0 %>)</span>
+                    </div>
+                    <% if (!cookingRounds || cookingRounds.length === 0) { %>
+                        <div class="empty" style="padding: 40px 10px;">
+                            <p class="muted">ไม่มีรายการกำลังทำ</p>
+                        </div>
+                    <% } else { %>
+                        <div class="round-card-list">
+                            <% cookingRounds.forEach((round) => { 
+                                const totalItemsCount = round.items.length;
+                                const totalQty = round.items.reduce((acc, curr) => acc + curr.quantity, 0);
+                            %>
+                                <div class="round-card is-cooking" id="round-card-<%= round.order_id %>">
+                                    <div class="round-card-header">
+                                        <div class="round-card-title-group">
+                                            <span class="round-card-table">โต๊ะ <%= round.table_no %></span>
+                                            <span class="round-card-time">สั่งเมื่อ <%= toTime(round.ordered_at) %> น.</span>
+                                            <span class="round-card-summary font-sm muted">
+                                                <%= totalItemsCount %> รายการ (<%= totalQty %> ชิ้น)
+                                            </span>
+                                        </div>
+                                        <div class="round-card-header-actions">
+                                            <button class="btn btn-success btn-sm" onclick="updateRoundStatus('<%= round.order_id %>', 'READY')" title="เปลี่ยนสถานะทุกรายการเป็นเสร็จแล้ว">เสร็จแล้ว</button>
+
+                                            <button class="btn-dropdown-toggle" onclick="toggleKitchenDropdown('<%= round.order_id %>')" id="toggle-btn-<%= round.order_id %>">
+                                                <span class="toggle-text">ซ่อนรายการ</span>
+                                                <svg class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="round-card-dropdown open" id="dropdown-<%= round.order_id %>">
+                                        <div class="round-card-items">
+                                            <% round.items.forEach(item => { %>
+                                                <div class="round-item-row is-cooking">
+                                                    <img class="round-item-thumb" src="<%= item.image_url %>" alt="" onerror="this.style.visibility='hidden'">
+                                                    <div class="round-item-details">
+                                                        <div class="round-item-name"><%= item.item_name %></div>
+                                                    </div>
+                                                    <div class="round-item-qty">
+                                                        <small>×</small><%= item.quantity %>
+                                                    </div>
+                                                    <div class="round-item-actions">
+                                                        <button class="btn btn-ghost btn-sm text-danger" onclick="cancelItem('<%= item.order_item_id %>')" title="ยกเลิกเพราะวัตถุดิบหมด">ของหมด</button>
+                                                    </div>
+                                                </div>
+                                            <% }); %>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        </div>
+                    <% } %>
+                </div>
             </div>
         <% } %>
     </div>
@@ -75,14 +172,14 @@
         <p class="muted" style="margin-bottom: 14px;">ปิดสวิตช์เมื่อวัตถุดิบหมด เมนูนั้นจะขึ้นว่า "หมดชั่วคราว" ในมือถือลูกค้าทันที</p>
         <div class="stock-grid">
             <% menuItems.forEach(mi => { const on = mi.availability === 1; %>
-                <div class="stock-row<%= on ? '' : ' off' %>">
+                <div class="stock-row<%= on ? '' : ' off' %>" onclick="toggleStock('<%= mi.menu_item_id %>', '<%= on ? 0 : 1 %>')" style="cursor: pointer;">
                     <img src="<%= mi.image_url %>" alt="" onerror="this.style.visibility='hidden'">
                     <div>
                         <div class="name"><%= mi.item_name %></div>
                         <span class="badge <%= on ? 'badge-available' : 'badge-cancelled' %>"><%= on ? 'มีของ' : 'หมด' %></span>
                     </div>
                     <button class="switch" role="switch" aria-checked="<%= on %>" aria-label="<%= mi.item_name %>"
-                            onclick="toggleStock('<%= mi.menu_item_id %>', '<%= on ? 0 : 1 %>')"></button>
+                            onclick="event.stopPropagation(); toggleStock('<%= mi.menu_item_id %>', '<%= on ? 0 : 1 %>')"></button>
                 </div>
             <% }); %>
         </div>
@@ -101,6 +198,37 @@
     }
     // Stay on the stock tab after a toggle reloads the page
     if (location.hash === '#stock') showTab('stockTab');
+
+    function toggleKitchenDropdown(orderId) {
+        const dropdown = document.getElementById('dropdown-' + orderId);
+        const btn = document.getElementById('toggle-btn-' + orderId);
+        if (!dropdown || !btn) return;
+
+        const isOpen = dropdown.classList.contains('open');
+        if (isOpen) {
+            dropdown.classList.remove('open');
+            btn.classList.add('collapsed');
+            btn.querySelector('.toggle-text').textContent = 'ดูรายการ';
+        } else {
+            dropdown.classList.add('open');
+            btn.classList.remove('collapsed');
+            btn.querySelector('.toggle-text').textContent = 'ซ่อนรายการ';
+        }
+    }
+
+    async function updateRoundStatus(order_id, status) {
+        try {
+            const res = await fetch('/kitchen/update-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ order_id, status })
+            });
+            const data = await res.json();
+            if (data.success) location.reload();
+        } catch (err) {
+            alert('เกิดข้อผิดพลาดในการอัปเดตสถานะทั้งรอบ');
+        }
+    }
 
     async function updateStatus(order_item_id, status) {
         try {
@@ -136,7 +264,7 @@
             const res = await fetch('/kitchen/toggle-stock', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ menu_item_id, availability })
+                body: JSON.stringify({ menu_item_id, availability: Number(availability) })
             });
             const data = await res.json();
             if (data.success) location.reload();

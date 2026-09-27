@@ -55,28 +55,63 @@
                 <div><b><%= count('SERVED') %></b><small>เสิร์ฟแล้ว</small></div>
             </div>
 
-            <% groups.forEach((g, gi) => { %>
-                <section class="order-group">
-                    <div class="order-group-head">
-                        <span>รอบที่ <%= groups.length - gi %></span>
-                        <span class="num">สั่งเมื่อ <%= toTime(g.ordered_at) %> น.</span>
+            <% 
+                // Display newest round first, but with correct chronological round number
+                const reversedGroups = groups.map((g, idx) => ({ ...g, roundNum: idx + 1 })).reverse();
+                reversedGroups.forEach((g, idx) => { 
+                    const totalQty = g.items.reduce((sum, i) => sum + i.quantity, 0);
+                    const isLatest = idx === 0;
+                    
+                    // Determine round status
+                    const statuses = g.items.map(i => i.item_status);
+                    let roundBadgeCls = 'badge-pending';
+                    let roundBadgeLabel = 'รอคิวครัว';
+                    if (statuses.every(s => s === 'SERVED')) {
+                        roundBadgeCls = 'badge-served';
+                        roundBadgeLabel = 'เสิร์ฟครบแล้ว';
+                    } else if (statuses.some(s => s === 'READY')) {
+                        roundBadgeCls = 'badge-ready';
+                        roundBadgeLabel = 'กำลังนำมาเสิร์ฟ';
+                    } else if (statuses.some(s => s === 'COOKING')) {
+                        roundBadgeCls = 'badge-cooking';
+                        roundBadgeLabel = 'กำลังเตรียม';
+                    } else if (statuses.every(s => s === 'CANCELLED')) {
+                        roundBadgeCls = 'badge-cancelled';
+                        roundBadgeLabel = 'ยกเลิกทั้งรอบ';
+                    }
+            %>
+                <div class="cust-round-card">
+                    <div class="cust-round-header" onclick="toggleCustDropdown('<%= g.order_id %>')">
+                        <div class="cust-round-title">
+                            <span class="cust-round-badge">รอบที่ <%= g.roundNum %></span>
+                            <span class="cust-round-time">สั่งเมื่อ <%= toTime(g.ordered_at) %> น.</span>
+                        </div>
+                        <div class="cust-round-meta">
+                            <span class="badge <%= roundBadgeCls %>"><%= roundBadgeLabel %></span>
+                            <button class="cust-dropdown-btn<%= isLatest ? '' : ' collapsed' %>" id="cust-btn-<%= g.order_id %>" type="button" aria-label="แสดง/ซ่อนรายการ">
+                                <span class="muted" style="font-size: 0.8rem;"><%= g.items.length %> รายการ</span>
+                                <svg class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+                            </button>
+                        </div>
                     </div>
-                    <div class="order-list">
-                        <% g.items.forEach(item => { const st = statusInfo[item.item_status] || statusInfo.PENDING; %>
-                            <div class="order-line<%= item.item_status === 'CANCELLED' ? ' cancelled' : '' %>">
-                                <img src="<%= item.image_url %>" alt="" onerror="this.style.visibility='hidden'">
-                                <div class="nm">
-                                    <%= item.item_name %>
-                                    <small>× <%= item.quantity %><% if (item.item_status === 'CANCELLED') { %> · <%= item.cancel_reason || 'วัตถุดิบหมด' %><% } %></small>
+                    <div class="cust-round-dropdown<%= isLatest ? ' open' : '' %>" id="cust-dropdown-<%= g.order_id %>">
+                        <div class="order-list">
+                            <% g.items.forEach(item => { const st = statusInfo[item.item_status] || statusInfo.PENDING; %>
+                                <div class="order-line<%= item.item_status === 'CANCELLED' ? ' cancelled' : '' %>">
+                                    <img src="<%= item.image_url %>" alt="" onerror="this.style.visibility='hidden'">
+                                    <div class="nm">
+                                        <%= item.item_name %>
+                                        <small>× <%= item.quantity %><% if (item.item_status === 'CANCELLED') { %> · <%= item.cancel_reason || 'วัตถุดิบหมด' %><% } %></small>
+                                    </div>
+                                    <span class="badge <%= st.cls %>"><%= st.label %></span>
                                 </div>
-                                <span class="badge <%= st.cls %>"><%= st.label %></span>
-                            </div>
-                        <% }); %>
+                            <% }); %>
+                        </div>
                     </div>
-                </section>
+                </div>
             <% }); %>
 
-            <a href="/menu?token=<%= token %>" class="btn btn-secondary btn-block" style="margin-top: 22px;">สั่งเพิ่ม</a>
+            <a href="/menu?token=<%= token %>" class="btn btn-secondary btn-block" style="margin-top: 22px;">สั่งอาหารเพิ่ม</a>
         <% } %>
     </main>
 
@@ -85,11 +120,27 @@
     <script>
         if (new URLSearchParams(location.search).get('sent')) {
             const t = document.getElementById('toast');
-            t.textContent = 'ส่งออเดอร์เข้าครัวแล้ว';
+            t.textContent = 'ส่งออเดอร์เข้าครัวเรียบร้อยแล้ว';
             t.classList.add('show');
             setTimeout(() => t.classList.remove('show'), 2600);
             history.replaceState(null, '', location.pathname + '?token=<%= token %>');
         }
+
+        function toggleCustDropdown(orderId) {
+            const dropdown = document.getElementById('cust-dropdown-' + orderId);
+            const btn = document.getElementById('cust-btn-' + orderId);
+            if (!dropdown || !btn) return;
+
+            const isOpen = dropdown.classList.contains('open');
+            if (isOpen) {
+                dropdown.classList.remove('open');
+                btn.classList.add('collapsed');
+            } else {
+                dropdown.classList.add('open');
+                btn.classList.remove('collapsed');
+            }
+        }
+
         const socket = io();
         socket.on('order-status-changed', () => location.reload());
     </script>

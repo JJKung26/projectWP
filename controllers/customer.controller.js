@@ -82,12 +82,27 @@ exports.placeOrder = async (req, res) => {
         }
 
         // Validate items availability
+        const unavailableItems = [];
+        for (const item of items) {
+            const menuItem = await db.get('SELECT * FROM MenuItem WHERE menu_item_id = ?', [item.menu_item_id]);
+            if (!menuItem || menuItem.availability === 0) {
+                unavailableItems.push(menuItem ? menuItem.item_name : item.menu_item_id);
+            }
+        }
+
+        if (unavailableItems.length > 0) {
+            return res.status(400).json({
+                success: false,
+                message: `ขออภัย รายการ "${unavailableItems.join(', ')}" หมดชั่วคราว ไม่สามารถสั่งได้`
+            });
+        }
+
         const orderId = 'ORD-' + Date.now();
         await db.run('INSERT INTO FoodOrder (order_id, session_id, ordered_at) VALUES (?, ?, CURRENT_TIMESTAMP)', [orderId, session.session_id]);
 
         const orderItemPromises = items.map(async (item) => {
             const menuItem = await db.get('SELECT * FROM MenuItem WHERE menu_item_id = ?', [item.menu_item_id]);
-            if (menuItem && menuItem.availability === 1 && item.quantity > 0) {
+            if (menuItem && item.quantity > 0) {
                 const orderItemId = 'OI-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
                 await db.run(`
                     INSERT INTO OrderItem (order_item_id, order_id, menu_item_id, quantity, unit_price_at_order, item_status)

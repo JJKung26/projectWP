@@ -20,7 +20,7 @@
         </div>
     </div>
 
-    <% if (readyItems.length === 0) { %>
+    <% if (!readyRounds || readyRounds.length === 0) { %>
         <div class="card empty">
             <div class="empty-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4 10-10"/></svg>
@@ -29,20 +29,43 @@
             <p>เมื่อครัวกด "เสร็จแล้ว" รายการจะขึ้นที่นี่ทันที</p>
         </div>
     <% } else { %>
-        <div class="ticket-grid">
-            <% readyItems.forEach(item => { %>
-                <div class="ticket is-ready">
-                    <div class="ticket-head">
-                        <span class="ticket-table">โต๊ะ <%= item.table_no %></span>
-                        <span class="ticket-time">สั่ง <%= toTime(item.ordered_at) %></span>
+        <div class="round-card-list">
+            <% readyRounds.forEach(round => { 
+                const totalItemsCount = round.items.length;
+                const totalQty = round.items.reduce((acc, curr) => acc + curr.quantity, 0);
+            %>
+                <div class="round-card is-ready-card" id="round-card-<%= round.order_id %>">
+                    <div class="round-card-header">
+                        <div class="round-card-title-group">
+                            <span class="round-card-table">โต๊ะ <%= round.table_no %></span>
+                            <span class="round-card-time">สั่งเมื่อ <%= toTime(round.ordered_at) %> น.</span>
+                            <span class="round-card-summary font-sm muted">
+                                <%= totalItemsCount %> รายการ (<%= totalQty %> ชิ้น)
+                            </span>
+                        </div>
+                        <div class="round-card-header-actions">
+                            <button class="btn btn-success btn-sm" onclick="confirmServedRound('<%= round.order_id %>')">เสิร์ฟแล้ว</button>
+                            <button class="btn-dropdown-toggle" onclick="toggleServingDropdown('<%= round.order_id %>')" id="toggle-btn-<%= round.order_id %>">
+                                <span class="toggle-text">ซ่อนรายการ</span>
+                                <svg class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+                            </button>
+                        </div>
                     </div>
-                    <div class="ticket-body">
-                        <img class="ticket-thumb" src="<%= item.image_url %>" alt="" onerror="this.style.visibility='hidden'">
-                        <div class="ticket-item"><%= item.item_name %></div>
-                        <div class="ticket-qty"><small>×</small><%= item.quantity %></div>
-                    </div>
-                    <div class="ticket-actions">
-                        <button class="btn btn-dark" onclick="confirmServed('<%= item.order_item_id %>')">เสิร์ฟแล้ว</button>
+
+                    <div class="round-card-dropdown open" id="dropdown-<%= round.order_id %>">
+                        <div class="round-card-items">
+                            <% round.items.forEach(item => { %>
+                                <div class="round-item-row">
+                                    <img class="round-item-thumb" src="<%= item.image_url %>" alt="" onerror="this.style.visibility='hidden'">
+                                    <div class="round-item-details">
+                                        <div class="round-item-name"><%= item.item_name %></div>
+                                    </div>
+                                    <div class="round-item-qty">
+                                        <small>×</small><%= item.quantity %>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        </div>
                     </div>
                 </div>
             <% }); %>
@@ -52,6 +75,41 @@
 
 <script>
     const socket = io();
+
+    function toggleServingDropdown(orderId) {
+        const dropdown = document.getElementById('dropdown-' + orderId);
+        const btn = document.getElementById('toggle-btn-' + orderId);
+        if (!dropdown || !btn) return;
+
+        const isOpen = dropdown.classList.contains('open');
+        if (isOpen) {
+            dropdown.classList.remove('open');
+            btn.classList.add('collapsed');
+            btn.querySelector('.toggle-text').textContent = 'ดูรายการ';
+        } else {
+            dropdown.classList.add('open');
+            btn.classList.remove('collapsed');
+            btn.querySelector('.toggle-text').textContent = 'ซ่อนรายการ';
+        }
+    }
+
+    async function confirmServedRound(order_id) {
+        try {
+            const res = await fetch('/serving/confirm-served', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ order_id })
+            });
+            const data = await res.json();
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message || 'เกิดข้อผิดพลาดในการยืนยันเสิร์ฟ');
+            }
+        } catch (err) {
+            alert('เกิดข้อผิดพลาดในการยืนยันเสิร์ฟ');
+        }
+    }
 
     async function confirmServed(order_item_id) {
         try {
