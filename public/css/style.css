@@ -2046,6 +2046,333 @@ body.staff {
 }
 
 /* ==========================================================================
+   Kitchen 2-Column Board & Round Cards Styles
+   ========================================================================== */
+.kitchen-2col-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+@media (max-width: 860px) {
+    .kitchen-2col-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.kitchen-col-card {
+    background: #f8f9fa;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 18px;
+    min-height: 480px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.kitchen-col-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.kitchen-col-header h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+}
+
+.badge-pill-waiting {
+    background: #fef3c7;
+    color: #b45309;
+    border: 1.5px solid #fcd34d;
+    border-radius: 999px;
+    padding: 4px 14px;
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.badge-pill-preparing {
+    background: #ffe4e6;
+    color: #e11d48;
+    border: 1.5px solid #fda4af;
+    border-radius: 999px;
+    padding: 4px 14px;
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.round-card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.round-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    box-shadow: var(--shadow-sm);
+}
+
+.round-card.is-cooking {
+    border-color: #bfd0ee;
+}
+
+.round-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--line);
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.round-card-title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.round-card-table {
+    font-family: var(--font-head);
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--ember);
+    background: var(--ember-soft);
+    padding: 4px 12px;
+    border-radius: var(--r-sm);
+}
+
+.round-card-time {
+    font-size: 0.88rem;
+    color: var(--ink-2);
+    font-variant-numeric: tabular-nums;
+}
+
+.round-card-summary {
+    font-size: 0.85rem;
+    color: var(--ink-3);
+}
+
+.round-card-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-left: auto;
+}
+
+.round-status-badges {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.btn-dropdown-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    font-family: var(--font-body);
+    font-weight: 500;
+    color: var(--ink-2);
+    background: var(--surface);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.btn-dropdown-toggle:hover {
+    background: var(--muted-soft);
+    color: var(--ink);
+}
+
+.btn-dropdown-toggle .chevron-icon {
+    transition: transform 0.2s ease;
+}
+
+.btn-dropdown-toggle.collapsed .chevron-icon {
+    transform: rotate(-90deg);
+}
+
+.round-card-dropdown {
+    display: none;
+    background: var(--surface);
+}
+
+.round-card-dropdown.open {
+    display: block;
+}
+
+.round-card-items {
+    display: flex;
+    flex-direction: column;
+}
+
+.round-item-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface);
+}
+
+.round-item-row:last-child {
+    border-bottom: none;
+}
+
+.round-item-row.is-cooking {
+    background: #f7f9fd;
+}
+
+.round-item-thumb {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--r-sm);
+    object-fit: cover;
+    background: var(--muted-soft);
+    flex-shrink: 0;
+}
+
+.round-item-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.round-item-name {
+    font-weight: 500;
+    font-size: 1rem;
+    line-height: 1.35;
+}
+
+.round-item-status-badge {
+    margin-top: 4px;
+}
+
+.round-item-qty {
+    font-family: var(--font-body);
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 0 12px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+}
+
+.round-item-qty small {
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    color: var(--ink-3);
+    margin-right: 2px;
+}
+
+.round-item-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.text-danger {
+    color: var(--danger) !important;
+}
+
+/* ==========================================================================
+   Customer Round Cards & Dropdown Styles
+   ========================================================================== */
+.cust-round-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    margin-top: 14px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.cust-round-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--line);
+    cursor: pointer;
+    user-select: none;
+}
+
+.cust-round-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cust-round-badge {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.85rem;
+    background: var(--ember);
+    color: #fff;
+    padding: 3px 10px;
+    border-radius: 999px;
+}
+
+.cust-round-time {
+    font-size: 0.82rem;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+}
+
+.cust-round-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cust-dropdown-btn {
+    background: transparent;
+    border: none;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    color: var(--ink-3);
+    cursor: pointer;
+    font-size: 0.85rem;
+    gap: 4px;
+}
+
+.cust-dropdown-btn .chevron-icon {
+    transition: transform 0.2s ease;
+}
+
+.cust-dropdown-btn.collapsed .chevron-icon {
+    transform: rotate(-90deg);
+}
+
+.cust-round-dropdown {
+    display: none;
+}
+
+.cust-round-dropdown.open {
+    display: block;
+}
+
+/* ==========================================================================
    Print
    ========================================================================== */
 @media print {

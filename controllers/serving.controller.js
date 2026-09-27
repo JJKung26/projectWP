@@ -12,11 +12,31 @@ exports.getDashboard = async (req, res) => {
             JOIN DiningTable t ON ds.table_id = t.table_id
             JOIN MenuItem mi ON oi.menu_item_id = mi.menu_item_id
             WHERE oi.item_status = 'READY' AND ds.session_status = 'ACTIVE'
-            ORDER BY fo.ordered_at ASC
+            ORDER BY fo.ordered_at ASC, oi.order_item_id ASC
         `);
+
+        // Group ready items by order_id (Order Round)
+        const readyRoundsMap = {};
+        const readyRounds = [];
+
+        readyItems.forEach(item => {
+            if (!readyRoundsMap[item.order_id]) {
+                const roundObj = {
+                    order_id: item.order_id,
+                    table_no: item.table_no,
+                    session_id: item.session_id,
+                    ordered_at: item.ordered_at,
+                    items: []
+                };
+                readyRoundsMap[item.order_id] = roundObj;
+                readyRounds.push(roundObj);
+            }
+            readyRoundsMap[item.order_id].items.push(item);
+        });
 
         res.render('serving/dashboard', {
             readyItems,
+            readyRounds,
             title: 'จุดเสิร์ฟ'
         });
     } catch (err) {
@@ -27,17 +47,27 @@ exports.getDashboard = async (req, res) => {
 
 // Confirm Item Served
 exports.confirmServed = async (req, res) => {
-    const { order_item_id } = req.body;
+    const { order_item_id, order_id } = req.body;
     const employee_id = req.body.employee_id || 'EMP-003';
 
     try {
-        await db.run(`
-            UPDATE OrderItem 
-            SET item_status = 'SERVED', served_by = ?
-            WHERE order_item_id = ?
-        `, [employee_id, order_item_id]);
+        if (order_id) {
+            await db.run(`
+                UPDATE OrderItem 
+                SET item_status = 'SERVED', served_by = ?
+                WHERE order_id = ? AND item_status = 'READY'
+            `, [employee_id, order_id]);
+        } else if (order_item_id) {
+            await db.run(`
+                UPDATE OrderItem 
+                SET item_status = 'SERVED', served_by = ?
+                WHERE order_item_id = ?
+            `, [employee_id, order_item_id]);
+        } else {
+            return res.status(400).json({ success: false, message: 'กรุณาระบุ order_item_id หรือ order_id' });
+        }
 
-        const updatedItem = await db.get(`
+        const updatedItem = order_item_id ? await db.get(`
             SELECT oi.*, mi.item_name, t.table_no, fo.session_id
             FROM OrderItem oi
             JOIN FoodOrder fo ON oi.order_id = fo.order_id
@@ -45,11 +75,12 @@ exports.confirmServed = async (req, res) => {
             JOIN DiningTable t ON ds.table_id = t.table_id
             JOIN MenuItem mi ON oi.menu_item_id = mi.menu_item_id
             WHERE oi.order_item_id = ?
-        `, [order_item_id]);
+        `, [order_item_id]) : null;
 
         const io = req.app.get('socketio');
         if (io) {
             io.emit('order-status-changed', {
+                order_id,
                 order_item_id,
                 item_name: updatedItem ? updatedItem.item_name : '',
                 status: 'SERVED',
