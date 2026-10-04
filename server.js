@@ -15,10 +15,15 @@ app.set('socketio', io);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
+// กุญแจสำหรับเซ็นชื่อ cookie — กันคนแก้ค่า cookie เองเพื่อปลอมเป็นพนักงานบทบาทอื่น
+// ย้ายไปเก็บใน .env ภายหลังได้โดยเปลี่ยนเป็น:
+//   const SESSION_SECRET = process.env.SESSION_SECRET || 'moo-krata-dev-secret-2026';
+const SESSION_SECRET = 'moo-krata-dev-secret-2026';
+
 // Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
+app.use(cookieParser(SESSION_SECRET));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Initialize Database connection & tables
@@ -33,18 +38,29 @@ const kitchenRoutes = require('./routes/kitchen.routes');
 const servingRoutes = require('./routes/serving.routes');
 const cashierRoutes = require('./routes/cashier.routes');
 const queueRoutes = require('./routes/queue.routes');
+const authRoutes = require('./routes/auth.routes');
+const { requireRole } = require('./middlewares/auth.middleware');
 const PORT = process.env.PORT || 3000;
 
 // Use Routes
+app.use('/', authRoutes);   // ต้องอยู่ก่อน guard เพราะหน้า login ต้องเข้าได้โดยไม่ต้องล็อกอิน
+
+// ตรวจสิทธิ์ที่ path prefix ตอน mount — ครอบทุก route ใต้ prefix นั้นในครั้งเดียว
+// จึงไม่ต้องแก้ไฟล์ routes/*.js เดิม และไม่มีทางลืมใส่ตอนเพิ่ม route ใหม่
+// หมายเหตุ: '/cashier' ครอบ queue.routes.js ให้ด้วย เพราะทุก path เป็น /cashier/queue/*
+app.use('/kitchen', requireRole('KITCHEN'));
+app.use('/serving', requireRole('SERVICE'));
+app.use('/cashier', requireRole('CASHIER'));
+
 app.use('/', customerRoutes);
 app.use('/', kitchenRoutes);
 app.use('/', servingRoutes);
 app.use('/', cashierRoutes);
 app.use('/', queueRoutes);
 
-// Home route default to cashier tables
+// หน้าแรกพาไปหน้าเข้าสู่ระบบ
 app.get('/', (req, res) => {
-    res.redirect('/cashier/tables');
+    res.redirect('/login');
 });
 
 // Socket.IO connections
