@@ -35,7 +35,9 @@ function wantsHtml(req) {
 function safeNextPath(next) {
     if (typeof next !== 'string') return null;
     if (!next.startsWith('/')) return null;
-    if (next.startsWith('//')) return null;
+    // ปฏิเสธทั้ง // และ /\ เพราะเบราว์เซอร์บางตัวตีความ backslash เป็น slash
+    // ทำให้ /\evil.com กลายเป็น //evil.com ซึ่งเป็น protocol-relative URL
+    if (next.startsWith('//') || next.startsWith('/\\')) return null;
     return next;
 }
 

@@ -56,6 +56,11 @@ test('safeNextPath ปฏิเสธลิงก์ออกนอกเว็�
     assert.strictEqual(safeNextPath('http://evil.com/x'), null);
 });
 
+test('safeNextPath ปฏิเสธ backslash ที่เบราว์เซอร์อาจตีความเป็น slash', () => {
+    assert.strictEqual(safeNextPath('/\\evil.com'), null);
+    assert.strictEqual(safeNextPath('/\\\\evil.com'), null);
+});
+
 test('safeNextPath ปฏิเสธค่าที่ไม่ใช่ข้อความหรือว่างเปล่า', () => {
     assert.strictEqual(safeNextPath(undefined), null);
     assert.strictEqual(safeNextPath(''), null);
