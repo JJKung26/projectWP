@@ -23,6 +23,13 @@
             <a href="/cashier/tables" class="nav-link" data-match="/cashier">แคชเชียร์</a>
             <a href="/kitchen" class="nav-link" data-match="/kitchen">ครัว</a>
             <a href="/serving" class="nav-link" data-match="/serving">เสิร์ฟ</a>
+            <% if (typeof staff !== 'undefined' && staff) { %>
+                <span class="nav-link" style="cursor: default;"><%= staff.full_name %></span>
+                <form method="POST" action="/logout" style="display: inline;">
+                    <input type="hidden" name="role" value="<%= staff.role %>">
+                    <button type="submit" class="btn btn-secondary btn-sm">ออกจากระบบ</button>
+                </form>
+            <% } %>
         </nav>
     </header>
     <script>
