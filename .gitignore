@@ -5,6 +5,9 @@ node_modules/
 data/*.db
 data/*.db-journal
 
+# ไฟล์ชั่วคราวของกระบวนการพัฒนา (ledger, review package)
+.superpowers/
+
 # Environment and OS files
 .env
 .DS_Store
