@@ -40,6 +40,7 @@ const cashierRoutes = require('./routes/cashier.routes');
 const queueRoutes = require('./routes/queue.routes');
 const authRoutes = require('./routes/auth.routes');
 const { requireRole } = require('./middlewares/auth.middleware');
+const { notFound, errorHandler } = require('./middlewares/error.middleware');
 const PORT = process.env.PORT || 3000;
 
 // Use Routes
@@ -62,6 +63,10 @@ app.use('/', queueRoutes);
 app.get('/', (req, res) => {
     res.redirect('/login');
 });
+
+// ต้องอยู่ท้ายสุดหลัง route ทั้งหมด
+app.use(notFound);
+app.use(errorHandler);
 
 // Socket.IO connections
 io.on('connection', (socket) => {
