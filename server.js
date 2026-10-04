@@ -40,6 +40,7 @@ const cashierRoutes = require('./routes/cashier.routes');
 const queueRoutes = require('./routes/queue.routes');
 const authRoutes = require('./routes/auth.routes');
 const { requireRole } = require('./middlewares/auth.middleware');
+const { requireDiningSession } = require('./middlewares/customer.middleware');
 const { notFound, errorHandler } = require('./middlewares/error.middleware');
 const PORT = process.env.PORT || 3000;
 
@@ -53,6 +54,7 @@ app.use('/kitchen', requireRole('KITCHEN'));
 app.use('/serving', requireRole('SERVICE'));
 app.use('/cashier', requireRole('CASHIER'));
 
+app.use(['/menu', '/orders'], requireDiningSession());
 app.use('/', customerRoutes);
 app.use('/', kitchenRoutes);
 app.use('/', servingRoutes);

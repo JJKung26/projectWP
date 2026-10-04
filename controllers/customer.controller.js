@@ -28,59 +28,30 @@ exports.landingQr = async (req, res) => {
 
 // Customer Menu Page
 exports.getMenu = async (req, res) => {
-    const token = req.query.token || req.cookies?.qr_token;
-    if (!token) {
-        return res.status(400).render('error', { message: 'กรุณาสแกน QR Code เพื่อเข้าสู่หน้าสั่งอาหาร' });
-    }
+    const session = req.diningSession;
 
-    try {
-        const session = await db.get(`
-            SELECT s.*, t.table_no 
-            FROM DiningSession s
-            JOIN DiningTable t ON s.table_id = t.table_id
-            WHERE s.qr_token = ? AND s.session_status = 'ACTIVE'
-        `, [token]);
+    const categories = await db.query('SELECT * FROM Category ORDER BY sort_order ASC, category_id ASC');
+    const menuItems = await db.query('SELECT * FROM MenuItem ORDER BY category_id ASC, menu_item_id ASC');
 
-        if (!session) {
-            return res.status(400).render('error', { message: 'รอบการใช้บริการของคุณจบแล้วหรือ QR Code ไม่ถูกต้อง' });
-        }
-
-        const categories = await db.query('SELECT * FROM Category ORDER BY sort_order ASC, category_id ASC');
-        const menuItems = await db.query('SELECT * FROM MenuItem ORDER BY category_id ASC, menu_item_id ASC');
-
-        res.render('customer/menu', {
-            session,
-            categories,
-            menuItems,
-            token,
-            title: `เมนูอาหาร - โต๊ะ ${session.table_no}`
-        });
-    } catch (err) {
-        console.error('Error loading customer menu:', err);
-        res.status(500).render('error', { message: 'เกิดข้อผิดพลาดในการโหลดเมนูอาหาร' });
-    }
+    res.render('customer/menu', {
+        session,
+        categories,
+        menuItems,
+        token: req.qrToken,
+        title: `เมนูอาหาร - โต๊ะ ${session.table_no}`
+    });
 };
 
 // Place Order (Cart Submission)
 exports.placeOrder = async (req, res) => {
-    const { token, items } = req.body; // items = [{ menu_item_id, quantity }]
+    const { items } = req.body; // items = [{ menu_item_id, quantity }]
+    const session = req.diningSession;
 
-    if (!token || !items || !Array.isArray(items) || items.length === 0) {
+    if (!items || !Array.isArray(items) || items.length === 0) {
         return res.status(400).json({ success: false, message: 'ข้อมูลการสั่งซื้อไม่ถูกต้อง' });
     }
 
     try {
-        const session = await db.get(`
-            SELECT s.*, t.table_no 
-            FROM DiningSession s
-            JOIN DiningTable t ON s.table_id = t.table_id
-            WHERE s.qr_token = ? AND s.session_status = 'ACTIVE'
-        `, [token]);
-
-        if (!session) {
-            return res.status(400).json({ success: false, message: 'รอบบริการนี้สิ้นสุดลงแล้ว' });
-        }
-
         // Validate items availability
         const unavailableItems = [];
         for (const item of items) {
@@ -137,40 +108,21 @@ exports.placeOrder = async (req, res) => {
 
 // Customer Order Status Page
 exports.getOrderStatus = async (req, res) => {
-    const token = req.query.token || req.cookies?.qr_token;
-    if (!token) {
-        return res.status(400).render('error', { message: 'ไม่พบรหัสประจำโต๊ะ' });
-    }
+    const session = req.diningSession;
 
-    try {
-        const session = await db.get(`
-            SELECT s.*, t.table_no 
-            FROM DiningSession s
-            JOIN DiningTable t ON s.table_id = t.table_id
-            WHERE s.qr_token = ? AND s.session_status = 'ACTIVE'
-        `, [token]);
+    const orders = await db.query(`
+        SELECT oi.*, mi.item_name, mi.image_url, fo.ordered_at
+        FROM OrderItem oi
+        JOIN FoodOrder fo ON oi.order_id = fo.order_id
+        JOIN MenuItem mi ON oi.menu_item_id = mi.menu_item_id
+        WHERE fo.session_id = ?
+        ORDER BY fo.ordered_at DESC, oi.order_item_id DESC
+    `, [session.session_id]);
 
-        if (!session) {
-            return res.status(400).render('error', { message: 'ไม่พบรอบการใช้บริการ' });
-        }
-
-        const orders = await db.query(`
-            SELECT oi.*, mi.item_name, mi.image_url, fo.ordered_at
-            FROM OrderItem oi
-            JOIN FoodOrder fo ON oi.order_id = fo.order_id
-            JOIN MenuItem mi ON oi.menu_item_id = mi.menu_item_id
-            WHERE fo.session_id = ?
-            ORDER BY fo.ordered_at DESC, oi.order_item_id DESC
-        `, [session.session_id]);
-
-        res.render('customer/orders', {
-            session,
-            orders,
-            token,
-            title: `สถานะออเดอร์ - โต๊ะ ${session.table_no}`
-        });
-    } catch (err) {
-        console.error('Error fetching customer orders:', err);
-        res.status(500).render('error', { message: 'เกิดข้อผิดพลาดในการดึงข้อมูลออเดอร์' });
-    }
+    res.render('customer/orders', {
+        session,
+        orders,
+        token: req.qrToken,
+        title: `สถานะออเดอร์ - โต๊ะ ${session.table_no}`
+    });
 };
