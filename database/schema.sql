@@ -3,10 +3,11 @@ PRAGMA foreign_keys = ON;
 
 -- 1. Employee
 CREATE TABLE IF NOT EXISTS Employee (
-    employee_id TEXT PRIMARY KEY,
-    username TEXT UNIQUE NOT NULL,
-    full_name TEXT NOT NULL,
-    role TEXT NOT NULL CHECK(role IN ('CASHIER', 'KITCHEN', 'SERVICE'))
+    employee_id   TEXT PRIMARY KEY,
+    username      TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    full_name     TEXT NOT NULL,
+    role          TEXT NOT NULL CHECK(role IN ('ADMIN', 'CASHIER', 'KITCHEN', 'SERVICE'))
 );
 
 -- 2. DiningTable (50 tables)

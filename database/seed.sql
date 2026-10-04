@@ -1,11 +1,6 @@
 -- Initial Seed Data for Moo Krata System
 
--- 1. Seed Employees
-INSERT OR IGNORE INTO Employee (employee_id, username, full_name, role) VALUES
-('EMP-001', 'cashier1', 'แคชเชียร์ สมศรี', 'CASHIER'),
-('EMP-002', 'kitchen1', 'เชฟ สมชาย (ครัว)', 'KITCHEN'),
-('EMP-003', 'service1', 'พนักงานเสิร์ฟ นพ', 'SERVICE'),
-('EMP-004', 'service2', 'พนักงานเสิร์ฟ ฝน', 'SERVICE');
+-- 1. Seed Employees → ย้ายไป seed-accounts.sql (สร้างด้วย npm run seed:accounts)
 
 -- 2. Seed 50 Dining Tables
 INSERT OR IGNORE INTO DiningTable (table_id, table_no, capacity, table_status) VALUES

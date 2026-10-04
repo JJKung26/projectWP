@@ -23,28 +23,50 @@ const db = new sqlite3.Database(dbPath, (err) => {
 db.run('PRAGMA foreign_keys = ON');
 
 function initDatabase() {
-    const schemaPath = path.join(__dirname, 'schema.sql');
-    const seedPath = path.join(__dirname, 'seed.sql');
+    const read = (name) => fs.readFileSync(path.join(__dirname, name), 'utf8');
 
-    const schemaSql = fs.readFileSync(schemaPath, 'utf8');
-    const seedSql = fs.readFileSync(seedPath, 'utf8');
-
-    db.exec(schemaSql, (err) => {
+    db.exec(read('schema.sql'), (err) => {
         if (err) {
             console.error('Error executing schema.sql:', err.message);
             return;
         }
         console.log('Database schema created/verified successfully.');
 
-        migrate(() => {
-            db.exec(seedSql, (err) => {
-                if (err) {
-                    console.error('Error executing seed.sql:', err.message);
-                    return;
-                }
-                console.log('Database seeded successfully.');
+        guardSchemaVersion((ok) => {
+            if (!ok) return;
+            migrate(() => {
+                db.exec(read('seed.sql') + '\n' + read('seed-accounts.sql'), (err) => {
+                    if (err) {
+                        console.error('Error seeding database:', err.message);
+                        return;
+                    }
+                    console.log('Database seeded successfully.');
+                });
             });
         });
+    });
+}
+
+// ฐานข้อมูลที่สร้างก่อนมีระบบ login จะไม่มีคอลัมน์ password_hash
+// และ CHECK constraint ของ role ก็ยังไม่รู้จัก ADMIN ซึ่ง SQLite แก้ด้วย
+// ALTER TABLE ไม่ได้ ต้องสร้างตารางใหม่ — จึงแจ้งให้ลบ .db แทนการเดา
+function guardSchemaVersion(done) {
+    db.all('PRAGMA table_info(Employee)', (err, cols) => {
+        if (err) {
+            console.error('ตรวจสอบโครงสร้างตาราง Employee ไม่สำเร็จ:', err.message);
+            return done(false);
+        }
+        if (!cols.some(c => c.name === 'password_hash')) {
+            console.error('');
+            console.error('===============================================================');
+            console.error('  ฐานข้อมูลเป็นเวอร์ชันเก่า (ไม่มีคอลัมน์ password_hash)');
+            console.error('  กรุณารัน reset-db.bat เพื่อสร้างฐานข้อมูลใหม่');
+            console.error('  หรือลบโฟลเดอร์ data/ ทิ้งแล้วเริ่มเซิร์ฟเวอร์อีกครั้ง');
+            console.error('===============================================================');
+            console.error('');
+            return done(false);
+        }
+        done(true);
     });
 }
 
