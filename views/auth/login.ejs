@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container" style="max-width: 400px; margin-top: 10vh;">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">เข้าสู่ระบบพนักงาน</h2>
+            </div>
+
+            <% if (error) { %>
+                <p style="color:#c8401a; margin: 0 0 16px;"><%= error %></p>
+            <% } %>
+
+            <form method="POST" action="/login">
+                <input type="hidden" name="next" value="<%= next %>">
+
+                <div class="form-group">
+                    <label class="form-label" for="username">ชื่อผู้ใช้</label>
+                    <input class="form-input" type="text" id="username" name="username"
+                           value="<%= username %>" required autofocus autocomplete="username">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">รหัสผ่าน</label>
+                    <input class="form-input" type="password" id="password" name="password"
+                           required autocomplete="current-password">
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">เข้าสู่ระบบ</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
