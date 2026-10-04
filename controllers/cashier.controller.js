@@ -40,7 +40,7 @@ exports.getTables = async (req, res) => {
 // Open a new table session & generate QR Token with Tunnelmole URL
 exports.openTable = async (req, res) => {
     const { table_id, guest_count, buffet_price, queue_ticket_id } = req.body;
-    const employee_id = req.body.employee_id || 'EMP-001';
+    const employee_id = req.staff.employee_id;
 
     try {
         // Verify table availability
@@ -196,7 +196,7 @@ exports.getBill = async (req, res) => {
 // Process Payment & Close Session
 exports.processPayment = async (req, res) => {
     const { session_id, payment_method, amount_received } = req.body;
-    const employee_id = req.body.employee_id || 'EMP-001';
+    const employee_id = req.staff.employee_id;
 
     try {
         const session = await db.get('SELECT * FROM DiningSession WHERE session_id = ? AND session_status = "ACTIVE"', [session_id]);

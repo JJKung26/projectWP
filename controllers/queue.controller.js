@@ -123,7 +123,7 @@ exports.callQueue = async (req, res) => {
 // 4. Seat Queue to Table
 exports.seatQueue = async (req, res) => {
     const { queue_ticket_id, table_id, buffet_price } = req.body;
-    const employee_id = req.body.employee_id || 'EMP-001';
+    const employee_id = req.staff.employee_id;
 
     try {
         const ticket = await db.get('SELECT * FROM QueueTicket WHERE queue_ticket_id = ?', [queue_ticket_id]);

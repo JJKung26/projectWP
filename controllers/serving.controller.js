@@ -48,7 +48,7 @@ exports.getDashboard = async (req, res) => {
 // Confirm Item Served
 exports.confirmServed = async (req, res) => {
     const { order_item_id, order_id } = req.body;
-    const employee_id = req.body.employee_id || 'EMP-003';
+    const employee_id = req.staff.employee_id;
 
     try {
         if (order_id) {

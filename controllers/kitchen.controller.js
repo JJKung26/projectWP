@@ -60,7 +60,7 @@ exports.getDashboard = async (req, res) => {
 // Update Order Item Status (PENDING -> COOKING -> READY or CANCELLED)
 exports.updateStatus = async (req, res) => {
     const { order_item_id, order_id, status, cancel_reason } = req.body;
-    const employee_id = req.body.employee_id || 'EMP-002'; // Kitchen Staff
+    const employee_id = req.staff.employee_id;
 
     if (!['COOKING', 'READY', 'CANCELLED'].includes(status)) {
         return res.status(400).json({ success: false, message: 'สถานะไม่ถูกต้อง' });
