@@ -80,6 +80,15 @@ io.on('connection', (socket) => {
 });
 
 
+server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+        console.error(` PORT : ${PORT} ถูกใช้งานอยู่แล้ว ปิดโปรแกรมที่ใช้พอร์ตนี้ก่อน หรือเปลี่ยน PORT`);
+        process.exit(1);
+    } else {
+        throw err;
+    }
+});
+
 server.listen(PORT, async () => {
     console.log(`=======================================================`);
     console.log(`🔥 Moo Krata Restaurant QR System running on:`);
