@@ -172,6 +172,19 @@ a {
     border-bottom-color: var(--ember);
 }
 
+.nav-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: 16px;
+}
+
+.nav-user-name {
+    font-size: 0.85rem;
+    color: var(--ink-3);
+    white-space: nowrap;
+}
+
 body.staff {
     background: var(--surface);
 }

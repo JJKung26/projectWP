@@ -1,20 +1,25 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= typeof title !== 'undefined' ? title : 'ระบบสั่งอาหารร้านหมูกระทะ' %></title>
+    <title>
+        <%= typeof title !=='undefined' ? title : 'ระบบสั่งอาหารร้านหมูกระทะ' %>
+    </title>
     <link rel="stylesheet" href="/css/style.css">
     <script src="/socket.io/socket.io.js"></script>
 </head>
+
 <body class="staff">
     <header class="navbar no-print">
         <a href="/" class="brand">
             <svg class="brand-logo" viewBox="0 0 100 100" aria-hidden="true">
-                <circle cx="50" cy="50" r="50" fill="#c8401a"/>
-                <path d="M24 60 Q50 20 76 60 Z" fill="#fff"/>
-                <path d="M18 60h64" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
-                <path d="M35 54l5-8M47 54l3-11M57 54l2-9M67 54l-1-6" stroke="#c8401a" stroke-width="3" stroke-linecap="round"/>
+                <circle cx="50" cy="50" r="50" fill="#c8401a" />
+                <path d="M24 60 Q50 20 76 60 Z" fill="#fff" />
+                <path d="M18 60h64" stroke="#fff" stroke-width="5" stroke-linecap="round" />
+                <path d="M35 54l5-8M47 54l3-11M57 54l2-9M67 54l-1-6" stroke="#c8401a" stroke-width="3"
+                    stroke-linecap="round" />
             </svg>
             <span class="brand-name">ร้านหมูกระทะ บุฟเฟต์</span>
             <span class="brand-sub">หลังร้าน</span>
@@ -23,13 +28,15 @@
             <a href="/cashier/tables" class="nav-link" data-match="/cashier">แคชเชียร์</a>
             <a href="/kitchen" class="nav-link" data-match="/kitchen">ครัว</a>
             <a href="/serving" class="nav-link" data-match="/serving">เสิร์ฟ</a>
-            <% if (typeof staff !== 'undefined' && staff) { %>
-                <span class="nav-link" style="cursor: default;"><%= staff.full_name %></span>
-                <form method="POST" action="/logout" style="display: inline;">
-                    <input type="hidden" name="role" value="<%= staff.role %>">
-                    <button type="submit" class="btn btn-secondary btn-sm">ออกจากระบบ</button>
-                </form>
-            <% } %>
+            <% if (typeof staff !=='undefined' && staff) { %>
+                <div class="nav-user">
+                    <span class="nav-user-name"><%= staff.full_name %></span>
+                    <form method="POST" action="/logout">
+                        <input type="hidden" name="role" value="<%= staff.role %>">
+                        <button type="submit" class="btn btn-secondary btn-sm">ออกจากระบบ</button>
+                    </form>
+                </div>
+                <% } %>
         </nav>
     </header>
     <script>

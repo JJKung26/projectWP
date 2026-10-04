@@ -8,6 +8,9 @@ data/*.db-journal
 # ไฟล์ชั่วคราวของกระบวนการพัฒนา (ledger, review package)
 .superpowers/
 
+# การตั้งค่าเครื่องมือ Claude Code ส่วนตัว ไม่ควรแชร์เข้า repo
+.claude/
+
 # Environment and OS files
 .env
 .DS_Store
