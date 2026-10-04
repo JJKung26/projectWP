@@ -1,6 +1,8 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const requireRole = require('../middlewares/auth.middleware').requireRole;
+const database = require('../database/database');
+const { cookieNameFor } = require('../middlewares/auth.helpers');
 
 function fakeRes() {
     return {
@@ -8,9 +10,12 @@ function fakeRes() {
         statusCode: null,
         jsonBody: null,
         redirectedTo: null,
+        renderedView: null,
+        renderedData: null,
         status(code) { this.statusCode = code; return this; },
         json(body) { this.jsonBody = body; return this; },
-        redirect(url) { this.redirectedTo = url; return this; }
+        redirect(url) { this.redirectedTo = url; return this; },
+        render(view, data) { this.renderedView = view; this.renderedData = data; return this; }
     };
 }
 
@@ -54,4 +59,53 @@ test('ไม่มี signedCookies เลย ก็ต้องไม่ throw'
     const req = { get: () => '*/*', originalUrl: '/serving' };
     await requireRole('SERVICE')(req, res, () => {});
     assert.strictEqual(res.statusCode, 401);
+});
+
+test('db.get() reject + มาจาก fetch() → ตอบ 500 JSON ภาษาไทย ไม่ throw ขึ้นไป', async () => {
+    const originalGet = database.get;
+    database.get = () => Promise.reject(new Error('DB ปิดอยู่ (จำลองสำหรับเทสต์)'));
+    try {
+        const res = fakeRes();
+        let nextCalled = false;
+        const req = fakeReq({ accept: '*/*', url: '/kitchen/update-status' });
+        req.signedCookies = { [cookieNameFor('KITCHEN')]: 'EMP-002' };
+
+        await assert.doesNotReject(
+            requireRole('KITCHEN')(req, res, () => { nextCalled = true; })
+        );
+
+        assert.strictEqual(nextCalled, false);
+        assert.strictEqual(res.redirectedTo, null);
+        assert.strictEqual(res.renderedView, null);
+        assert.strictEqual(res.statusCode, 500);
+        assert.strictEqual(res.jsonBody.success, false);
+        assert.ok(res.jsonBody.message.length > 0);
+        assert.ok(/[ก-๙]/.test(res.jsonBody.message)); // ต้องเป็นภาษาไทย
+    } finally {
+        database.get = originalGet;
+    }
+});
+
+test('db.get() reject + เปิดหน้าเว็บ → ตอบ 500 ด้วยหน้า error ไม่ใช่ redirect', async () => {
+    const originalGet = database.get;
+    database.get = () => Promise.reject(new Error('DB ปิดอยู่ (จำลองสำหรับเทสต์)'));
+    try {
+        const res = fakeRes();
+        let nextCalled = false;
+        const req = fakeReq({ accept: 'text/html', url: '/kitchen' });
+        req.signedCookies = { [cookieNameFor('KITCHEN')]: 'EMP-002' };
+
+        await assert.doesNotReject(
+            requireRole('KITCHEN')(req, res, () => { nextCalled = true; })
+        );
+
+        assert.strictEqual(nextCalled, false);
+        assert.strictEqual(res.redirectedTo, null);
+        assert.strictEqual(res.statusCode, 500);
+        assert.strictEqual(res.renderedView, 'error');
+        assert.ok(res.renderedData.message.length > 0);
+        assert.ok(/[ก-๙]/.test(res.renderedData.message));
+    } finally {
+        database.get = originalGet;
+    }
 });
