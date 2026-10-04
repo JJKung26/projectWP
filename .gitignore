@@ -11,6 +11,10 @@ data/*.db-journal
 # การตั้งค่าเครื่องมือ Claude Code ส่วนตัว ไม่ควรแชร์เข้า repo
 .claude/
 
+# เอกสารวางแผนภายใน/เทสต์อัตโนมัติ ไม่ต้องการให้อยู่ใน repo ที่ใช้งานร่วมกัน
+docs/superpowers/
+tests/
+
 # Environment and OS files
 .env
 .DS_Store
