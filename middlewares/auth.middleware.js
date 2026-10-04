@@ -1,0 +1,48 @@
+const db = require('../database/database');
+const { cookieNameFor, wantsHtml } = require('./auth.helpers');
+
+// โหลดพนักงานจากฐานข้อมูลใหม่ทุกครั้ง ไม่เก็บ role ไว้ใน cookie
+// เพื่อให้การแก้บทบาทหรือลบพนักงานมีผลทันที
+// และไม่เอาข้อมูลจากฝั่ง client มาตัดสินสิทธิ์โดยตรง
+async function loadStaff(employeeId, expectedRole) {
+    if (!employeeId) return null;
+    const row = await db.get(
+        'SELECT employee_id, username, full_name, role FROM Employee WHERE employee_id = ?',
+        [employeeId]
+    );
+    if (!row || row.role !== expectedRole) return null;
+    return row;
+}
+
+// หาพนักงานที่มีสิทธิ์เข้าถึง: cookie ของ role นั้นก่อน ถ้าไม่มีลอง cookie ของ ADMIN
+async function resolveStaff(req, role) {
+    const cookies = req.signedCookies || {};
+    const byRole = await loadStaff(cookies[cookieNameFor(role)], role);
+    if (byRole) return byRole;
+    return loadStaff(cookies[cookieNameFor('ADMIN')], 'ADMIN');
+}
+
+function requireRole(role) {
+    return async function (req, res, next) {
+        const staff = await resolveStaff(req, role);
+
+        if (staff) {
+            req.staff = staff;          // ให้ controller ใช้แทน employee_id ที่ hardcode
+            res.locals.staff = staff;   // ให้ view ใช้แสดงชื่อบน navbar
+            return next();
+        }
+
+        // ตอบคนละแบบตามชนิดของ request
+        // ถ้า redirect request ที่มาจาก fetch() ฝั่งเบราว์เซอร์จะได้ HTML
+        // แล้ว res.json() จะพังเงียบ ๆ ด้วย Unexpected token '<'
+        if (wantsHtml(req)) {
+            return res.redirect('/login?next=' + encodeURIComponent(req.originalUrl));
+        }
+        return res.status(401).json({
+            success: false,
+            message: 'กรุณาเข้าสู่ระบบอีกครั้ง'
+        });
+    };
+}
+
+module.exports = { requireRole };
