@@ -48,8 +48,6 @@ function initDatabase() {
 }
 
 // ฐานข้อมูลที่สร้างก่อนมีระบบ login จะไม่มีคอลัมน์ password_hash
-// และ CHECK constraint ของ role ก็ยังไม่รู้จัก ADMIN ซึ่ง SQLite แก้ด้วย
-// ALTER TABLE ไม่ได้ ต้องสร้างตารางใหม่ — จึงแจ้งให้ลบ .db แทนการเดา
 function guardSchemaVersion(done) {
     db.all('PRAGMA table_info(Employee)', (err, cols) => {
         if (err) {
@@ -60,7 +58,6 @@ function guardSchemaVersion(done) {
             console.error('');
             console.error('===============================================================');
             console.error('  ฐานข้อมูลเป็นเวอร์ชันเก่า (ไม่มีคอลัมน์ password_hash)');
-            console.error('  กรุณารัน reset-db.bat เพื่อสร้างฐานข้อมูลใหม่');
             console.error('  หรือลบโฟลเดอร์ data/ ทิ้งแล้วเริ่มเซิร์ฟเวอร์อีกครั้ง');
             console.error('===============================================================');
             console.error('');

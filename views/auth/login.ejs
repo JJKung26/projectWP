@@ -5,36 +5,90 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %></title>
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/auth/login.css">
 </head>
-<body>
-    <div class="container" style="max-width: 400px; margin-top: 10vh;">
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">เข้าสู่ระบบพนักงาน</h2>
+<body class="login-page">
+    <div class="login-split">
+        <aside class="login-hero" aria-hidden="true">
+            <div class="login-hero-dots"></div>
+            <span class="login-hero-ring login-hero-ring-a"></span>
+            <span class="login-hero-ring login-hero-ring-b"></span>
+
+            <div class="login-hero-content">
+                <h1 class="login-hero-title">ร้านหมูกระทะ บุฟเฟต์</h1>
+                <span class="login-hero-rule"></span>
+
+                <div class="login-hero-logo">
+                    <svg viewBox="0 0 100 100">
+                        <path d="M24 60 Q50 20 76 60 Z" fill="#fff"/>
+                        <path d="M18 60h64" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+                        <path d="M35 54l5-8M47 54l3-11M57 54l2-9M67 54l-1-6" stroke="#c8401a" stroke-width="3" stroke-linecap="round"/>
+                    </svg>
+                </div>
+
+                <h2 class="login-hero-tagline">ระบบจัดการร้านอาหารครบวงจร</h2>
+                <p class="login-hero-sub">จัดการโต๊ะ ออเดอร์ และบิล ได้ในที่เดียว</p>
+
+                <div class="login-hero-roles">
+                    <span class="role-chip">แคชเชียร์</span>
+                    <span class="role-chip">ครัว</span>
+                    <span class="role-chip">เสิร์ฟ</span>
+                </div>
             </div>
+        </aside>
 
-            <% if (error) { %>
-                <p style="color:#c8401a; margin: 0 0 16px;"><%= error %></p>
-            <% } %>
-
-            <form method="POST" action="/login">
-                <input type="hidden" name="next" value="<%= next %>">
-
-                <div class="form-group">
-                    <label class="form-label" for="username">ชื่อผู้ใช้</label>
-                    <input class="form-input" type="text" id="username" name="username"
-                           value="<%= username %>" required autofocus autocomplete="username">
+        <main class="login-form-panel">
+            <div class="login-form-wrap">
+                <div class="login-brand">
+                    <svg class="login-brand-logo" viewBox="0 0 100 100" aria-hidden="true">
+                        <circle cx="50" cy="50" r="50" fill="#c8401a"/>
+                        <path d="M24 60 Q50 20 76 60 Z" fill="#fff"/>
+                        <path d="M18 60h64" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+                        <path d="M35 54l5-8M47 54l3-11M57 54l2-9M67 54l-1-6" stroke="#c8401a" stroke-width="3" stroke-linecap="round"/>
+                    </svg>
+                    <span class="login-brand-name">ร้านหมูกระทะ บุฟเฟต์</span>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label" for="password">รหัสผ่าน</label>
-                    <input class="form-input" type="password" id="password" name="password"
-                           required autocomplete="current-password">
-                </div>
+                <h2 class="login-heading">เข้าสู่ระบบพนักงาน</h2>
+                <p class="login-sub">กรุณาเข้าสู่ระบบเพื่อดำเนินการต่อ</p>
 
-                <button type="submit" class="btn btn-primary btn-block">เข้าสู่ระบบ</button>
-            </form>
-        </div>
+                <% if (error) { %>
+                    <p class="login-error"><%= error %></p>
+                <% } %>
+
+                <form method="POST" action="/login" class="login-form">
+                    <input type="hidden" name="next" value="<%= next %>">
+
+                    <div class="form-group">
+                        <label class="form-label" for="username">ชื่อผู้ใช้</label>
+                        <div class="input-icon-wrap">
+                            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <circle cx="12" cy="8" r="4"/>
+                                <path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/>
+                            </svg>
+                            <input class="form-input has-icon" type="text" id="username" name="username"
+                                   value="<%= username %>" placeholder="กรอกชื่อผู้ใช้ของคุณ"
+                                   required autofocus autocomplete="username">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="password">รหัสผ่าน</label>
+                        <div class="input-icon-wrap">
+                            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <rect x="5" y="11" width="14" height="9" rx="2"/>
+                                <path d="M8 11V8a4 4 0 0 1 8 0v3"/>
+                            </svg>
+                            <input class="form-input has-icon" type="password" id="password" name="password"
+                                   placeholder="กรอกรหัสผ่านของคุณ"
+                                   required autocomplete="current-password">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block btn-lg">เข้าสู่ระบบ</button>
+                </form>
+            </div>
+        </main>
     </div>
 </body>
 </html>

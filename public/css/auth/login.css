@@ -1,0 +1,203 @@
+/* ==========================================================================
+   Login — split hero / form layout
+   ใช้เฉพาะหน้า views/auth/login.ejs — พึ่งพาตัวแปรสี/ฟอนต์จาก ../style.css
+   (ต้องโหลด style.css ก่อนไฟล์นี้เสมอ)
+   ========================================================================== */
+body.login-page {
+    background: var(--surface);
+}
+
+.login-split {
+    min-height: 100vh;
+    display: flex;
+}
+
+.login-hero {
+    position: relative;
+    flex: 1 1 46%;
+    background: var(--danger);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px;
+    overflow: hidden;
+   
+}
+
+.login-hero-dots {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.16) 1.5px, transparent 1.5px);
+    background-size: 22px 22px;
+    opacity: 0.6;
+}
+
+.login-hero-ring {
+    position: absolute;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 50%;
+}
+
+.login-hero-ring-a {
+    width: 260px;
+    height: 260px;
+    top: -60px;
+    left: -60px;
+}
+
+.login-hero-ring-b {
+    width: 180px;
+    height: 180px;
+    bottom: -50px;
+    right: -40px;
+}
+
+.login-hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 340px;
+    text-align: center;
+}
+
+.login-hero-title {
+    font-size: 1.8rem;
+    font-weight: 500;
+}
+
+.login-hero-rule {
+    display: inline-block;
+    width: 48px;
+    height: 3px;
+    background: #fff;
+    border-radius: 999px;
+    margin: 18px 0 32px;
+}
+
+.login-hero-logo {
+    width: 128px;
+    height: 128px;
+    margin: 0 auto 28px;
+    border-radius: 50%;
+    background: var(--ember);
+    box-shadow: var(--shadow-lg);
+    display: grid;
+    place-items: center;
+}
+
+.login-hero-logo svg {
+    width: 122px;
+    height: 122px;
+}
+
+.login-hero-tagline {
+    font-size: 1.15rem;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+.login-hero-sub {
+    font-size: 0.92rem;
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.6;
+    margin-bottom: 28px;
+}
+
+.login-hero-roles {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.role-chip {
+    padding: 6px 16px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.login-form-panel {
+    flex: 1 1 54%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+   
+}
+
+.login-form-wrap {
+    width: 100%;
+    max-width: 360px;
+}
+
+.login-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 36px;
+}
+
+.login-brand-logo {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+}
+
+.login-brand-name {
+    font-family: var(--font-head);
+    font-size: 1.3rem;
+    font-weight: 500;
+    color: var(--ink);
+}
+
+.login-heading {
+    font-size: 1.8rem;
+    margin-bottom: 6px;
+}
+
+.login-sub {
+    color: var(--ink-2);
+    font-size: 0.92rem;
+    margin-bottom: 24px;
+}
+
+.login-error {
+    background: var(--danger-soft);
+    color: var(--danger);
+    border: 1px solid #f0c7c3;
+    border-radius: var(--r-sm);
+    padding: 10px 14px;
+    font-size: 0.88rem;
+    margin-bottom: 18px;
+}
+
+.input-icon-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute;
+    left: 12px;
+    width: 18px;
+    height: 18px;
+    color: var(--ink-3);
+    pointer-events: none;
+}
+
+.form-input.has-icon {
+    padding-left: 38px;
+}
+
+@media (max-width: 860px) {
+    .login-hero {
+        display: none;
+    }
+
+    .login-form-panel {
+        flex: 1 1 100%;
+    }
+}
