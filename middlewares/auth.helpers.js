@@ -11,6 +11,7 @@ const COOKIE_OPTIONS = {
     sameSite: 'strict',
     secure: false,              // ต้องเป็น false เพราะรันบน http://localhost ตอนตรวจงาน
     maxAge: 12 * 60 * 60 * 1000 // 12 ชั่วโมง
+    
 };
 
 const HOME_BY_ROLE = {

@@ -10,7 +10,9 @@ const ACCOUNTS = [
     ['EMP-001', 'cashier1', 'cashier123',  'แคชเชียร์ สมศรี',      'CASHIER'],
     ['EMP-002', 'kitchen1', 'kitchen123',  'เชฟ สมชาย (ครัว)',    'KITCHEN'],
     ['EMP-003', 'service1', 'service123',  'พนักงานเสิร์ฟ นพ',    'SERVICE'],
-    ['EMP-004', 'service2', 'service123',  'พนักงานเสิร์ฟ ฝน',    'SERVICE']
+    ['EMP-004', 'service2', 'service123',  'พนักงานเสิร์ฟ ฝน',    'SERVICE'],
+    ['EMP-005', 'cashier2', 'cashier123',  'แคชเชียร์ สมหญิง',    'CASHIER'],
+    ['EMP-006', 'kitchen2', 'kitchen123',  'เชฟ มานะ (ครัว)',     'KITCHEN']
 ];
 
 const rows = ACCOUNTS.map(([id, username, password, fullName, role]) => {

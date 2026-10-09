@@ -29,10 +29,6 @@ function requireRole(role) {
         try {
             staff = await resolveStaff(req, role);
         } catch (err) {
-            // ถ้า db.get() reject (เช่น DB ปิดอยู่) ต้องจับไว้เอง เพราะโปรเจกต์นี้
-            // ยังไม่มี global error handler (จะถูกสร้างใน Task 8) — ถ้าไม่จับ
-            // error จะตกไปที่ default handler ของ Express ซึ่งตอบเป็น HTML เสมอ
-            // เป็นบั๊กคลาสเดียวกับที่ middleware นี้ป้องกันตอน 401
             console.error('requireRole: ตรวจสอบสิทธิ์ล้มเหลว:', err);
             const message = 'เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์ กรุณาลองใหม่อีกครั้ง';
             if (wantsHtml(req)) {
@@ -47,11 +43,8 @@ function requireRole(role) {
             return next();
         }
 
-        // ตอบคนละแบบตามชนิดของ request
-        // ถ้า redirect request ที่มาจาก fetch() ฝั่งเบราว์เซอร์จะได้ HTML
-        // แล้ว res.json() จะพังเงียบ ๆ ด้วย Unexpected token '<'
         if (wantsHtml(req)) {
-            return res.redirect('/login?next=' + encodeURIComponent(req.originalUrl));
+            return res.redirect('/login');
         }
         return res.status(401).json({
             success: false,
