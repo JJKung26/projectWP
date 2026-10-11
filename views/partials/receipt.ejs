@@ -1,9 +1,10 @@
 <% const children = session.child_count || 0, freeChildren = session.free_child_count || 0;
    const adults = session.guest_count - children - freeChildren;
    const method = paid ? {CASH:'CASH · เงินสด',PROMPTPAY:'พร้อมเพย์',CREDIT_CARD:'บัตร (จำลอง)'}[payment.payment_method] : '';
-   // รวมรายการซ้ำเฉพาะตอนแสดงใบเช็กบิล โดยคงราคาที่สั่งแต่ละครั้งไว้
+   // แสดงเฉพาะรายการคิดเงินเพิ่ม และรวมรายการซ้ำที่สั่งด้วยราคาเดียวกัน
    const itemGroups = new Map();
-   if (!paid) for (const item of items) {
+   for (const item of items) {
+       if (item.charge_type !== 'ALACARTE' || item.quantity * item.unit_price_at_order <= 0) continue;
        const key = JSON.stringify([item.menu_item_id, item.item_name, item.charge_type, item.unit_price_at_order]);
        if (itemGroups.has(key)) itemGroups.get(key).quantity += item.quantity;
        else itemGroups.set(key, { ...item });
@@ -27,18 +28,16 @@
         <p>DINE IN | ลูกค้า: <%= session.guest_count %> ท่าน</p>
         <h2>TABLE No. <%= session.table_no %></h2>
     </div>
-    <table class="receipt-items" aria-label="สรุปค่าบุฟเฟต์">
+    <table class="receipt-items" aria-label="รายการที่คิดเงิน">
         <colgroup><col><col class="receipt-quantity"><col class="receipt-amount"></colgroup>
         <thead><tr><th>รายการ</th><th class="r">จำนวน</th><th class="r">บาท</th></tr></thead>
         <tbody>
-            <% for (const [label, count, price] of [['บุฟเฟต์ ผู้ใหญ่',adults,session.buffet_price],['บุฟเฟต์ เด็ก 90–120 ซม.',children,session.child_price ?? 179],['เด็กต่ำกว่า 90 ซม. (ทานฟรี)',freeChildren,0]]) { if (count) { %>
+            <% for (const [label, count, price] of [['บุฟเฟต์ ผู้ใหญ่',adults,session.buffet_price],['บุฟเฟต์ เด็ก 90–120 ซม.',children,session.child_price ?? 179]]) { if (count * price > 0) { %>
             <tr><td><%= label %><span class="buffet-rate"><%= price.toFixed(2) %> บาท/ท่าน</span></td><td class="r"><%= count %></td><td class="r"><%= (count*price).toFixed(2) %></td></tr>
             <% } } %>
-            <% if (!paid) { itemGroups.forEach(i => { %>
-            <tr><td><%= i.item_name %><small style="display:block"><%= i.charge_type === 'BUFFET' ? 'รวมในบุฟเฟต์' : i.unit_price_at_order.toFixed(2) + ' บาท/หน่วย' %></small></td><td class="r"><%= i.quantity %></td><td class="r"><%= (i.charge_type === 'BUFFET' ? 0 : i.quantity*i.unit_price_at_order).toFixed(2) %></td></tr>
-            <% }); } else if (alacarteTotal > 0) { %>
-            <tr><td colspan="2">ค่าใช้จ่ายเพิ่มเติม</td><td class="r"><%= alacarteTotal.toFixed(2) %></td></tr>
-            <% } %>
+            <% itemGroups.forEach(i => { %>
+            <tr><td><%= i.item_name %><small style="display:block"><%= i.unit_price_at_order.toFixed(2) %> บาท/หน่วย</small></td><td class="r"><%= i.quantity %></td><td class="r"><%= (i.quantity*i.unit_price_at_order).toFixed(2) %></td></tr>
+            <% }); %>
         </tbody>
     </table>
     <div class="receipt-totals">
