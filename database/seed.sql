@@ -154,12 +154,4 @@ ON CONFLICT(menu_item_id) DO UPDATE SET
     image_url = excluded.image_url;
 
 -- น้ำอัดลมรวมอยู่ในน้ำรีฟิลแล้ว เก็บแถวเดิมไว้สำหรับประวัติออเดอร์
-UPDATE MenuItem SET is_active = 0, availability = 0 WHERE menu_item_id = 'ITEM-406';
-
--- 5. Seed Service Types
-INSERT OR IGNORE INTO ServiceType (service_type_id, service_name) VALUES
-('SRV-01', 'ขอเปลี่ยนกระทะ / ตะแกรง'),
-('SRV-02', 'ขอเติมถ่าน / ไฟดับ'),
-('SRV-03', 'ขอน้ำจิ้มเพิ่ม'),
-('SRV-04', 'ขอน้ำซุปเพิ่ม'),
-('SRV-05', 'ขอเช็ด / ทำความสะอาดโต๊ะ');
+UPDATE MenuItem SET is_active = 0, availability = 0, image_url = '/images/drink_refill.png' WHERE menu_item_id = 'ITEM-406';

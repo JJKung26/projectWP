@@ -2,7 +2,7 @@
   "name": "moo-krata-app",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "start": "node scripts/start-cloudflare.js",
     "start:local": "node server.js",

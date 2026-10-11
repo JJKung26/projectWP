@@ -44,7 +44,6 @@ function safeNextPath(next) {
 
 module.exports = {
     ROLES,
-    COOKIE_PREFIX,
     COOKIE_OPTIONS,
     HOME_BY_ROLE,
     cookieNameFor,

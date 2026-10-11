@@ -28,3 +28,5 @@ data/
 *.log
 restaurant-promptpay*.zip
 tools/cloudflared.exe
+*-preview.png
+*-preview.jpg

@@ -85,23 +85,7 @@ CREATE TABLE IF NOT EXISTS OrderItem (
     cancel_reason TEXT
 );
 
--- 9. ServiceType
-CREATE TABLE IF NOT EXISTS ServiceType (
-    service_type_id TEXT PRIMARY KEY,
-    service_name TEXT UNIQUE NOT NULL
-);
-
--- 10. ServiceRequest
-CREATE TABLE IF NOT EXISTS ServiceRequest (
-    service_request_id TEXT PRIMARY KEY,
-    session_id TEXT NOT NULL REFERENCES DiningSession(session_id),
-    service_type_id TEXT NOT NULL REFERENCES ServiceType(service_type_id),
-    completed_by TEXT REFERENCES Employee(employee_id),
-    requested_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    request_status TEXT NOT NULL DEFAULT 'PENDING' CHECK(request_status IN ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'))
-);
-
--- 11. Bill
+-- 9. Bill
 CREATE TABLE IF NOT EXISTS Bill (
     bill_id TEXT PRIMARY KEY,
     session_id TEXT UNIQUE NOT NULL REFERENCES DiningSession(session_id),
@@ -111,7 +95,7 @@ CREATE TABLE IF NOT EXISTS Bill (
     receipt_no TEXT UNIQUE
 );
 
--- 12. Payment
+-- 10. Payment
 CREATE TABLE IF NOT EXISTS Payment (
     payment_id TEXT PRIMARY KEY,
     bill_id TEXT NOT NULL REFERENCES Bill(bill_id),

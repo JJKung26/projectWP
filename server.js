@@ -121,7 +121,6 @@ async function start(port = PORT) {
 
     // ตัวเปิด Cloudflare ส่ง PUBLIC_URL ให้เว็บก่อนเริ่ม Server
     if (process.env.PUBLIC_URL) {
-        app.set('publicUrl', process.env.PUBLIC_URL);
         console.log(`🌐 Public Customer URL: ${process.env.PUBLIC_URL}`);
         console.log(`=======================================================`);
     }

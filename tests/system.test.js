@@ -68,6 +68,25 @@ test('round only final total after VAT using integer satang', () => {
     }
 });
 
+test('fresh installation starts empty with 50 free tables and exactly the current menu images', async () => {
+    for (const table of ['QueueTicket','DiningSession','FoodOrder','OrderItem','Bill','Payment']) {
+        assert.equal((await db.get('SELECT COUNT(*) n FROM '+table)).n,0);
+    }
+    assert.equal((await db.get('SELECT COUNT(*) n FROM Employee')).n,7);
+    assert.equal((await db.get("SELECT COUNT(*) n FROM DiningTable WHERE table_status='AVAILABLE'")).n,50);
+    assert.equal((await db.get("SELECT COUNT(*) n FROM sqlite_master WHERE type='table' AND name IN ('ServiceType','ServiceRequest')")).n,0);
+    const items = await db.query('SELECT image_url,availability,is_active FROM MenuItem');
+    assert.equal(items.length,56);
+    assert.ok(items.every(item=>item.availability===1 && item.is_active===1));
+    const categories = await db.query('SELECT category_id FROM Category ORDER BY sort_order');
+    assert.deepEqual(categories.map(row=>row.category_id),['CAT-MEAT','CAT-SEAFOOD','CAT-VEG','CAT-BALL','CAT-SNACK','CAT-NOODLE','CAT-DRINK','CAT-DESSERT']);
+    const images = [...new Set(items.map(item=>item.image_url).concat('/images/hero.jpg'))].sort();
+    const directory = path.join(__dirname,'../public/images');
+    assert.deepEqual(fs.readdirSync(directory).filter(name=>/\.(png|jpg|jpeg|webp|svg)$/i.test(name)).map(name=>'/images/'+name).sort(),images);
+    const responses = await Promise.all(images.map(url=>request(url,undefined,'')));
+    assert.ok(responses.every(result=>result.status===200),'all retained images must load');
+});
+
 test('30 concurrent opens create exactly one ACTIVE session', async () => {
     const results = await Promise.all(Array.from({length:30}, () => request('/cashier/open-table',{table_id:'TBL-01',guest_count:2,buffet_price:279})));
     assert.equal(results.filter(r => r.status===200).length,1);
@@ -554,6 +573,8 @@ test('retired soda disappears from menu and stock, rejects new orders, and prese
         await db.transaction(() => new Promise((resolve,reject) => db.db.exec(seed,err => err ? reject(err) : resolve())));
         const archived = await db.get("SELECT * FROM MenuItem WHERE menu_item_id='ITEM-406'");
         assert.equal(archived.is_active,0); assert.equal(archived.availability,0);
+        assert.equal(archived.image_url,'/images/drink_refill.png');
+        assert.equal((await request(archived.image_url,undefined,'')).status,200);
         assert.deepEqual(await db.get('SELECT * FROM OrderItem WHERE order_id=?',[placed.data.order_id]),original);
     }
     const menuPage = await request('/menu?token='+session.qr_token,undefined,'');
