@@ -1,125 +1,94 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
-
-const dbPath = path.join(__dirname, '..', 'data', 'restaurant.db');
-
-// Ensure data directory exists
-const dataDir = path.dirname(dbPath);
-if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
+const { AsyncLocalStorage } = require('async_hooks');
+const dbPath = process.env.DB_PATH || path.join(__dirname, '..', 'data', 'restaurant.db');
+fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+const db = new sqlite3.Database(dbPath);
+db.configure('busyTimeout', 10000);
+function raw(method, sql, params = []) {
+    return new Promise((resolve, reject) => {
+        db[method](sql, params, function (err, rows) {
+            if (err) reject(err);
+            else resolve(method === 'run' ? { changes: this.changes, lastID: this.lastID } : rows);
+        });
+    });
 }
-
-const db = new sqlite3.Database(dbPath, (err) => {
-    if (err) {
-        console.error('Error opening database:', err.message);
-    } else {
-        console.log('Connected to SQLite database at:', dbPath);
-        initDatabase();
+const exec = sql => new Promise((resolve, reject) => db.exec(sql, err => err ? reject(err) : resolve()));
+const ready = (async () => {
+    await exec('PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL;');
+    await exec(fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8'));
+    const columns = [
+        ['Employee', 'password_hash', 'TEXT'],
+        ['Category', 'sort_order', 'INTEGER NOT NULL DEFAULT 0'],
+        ['MenuItem', 'description', 'TEXT'],
+        ['MenuItem', 'sort_order', 'INTEGER NOT NULL DEFAULT 0'],
+        ['MenuItem', 'is_active', 'INTEGER NOT NULL DEFAULT 1 CHECK(is_active IN (0, 1))'],
+        ['QueueTicket', 'created_at', 'TEXT'],
+        ['DiningSession', 'child_count', 'INTEGER NOT NULL DEFAULT 0'],
+        ['DiningSession', 'free_child_count', 'INTEGER NOT NULL DEFAULT 0'],
+        ['DiningSession', 'child_price', 'REAL NOT NULL DEFAULT 179.00'],
+        ['FoodOrder', 'request_key', 'TEXT'],
+        ['FoodOrder', 'request_hash', 'TEXT'],
+        ['FoodOrder', 'round_no', 'INTEGER'],
+        ['OrderItem', 'item_name_at_order', 'TEXT'],
+        ['OrderItem', 'charge_type_at_order', 'TEXT'],
+        ['Bill', 'subtotal', 'REAL'],
+        ['Bill', 'before_rounding', 'REAL'],
+        ['Bill', 'rounding_amount', 'REAL'],
+        ['Bill', 'snapshot_json', 'TEXT'],
+        ['Payment', 'amount_received', 'REAL'],
+        ['Payment', 'change_amount', 'REAL'],
+        ['Payment', 'paid_at', 'TEXT']
+    ];
+    for (const [table, name, type] of columns) {
+        const info = await raw('all', 'PRAGMA table_info(' + table + ')');
+        if (!info.some(c => c.name === name)) await exec('ALTER TABLE ' + table + ' ADD COLUMN ' + name + ' ' + type);
     }
-});
-
-// Enable foreign keys
-db.run('PRAGMA foreign_keys = ON');
-
-function initDatabase() {
-    const read = (name) => fs.readFileSync(path.join(__dirname, name), 'utf8');
-
-    db.exec(read('schema.sql'), (err) => {
-        if (err) {
-            console.error('Error executing schema.sql:', err.message);
-            return;
+    // หยุด startup หากข้อมูลเก่าซ้ำ แทนการลบข้อมูลลูกค้าเอง
+    await exec(`CREATE UNIQUE INDEX IF NOT EXISTS one_active_session ON DiningSession(table_id) WHERE session_status = 'ACTIVE';
+        CREATE UNIQUE INDEX IF NOT EXISTS unique_daily_queue ON QueueTicket(queue_date, queue_no);
+        CREATE UNIQUE INDEX IF NOT EXISTS unique_order_request ON FoodOrder(session_id, request_key);
+        CREATE UNIQUE INDEX IF NOT EXISTS one_success_payment ON Payment(bill_id) WHERE payment_status = 'SUCCESS';
+        CREATE INDEX IF NOT EXISTS orders_by_session ON FoodOrder(session_id);
+        CREATE INDEX IF NOT EXISTS items_by_order ON OrderItem(order_id);
+        UPDATE FoodOrder SET round_no = (SELECT COUNT(*) FROM FoodOrder f WHERE f.session_id = FoodOrder.session_id AND f.rowid <= FoodOrder.rowid) WHERE round_no IS NULL;
+        UPDATE OrderItem SET item_name_at_order = (SELECT item_name FROM MenuItem WHERE menu_item_id = OrderItem.menu_item_id), charge_type_at_order = (SELECT charge_type FROM MenuItem WHERE menu_item_id = OrderItem.menu_item_id) WHERE item_name_at_order IS NULL;`);
+    // ย้ายสถานะรอเก็บโต๊ะจากรุ่นเก่า โดยไม่ปล่อยโต๊ะที่ยังมีลูกค้า
+    await exec(`UPDATE DiningTable SET table_status = CASE
+        WHEN EXISTS (SELECT 1 FROM DiningSession s WHERE s.table_id = DiningTable.table_id AND s.session_status = 'ACTIVE')
+        THEN 'OCCUPIED' ELSE 'AVAILABLE' END WHERE table_status = 'CLEANING'`);
+    for (const file of ['seed.sql', 'seed-accounts.sql']) await exec(fs.readFileSync(path.join(__dirname, file), 'utf8'));
+    const old = await raw('get', 'SELECT COUNT(*) AS n FROM Employee WHERE password_hash IS NULL');
+    if (old.n) throw new Error('บัญชีเก่าไม่มี password_hash: รัน npm run seed:accounts เพื่อกำหนดรหัสผ่าน');
+})();
+// ทุกคำสั่งใช้คิวเดียวกัน จึงไม่มี request อื่นแทรกใน Transaction ของ connection นี้
+const context = new AsyncLocalStorage();
+let tail = Promise.resolve();
+function exclusive(work) {
+    const result = tail.then(() => ready).then(work);
+    tail = result.catch(() => {});
+    return result;
+}
+function command(method, sql, params) {
+    return context.getStore() ? raw(method, sql, params) : exclusive(() => raw(method, sql, params));
+}
+async function transaction(work) {
+    if (context.getStore()) return work();
+    return exclusive(() => context.run(true, async () => {
+        await raw('run', 'BEGIN IMMEDIATE');
+        try {
+            const result = await work();
+            await raw('run', 'COMMIT');
+            return result;
+        } catch (err) {
+            await raw('run', 'ROLLBACK');
+            throw err;
         }
-        console.log('Database schema created/verified successfully.');
-
-        guardSchemaVersion((ok) => {
-            if (!ok) return;
-            migrate(() => {
-                db.exec(read('seed.sql') + '\n' + read('seed-accounts.sql'), (err) => {
-                    if (err) {
-                        console.error('Error seeding database:', err.message);
-                        return;
-                    }
-                    console.log('Database seeded successfully.');
-                });
-            });
-        });
-    });
+    }));
 }
-
-// ฐานข้อมูลที่สร้างก่อนมีระบบ login จะไม่มีคอลัมน์ password_hash
-function guardSchemaVersion(done) {
-    db.all('PRAGMA table_info(Employee)', (err, cols) => {
-        if (err) {
-            console.error('ตรวจสอบโครงสร้างตาราง Employee ไม่สำเร็จ:', err.message);
-            return done(false);
-        }
-        if (!cols.some(c => c.name === 'password_hash')) {
-            console.error('');
-            console.error('===============================================================');
-            console.error('  ฐานข้อมูลเป็นเวอร์ชันเก่า (ไม่มีคอลัมน์ password_hash)');
-            console.error('  หรือลบโฟลเดอร์ data/ ทิ้งแล้วเริ่มเซิร์ฟเวอร์อีกครั้ง');
-            console.error('===============================================================');
-            console.error('');
-            return done(false);
-        }
-        done(true);
-    });
-}
-
-// Columns added after the first release. CREATE TABLE IF NOT EXISTS won't add
-// them to a database that already exists, so add any that are missing.
-const addedColumns = [
-    ['Category', 'sort_order', 'INTEGER NOT NULL DEFAULT 0'],
-    ['MenuItem', 'description', 'TEXT']
-];
-
-function migrate(done) {
-    let pending = addedColumns.length;
-    addedColumns.forEach(([table, column, type]) => {
-        db.all(`PRAGMA table_info(${table})`, (err, cols) => {
-            const finish = () => { if (--pending === 0) done(); };
-            if (err || cols.some(c => c.name === column)) return finish();
-            db.run(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`, (err) => {
-                if (err) console.error(`Error adding ${table}.${column}:`, err.message);
-                else console.log(`Added column ${table}.${column}`);
-                finish();
-            });
-        });
-    });
-}
-
-// Helper promises for async/await usage
-function query(sql, params = []) {
-    return new Promise((resolve, reject) => {
-        db.all(sql, params, (err, rows) => {
-            if (err) reject(err);
-            else resolve(rows);
-        });
-    });
-}
-
-function get(sql, params = []) {
-    return new Promise((resolve, reject) => {
-        db.get(sql, params, (err, row) => {
-            if (err) reject(err);
-            else resolve(row);
-        });
-    });
-}
-
-function run(sql, params = []) {
-    return new Promise((resolve, reject) => {
-        db.run(sql, params, function (err) {
-            if (err) reject(err);
-            else resolve({ lastID: this.lastID, changes: this.changes });
-        });
-    });
-}
-
-module.exports = {
-    db,
-    query,
-    get,
-    run
+module.exports = { db, ready, transaction,
+    query: (sql, params = []) => command('all', sql, params),
+    get: (sql, params = []) => command('get', sql, params),
+    run: (sql, params = []) => command('run', sql, params)
 };

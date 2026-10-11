@@ -1,3 +1,4 @@
+require('dotenv').config({ quiet: true });
 const express = require('express');
 const http = require('http');
 const path = require('path');
@@ -11,26 +12,26 @@ const io = new Server(server);
 // Store io in app context
 app.set('socketio', io);
 
+app.locals.thaiDate = value => value ? new Date(String(value).replace(' ', 'T') + 'Z').toLocaleString('th-TH', { timeZone:'Asia/Bangkok' }) : 'ไม่พบเวลาที่บันทึก';
 // View engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
-// กุญแจสำหรับเซ็นชื่อ cookie — กันคนแก้ค่า cookie เองเพื่อปลอมเป็นพนักงานบทบาทอื่น
-// ย้ายไปเก็บใน .env ภายหลังได้โดยเปลี่ยนเป็น:
-//   const SESSION_SECRET = process.env.SESSION_SECRET || 'moo-krata-dev-secret-2026';
-const SESSION_SECRET = 'moo-krata-dev-secret-2026';
+// อ่านกุญแจจาก .env เท่านั้น
+const SESSION_SECRET = process.env.SESSION_SECRET;
+if (!SESSION_SECRET || SESSION_SECRET.length < 32 || SESSION_SECRET === 'moo-krata-dev-secret-2026') {
+    throw new Error('ตั้ง SESSION_SECRET ใหม่อย่างน้อย 32 ตัวอักษรใน .env ก่อนเริ่มระบบ');
+}
 
 // Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use((req, res, next) => { req.body ??= {}; next(); });
 app.use(cookieParser(SESSION_SECRET));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Initialize Database connection & tables
 const db = require('./database/database');
-
-// Import Tunnelmole utility
-const tunnel = require('./utils/tunnel');
 
 // Import Routes
 const customerRoutes = require('./routes/customer.routes');
@@ -70,15 +71,32 @@ app.get('/', (req, res) => {
 app.use(notFound);
 app.use(errorHandler);
 
-// Socket.IO connections
-io.on('connection', (socket) => {
-    console.log('⚡ Client connected to Socket.IO:', socket.id);
-
-    socket.on('disconnect', () => {
-        console.log('Client disconnected:', socket.id);
-    });
+// ยืนยันสิทธิ์ก่อนให้ Socket เข้าห้องบทบาทหรือโต๊ะ
+const { resolveStaff } = require('./middlewares/auth.middleware');
+io.use(async (socket, next) => {
+    try {
+        const req = socket.request;
+        cookieParser(SESSION_SECRET)(req, {}, () => {});
+        const { role, token } = socket.handshake.auth;
+        if (token !== undefined && typeof token !== 'string') return next(new Error('QR ไม่ถูกต้อง'));
+        if (role) {
+            if (!['CASHIER','KITCHEN','SERVICE','ADMIN'].includes(role)) return next(new Error('ไม่มีสิทธิ์'));
+            const staff = await resolveStaff(req, role);
+            if (!staff) return next(new Error('กรุณาเข้าสู่ระบบ'));
+            socket.data.room = 'staff:' + role;
+        } else {
+            const session = await db.get("SELECT session_id FROM DiningSession WHERE qr_token = ? AND session_status = 'ACTIVE'", [token || '']);
+            if (!session) return next(new Error('รอบบริการปิดแล้วหรือ QR ไม่ถูกต้อง'));
+            socket.data.room = 'session:' + session.session_id;
+            socket.data.customer = true;
+        }
+        next();
+    } catch (err) { next(err); }
 });
-
+io.on('connection', socket => {
+    socket.join(socket.data.room);
+    if (socket.data.customer) socket.join('customers');
+});
 
 server.on('error', (err) => {
     if (err.code === 'EADDRINUSE') {
@@ -89,24 +107,26 @@ server.on('error', (err) => {
     }
 });
 
-server.listen(PORT, async () => {
+async function start(port = PORT) {
+    await db.ready;
+    return server.listen(port, '0.0.0.0', async () => {
+    const listeningPort = server.address().port;
     console.log(`=======================================================`);
     console.log(`🔥 Moo Krata Restaurant QR System running on:`);
-    console.log(`👉 Local: http://localhost:${PORT}`);
-    console.log(`👉 Cashier: http://localhost:${PORT}/cashier/tables`);
-    console.log(`👉 Kitchen: http://localhost:${PORT}/kitchen`);
-    console.log(`👉 Serving: http://localhost:${PORT}/serving`);
+    console.log(`👉 Local: http://localhost:${listeningPort}`);
+    console.log(`👉 Cashier: http://localhost:${listeningPort}/cashier/tables`);
+    console.log(`👉 Kitchen: http://localhost:${listeningPort}/kitchen`);
+    console.log(`👉 Serving: http://localhost:${listeningPort}/serving`);
     console.log(`=======================================================`);
 
-    // Initialize Tunnelmole for public QR Code access
-    try {
-        const publicUrl = await tunnel.startTunnel(PORT);
-        if (publicUrl) {
-            app.set('publicUrl', publicUrl);
-            console.log(`🌐 Public Customer URL (Tunnelmole): ${publicUrl}`);
-            console.log(`=======================================================`);
-        }
-    } catch (err) {
-        console.warn('⚠️ Tunnelmole warning:', err.message);
+    // ตัวเปิด Cloudflare ส่ง PUBLIC_URL ให้เว็บก่อนเริ่ม Server
+    if (process.env.PUBLIC_URL) {
+        app.set('publicUrl', process.env.PUBLIC_URL);
+        console.log(`🌐 Public Customer URL: ${process.env.PUBLIC_URL}`);
+        console.log(`=======================================================`);
     }
 });
+
+}
+if (require.main === module) start().catch(err => { console.error('Startup failed:', err.message); process.exitCode = 1; db.db.close(); });
+module.exports = { app, server, io, start };

@@ -12,7 +12,7 @@ function requireDiningSession() {
             ? res.status(400).render('error', { message })
             : res.status(400).json({ success: false, message });
 
-        if (!token) {
+        if (typeof token !== 'string' || !token || token.length > 100) {
             return deny('กรุณาสแกน QR Code เพื่อเข้าสู่หน้าสั่งอาหาร');
         }
 
@@ -20,10 +20,10 @@ function requireDiningSession() {
             SELECT s.*, t.table_no
             FROM DiningSession s
             JOIN DiningTable t ON s.table_id = t.table_id
-            WHERE s.qr_token = ? AND s.session_status = 'ACTIVE'
+            WHERE s.qr_token = ?
         `, [token]);
 
-        if (!session) {
+        if (!session || (session.session_status !== 'ACTIVE' && req.method !== 'POST')) {
             return deny('รอบการใช้บริการของคุณจบแล้วหรือ QR Code ไม่ถูกต้อง');
         }
 

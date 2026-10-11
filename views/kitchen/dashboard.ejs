@@ -94,6 +94,7 @@
                                                         <small>×</small><%= item.quantity %>
                                                     </div>
                                                     <div class="round-item-actions">
+                                                        <button class="btn btn-ghost btn-sm" onclick="cancelGeneral('<%= item.order_item_id %>')">ยกเลิก</button>
                                                         <button class="btn btn-ghost btn-sm text-danger" onclick="cancelItem('<%= item.order_item_id %>')" title="ยกเลิกเพราะวัตถุดิบหมด">ของหมด</button>
                                                     </div>
                                                 </div>
@@ -153,6 +154,7 @@
                                                         <small>×</small><%= item.quantity %>
                                                     </div>
                                                     <div class="round-item-actions">
+                                                        <button class="btn btn-ghost btn-sm" onclick="cancelGeneral('<%= item.order_item_id %>')">ยกเลิก</button>
                                                         <button class="btn btn-ghost btn-sm text-danger" onclick="cancelItem('<%= item.order_item_id %>')" title="ยกเลิกเพราะวัตถุดิบหมด">ของหมด</button>
                                                     </div>
                                                 </div>
@@ -170,8 +172,17 @@
 
     <div id="stockTab" style="display: none;">
         <p class="muted" style="margin-bottom: 14px;">ปิดสวิตช์เมื่อวัตถุดิบหมด เมนูนั้นจะขึ้นว่า "หมดชั่วคราว" ในมือถือลูกค้าทันที</p>
-        <div class="stock-grid">
-            <% menuItems.forEach(mi => { const on = mi.availability === 1; %>
+        <% categories.forEach(category => {
+            const categoryItems = menuItems.filter(mi => mi.category_id === category.category_id).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+            if (!categoryItems.length) return;
+        %>
+        <section class="stock-category" aria-labelledby="stock-category-<%= category.category_id %>">
+            <div class="stock-category-heading">
+                <h2 id="stock-category-<%= category.category_id %>"><%= category.category_name %></h2>
+                <span class="muted"><%= categoryItems.length %> รายการ</span>
+            </div>
+            <div class="stock-grid">
+            <% categoryItems.forEach(mi => { const on = mi.availability === 1; %>
                 <div class="stock-row<%= on ? '' : ' off' %>" onclick="toggleStock('<%= mi.menu_item_id %>', '<%= on ? 0 : 1 %>')" style="cursor: pointer;">
                     <img src="<%= mi.image_url %>" alt="" onerror="this.style.visibility='hidden'">
                     <div>
@@ -182,12 +193,15 @@
                             onclick="event.stopPropagation(); toggleStock('<%= mi.menu_item_id %>', '<%= on ? 0 : 1 %>')"></button>
                 </div>
             <% }); %>
-        </div>
+            </div>
+        </section>
+        <% }); %>
     </div>
 </div>
 
 <script>
-    const socket = io();
+    const socket = io({ auth:{ role:'KITCHEN' } });
+    const refreshLive = liveRegion(socket, ['#ordersTab','#stockTab','.stat-strip','.tabs'], ['new-order','order-status-changed','stock-updated','session-closed'], () => { if (location.hash === '#stock') showTab('stockTab'); });
 
     function showTab(tabId) {
         document.getElementById('ordersTab').style.display = tabId === 'ordersTab' ? 'block' : 'none';
@@ -217,63 +231,24 @@
     }
 
     async function updateRoundStatus(order_id, status) {
-        try {
-            const res = await fetch('/kitchen/update-status', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ order_id, status })
-            });
-            const data = await res.json();
-            if (data.success) location.reload();
-        } catch (err) {
-            alert('เกิดข้อผิดพลาดในการอัปเดตสถานะทั้งรอบ');
-        }
+        return sendStaffAction('/kitchen/update-status',{order_id,status},refreshLive);
     }
 
     async function updateStatus(order_item_id, status) {
-        try {
-            const res = await fetch('/kitchen/update-status', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ order_item_id, status })
-            });
-            const data = await res.json();
-            if (data.success) location.reload();
-        } catch (err) {
-            alert('เกิดข้อผิดพลาด');
-        }
+        return sendStaffAction('/kitchen/update-status',{order_item_id,status},refreshLive);
     }
 
+    function cancelGeneral(id) { if (confirm('ยกเลิกรายการนี้หรือไม่?')) updateStatus(id, 'CANCELLED'); }
     async function cancelItem(order_item_id) {
         if (!confirm('ยืนยันแจ้งวัตถุดิบหมดและยกเลิกรายการนี้หรือไม่?')) return;
-        try {
-            const res = await fetch('/kitchen/update-status', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ order_item_id, status: 'CANCELLED', cancel_reason: 'วัตถุดิบหมด' })
-            });
-            const data = await res.json();
-            if (data.success) location.reload();
-        } catch (err) {
-            alert('เกิดข้อผิดพลาด');
-        }
+        return sendStaffAction('/kitchen/update-status',{order_item_id,status:'CANCELLED',cancel_reason:'วัตถุดิบหมด',out_of_stock:true},refreshLive);
     }
 
     async function toggleStock(menu_item_id, availability) {
-        try {
-            const res = await fetch('/kitchen/toggle-stock', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ menu_item_id, availability: Number(availability) })
-            });
-            const data = await res.json();
-            if (data.success) location.reload();
-        } catch (err) {
-            alert('เกิดข้อผิดพลาดในการปรับสต็อก');
-        }
+        return sendStaffAction('/kitchen/toggle-stock',{menu_item_id,availability:Number(availability)},refreshLive);
     }
 
-    socket.on('new-order', () => location.reload());
+
 </script>
 
 <%- include('../partials/footer') %>

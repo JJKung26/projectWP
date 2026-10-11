@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const queueController = require('../controllers/queue.controller');
 
+router.get('/cashier/queue/ticket/:id', queueController.getTicket);
 router.post('/cashier/queue/issue', queueController.issueQueue);
 router.get('/cashier/queue/list', queueController.getQueues);
 router.post('/cashier/queue/call', queueController.callQueue);

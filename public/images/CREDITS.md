@@ -1,6 +1,6 @@
 # Menu photo credits
 
-All menu photos come from Wikimedia Commons, resized and cropped to 4:3.
+Original JPG menu photos come from Wikimedia Commons. Replacement photos supplied by the user are listed separately.
 
 - `pork_belly.jpg`: [Freshly prepared raw pork belly with red onions and chili peppers.jpg](https://commons.wikimedia.org/wiki/File:Freshly_prepared_raw_pork_belly_with_red_onions_and_chili_peppers.jpg) by Shixart1985, CC BY 2.0
 - `pork_collar.jpg`: [SZ 深圳 Shenzhen 福田 Futian 皇庭廣場 Wongtee Plaza shop 漢陽廷自助烤肉 Hayaco Barbecue Restaurant raw beef n pork slices September 2025 N13P 08.jpg](https://commons.wikimedia.org/wiki/File:SZ_%E6%B7%B1%E5%9C%B3_Shenzhen_%E7%A6%8F%E7%94%B0_Futian_%E7%9A%87%E5%BA%AD%E5%BB%A3%E5%A0%B4_Wongtee_Plaza_shop_%E6%BC%A2%E9%99%BD%E5%BB%B7%E8%87%AA%E5%8A%A9%E7%83%A4%E8%82%89_Hayaco_Barbecue_Restaurant_raw_beef_n_pork_slices_September_2025_N13P_08.jpg) by WCPCLM 2002258, CC0
@@ -60,3 +60,68 @@ All menu photos come from Wikimedia Commons, resized and cropped to 4:3.
 - `bualoy.jpg`: [Bualoy kaiwan - Thai food.JPG](https://commons.wikimedia.org/wiki/File:Bualoy_kaiwan_-_Thai_food.JPG) by User:Mattes, Public domain
 - `lodchong.jpg`: [Lot chong - Bangkok - 2017-07-11 (003).jpg](https://commons.wikimedia.org/wiki/File:Lot_chong_-_Bangkok_-_2017-07-11_(003).jpg) by Iudexvivorum, CC0
 - `hero.jpg`: [Mookata หมูกระทะ in Ban Na, Nakhon Nayok.jpg](https://commons.wikimedia.org/wiki/File:Mookata_%E0%B8%AB%E0%B8%A1%E0%B8%B9%E0%B8%81%E0%B8%A3%E0%B8%B0%E0%B8%97%E0%B8%B0_in_Ban_Na,_Nakhon_Nayok.jpg) by Chainwit., CC BY-SA 4.0
+
+## User-supplied replacement photos
+
+- `pork_belly.png`: User-supplied test photo for หมูสามชั้นสไลด์.
+- `pork_collar.png`: User-supplied test photo for สันคอหมูสไลด์.
+- `marinated_pork.png`: User-supplied test photo for หมูหมัก.
+- `blackpepper_pork.png`: User-supplied test photo for หมูหมักพริกไทยดำ.
+- `marinated_pork_sesame.png`: User-supplied test photo for หมูหมักงา.
+- `bacon.png`: User-supplied test photo for เบคอน.
+- `pork_liver.png`: User-supplied test photo for ตับหมู.
+- `sliced_beef.png`: User-supplied test photo for เนื้อวัวสไลด์.
+- `marinated_beef.png`: User-supplied test photo for เนื้อวัวหมัก.
+- `chicken_marinated.png`: User-supplied test photo for ไก่หมักงา.
+- `chicken_wings.png`: User-supplied test photo for ปีกไก่.
+- `shrimp.png`: User-supplied test photo for กุ้งสด.
+- `fresh_squid.png`: User-supplied test photo for ปลาหมึกสด.
+- `crispy_squid.png`: User-supplied test photo for ปลาหมึกกรอบ.
+- `dory.png`: User-supplied test photo for ปลาดอลลี่.
+- `mussels.png`: User-supplied test photo for หอยแมลงภู่.
+- `jellyfish.png`: User-supplied test photo for แมงกะพรุน.
+- `cabbage.png`: User-supplied test photo for ผักกาดขาว.
+- `morning_glory.png`: User-supplied test photo for ผักบุ้งจีน.
+- `choy_sum.png`: User-supplied test photo for ผักกวางตุ้ง.
+- `lettuce.png`: User-supplied test photo for ผักกาดหอม.
+- `carrot.png`: User-supplied test photo for แครอท.
+- `corn.png`: User-supplied test photo for ข้าวโพดหวาน.
+- `baby_corn.png`: User-supplied test photo for ข้าวโพดอ่อน.
+- `enoki.png`: User-supplied test photo for เห็ดเข็มทอง.
+- `eryngii.png`: User-supplied test photo for เห็ดออรินจิ.
+- `crabstick.png`: User-supplied test photo for ปูอัด.
+- `glass_noodle.png`: User-supplied test photo for วุ้นเส้น.
+- `morning_glory_plate.png`: User-supplied test photo for ผักบุ้งจีน.
+- `crispy_squid_plate.png`: User-supplied test photo for ปลาหมึกกรอบ.
+- `egg.png`: User-supplied test photo for ไข่ไก่.
+- `chicken_marinated_plate.png`: User-supplied test photo for ไก่หมักงา.
+- `egg_tofu.png`: User-supplied test photo for เต้าหู้ไข่.
+- `fish_tofu.png`: User-supplied test photo for เต้าหู้ปลา.
+- `eryngii_plate.png`: User-supplied test photo for เห็ดออรินจิ.
+- `instant_noodle.png`: User-supplied test photo for บะหมี่กึ่งสำเร็จรูป.
+- `sausage.png`: User-supplied test photo for ไส้กรอก.
+- `pork_ball.png`: User-supplied test photo for ลูกชิ้นหมู.
+- `fishball.png`: User-supplied test photo for ลูกชิ้นปลา.
+- `egg_noodle.png`: User-supplied test photo for บะหมี่เหลือง.
+- `shiitake.png`: User-supplied test photo for เห็ดหอม.
+- `straw_mushroom.png`: User-supplied test photo for เห็ดฟาง.
+- `silken_tofu.png`: User-supplied test photo for เต้าหู้ขาว.
+- `icecream.png`: User-supplied test photo for ไอศกรีมกะทิ.
+- `coconut_jelly.png`: User-supplied test photo for วุ้นกะทิ.
+- `grass_jelly.png`: User-supplied test photo for เฉาก๊วย.
+- `tubtim.png`: User-supplied test photo for ทับทิมกรอบ.
+- `lodchong.png`: User-supplied test photo for ลอดช่อง.
+- `water.png`: User-supplied test photo for น้ำดื่ม (ขวด).
+- `orange_juice.png`: User-supplied test photo for น้ำส้ม (ขวด).
+- `tubtim_bowl.png`: User-supplied test photo for ทับทิมกรอบ.
+- `coconut.png`: User-supplied test photo for น้ำมะพร้าว.
+- `drink_refill.png`: User-supplied test photo for น้ำรีฟิล.
+- `ice.png`: User-supplied test photo for น้ำแข็ง (ถัง).
+- `singha.png`: User-supplied test photo for เบียร์สิงห์ (ขวดใหญ่).
+- `leo.png`: User-supplied test photo for เบียร์ลีโอ (ขวดใหญ่).
+- `sliced_beef_cutout.png`: User-supplied test photo for เนื้อวัวสไลด์.
+- `crispy_squid_cutout.png`: User-supplied test photo for ปลาหมึกกรอบ.
+- `morning_glory_cutout.png`: User-supplied test photo for ผักบุ้งจีน.
+- `enoki_cutout.png`: User-supplied test photo for เห็ดเข็มทอง.
+- `eryngii_cutout.png`: User-supplied test photo for เห็ดออรินจิ.
+- `coconut_jelly_cutout.png`: User-supplied test photo for วุ้นกะทิ.

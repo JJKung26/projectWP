@@ -1,0 +1,12 @@
+<%- include('../partials/header') %>
+<div class="container" style="max-width:900px">
+    <div class="page-head"><h1>ใบเสร็จย้อนหลัง</h1><a class="btn btn-secondary" href="/cashier/tables">กลับผังโต๊ะ</a></div>
+    <p>200 ใบล่าสุด · อ่านข้อมูลที่บันทึก ณ เวลาชำระ</p>
+    <% receipts.forEach(r => { %>
+        <a class="action-row" href="/cashier/bill/<%= r.session_id %>" style="overflow-wrap:anywhere">
+            <span><strong>โต๊ะ <%= r.table_no %> · <%= r.net_amount.toFixed(2) %> บาท</strong><small><%= thaiDate(r.paid_at) %> · <%= r.receipt_no %></small></span>
+        </a>
+    <% }); %>
+    <% if (!receipts.length) { %><p>ยังไม่มีใบเสร็จ</p><% } %>
+</div>
+<%- include('../partials/footer') %>

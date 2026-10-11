@@ -46,11 +46,11 @@ function requireRole(role) {
         if (wantsHtml(req)) {
             return res.redirect('/login');
         }
-        return res.status(401).json({
+        return res.status(Object.values(req.signedCookies || {}).some(Boolean) ? 403 : 401).json({
             success: false,
             message: 'กรุณาเข้าสู่ระบบอีกครั้ง'
         });
     };
 }
 
-module.exports = { requireRole };
+module.exports = { requireRole, resolveStaff };

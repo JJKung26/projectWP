@@ -74,7 +74,8 @@
 </div>
 
 <script>
-    const socket = io();
+    const socket = io({ auth:{ role:'SERVICE' } });
+    const refreshLive = liveRegion(socket, ['.container'], ['new-order','order-status-changed','stock-updated','session-closed'], null);
 
     function toggleServingDropdown(orderId) {
         const dropdown = document.getElementById('dropdown-' + orderId);
@@ -94,43 +95,15 @@
     }
 
     async function confirmServedRound(order_id) {
-        try {
-            const res = await fetch('/serving/confirm-served', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ order_id })
-            });
-            const data = await res.json();
-            if (data.success) {
-                location.reload();
-            } else {
-                alert(data.message || 'เกิดข้อผิดพลาดในการยืนยันเสิร์ฟ');
-            }
-        } catch (err) {
-            alert('เกิดข้อผิดพลาดในการยืนยันเสิร์ฟ');
-        }
+        return sendStaffAction('/serving/confirm-served',{order_id},refreshLive);
     }
 
     async function confirmServed(order_item_id) {
-        try {
-            const res = await fetch('/serving/confirm-served', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ order_item_id })
-            });
-            const data = await res.json();
-            if (data.success) {
-                location.reload();
-            } else {
-                alert(data.message || 'เกิดข้อผิดพลาดในการยืนยันเสิร์ฟ');
-            }
-        } catch (err) {
-            alert('เกิดข้อผิดพลาดในการยืนยันเสิร์ฟ');
-        }
+        return sendStaffAction('/serving/confirm-served',{order_item_id},refreshLive);
     }
 
-    socket.on('order-status-changed', () => location.reload());
-    socket.on('new-order', () => location.reload());
+
+
 </script>
 
 <%- include('../partials/footer') %>

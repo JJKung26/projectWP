@@ -1,0 +1,12 @@
+<% const selectedPaper = typeof defaultPaper === 'undefined' ? '80' : defaultPaper; %>
+<fieldset class="paper-picker">
+    <legend>ขนาดกระดาษ</legend>
+    <div class="paper-options">
+        <% for (const [value, label, detail] of [['80','80 มม.','ใบเสร็จ'],['58','58 มม.','ใบเสร็จ']]) { %>
+        <label class="paper-choice">
+            <input type="radio" class="paper-size" name="<%= paperId %>" value="<%= value %>" <%= selectedPaper === value ? 'checked' : '' %>>
+            <span class="paper-tile"><strong><%= label %></strong><small><%= detail %></small></span>
+        </label>
+        <% } %>
+    </div>
+</fieldset>

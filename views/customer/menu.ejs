@@ -1,7 +1,7 @@
 <%
     const SHOP_NAME = 'ร้านหมูกระทะ บุฟเฟต์';
     const sections = categories
-        .map(cat => ({ ...cat, items: menuItems.filter(m => m.category_id === cat.category_id) }))
+        .map(cat => ({ ...cat, items: menuItems.filter(m => m.category_id === cat.category_id).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)) }))
         .filter(cat => cat.items.length > 0);
 %>
 <!DOCTYPE html>
@@ -11,8 +11,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#ffffff">
     <title>เมนู · โต๊ะ <%= session.table_no %></title>
-    <link rel="stylesheet" href="/css/style.css">
-    <script src="/socket.io/socket.io.js"></script>
+    <link rel="stylesheet" href="/css/style.css?v=clean-scroll">
+    <script src="/socket.io/socket.io.js"></script><script src="/js/ui.js"></script><script src="/js/live.js"></script>
 </head>
 <body class="cust">
 <div class="cust-shell">
@@ -31,16 +31,9 @@
     </header>
 
     <div class="shop-head">
-        <svg class="shop-logo" viewBox="0 0 100 100" aria-hidden="true">
-            <circle cx="50" cy="50" r="50" fill="#c8401a"/>
-            <circle cx="50" cy="50" r="41" fill="none" stroke="#fff" stroke-opacity="0.45" stroke-width="1.5"/>
-            <path d="M27 55 Q50 22 73 55 Z" fill="#fff"/>
-            <path d="M22 55h56" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
-            <path d="M36 50l4-6M46 50l3-9M55 50l2-7M64 50l-1-5" stroke="#c8401a" stroke-width="2" stroke-linecap="round"/>
-            <text x="50" y="74" text-anchor="middle" fill="#fff" font-family="Mitr, sans-serif" font-size="12">หมูกระทะ</text>
-        </svg>
+        <%- include('../partials/shop-logo', { logoClass: 'shop-logo' }) %>
         <h1><%= SHOP_NAME %></h1>
-        <p>บุฟเฟต์ <%= session.buffet_price %> บาท/ท่าน · สั่งได้ไม่อั้น รายการที่มีราคาคิดเพิ่ม</p>
+        <p>สั่งได้ไม่อั้น รายการที่มีราคาคิดเพิ่ม · ราคายังไม่รวม VAT 7%</p>
     </div>
 
     <nav class="cat-bar" aria-label="หมวดหมู่">
@@ -70,7 +63,7 @@
             <section class="menu-section" id="cat-<%= cat.category_id %>" data-cat="<%= cat.category_id %>">
                 <h2><%= cat.category_name %></h2>
                 <% cat.items.forEach(item => { const soldOut = item.availability === 0; %>
-                    <article class="menu-row<%= soldOut ? ' sold-out' : '' %>" data-name="<%= item.item_name %> <%= item.description || '' %>">
+                    <article class="menu-row<%= soldOut ? ' sold-out' : '' %>" data-id="<%= item.menu_item_id %>" data-name="<%= item.item_name %> <%= item.description || '' %>">
                         <div class="menu-thumb">
                             <img src="<%= item.image_url %>" alt="<%= item.item_name %>" loading="lazy" onerror="this.style.visibility='hidden'">
                             <% if (soldOut) { %><span class="sold-tag">หมดชั่วคราว</span><% } %>
@@ -84,7 +77,7 @@
                                 <% } else { %>
                                     <span class="price paid">฿<%= item.unit_price.toFixed(0) %></span>
                                 <% } %>
-                                <% if (!soldOut) { %><div class="ctl" data-id="<%= item.menu_item_id %>"></div><% } %>
+                                <div class="ctl" data-id="<%= item.menu_item_id %>"></div>
                             </div>
                         </div>
                     </article>
@@ -93,7 +86,6 @@
         <% }); %>
 
         <p class="no-result" id="noResult">ไม่พบเมนูที่ค้นหา</p>
-        <p class="photo-credit">ภาพประกอบจาก Wikimedia Commons · <a href="/images/CREDITS.md">เครดิตภาพ</a></p>
     </main>
 </div>
 
@@ -155,10 +147,19 @@
         }]))).replace(/</g, '\\u003c') %>;
         const STORE_KEY = 'cart:' + TOKEN;
 
-        // Cart survives the page reload triggered by stock updates
+        // เก็บคำขอเดิมไว้ เมื่อไม่ได้รับคำตอบให้ลองส่งด้วย key เดิม
         let cart = {};
         try { cart = JSON.parse(sessionStorage.getItem(STORE_KEY)) || {}; } catch (e) { cart = {}; }
-        Object.keys(cart).forEach(id => { if (!ITEMS[id] || !ITEMS[id].available) delete cart[id]; });
+        let pendingOrder = null;
+        try {
+            const saved = JSON.parse(sessionStorage.getItem(STORE_KEY + ':pending'));
+            const items = saved && JSON.parse(saved.payload);
+            if (saved && typeof saved.key === 'string' && Array.isArray(items) && items.length && items.every(i => typeof i.menu_item_id === 'string' && Number.isInteger(i.quantity) && i.quantity > 0 && i.quantity <= 20)) {
+                pendingOrder = saved;
+                cart = Object.fromEntries(items.map(i => [i.menu_item_id,i.quantity]));
+            }
+        } catch {}
+        if (!pendingOrder) Object.keys(cart).forEach(id => { if (!ITEMS[id] || !ITEMS[id].available) delete cart[id]; });
 
         function save() {
             try { sessionStorage.setItem(STORE_KEY, JSON.stringify(cart)); } catch (e) { }
@@ -167,6 +168,8 @@
         const plusIcon = '<svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg>';
 
         function controlHtml(id) {
+            if (!ITEMS[id]) return '<span>รายการจากคำขอเดิม</span>';
+            if (!ITEMS[id].available) return '<span>หมดชั่วคราว</span>' + (cart[id] ? `<button onclick="setQty('${id}',0)">เอาออก</button>` : '');
             const q = cart[id] || 0;
             if (q === 0) {
                 return `<button class="add-btn" onclick="setQty('${id}', 1)" aria-label="เพิ่ม ${ITEMS[id].name}">${plusIcon}</button>`;
@@ -184,6 +187,8 @@
         }
 
         function setQty(id, q) {
+            if (window.orderSending || (!ITEMS[id].available && q > 0)) return;
+            if (pendingOrder) return toast('กรุณาลองส่งรายการเดิมอีกครั้งก่อนแก้ตะกร้า', true);
             q = Math.max(0, Math.min(20, q));
             if (q === 0) delete cart[id]; else cart[id] = q;
             save();
@@ -194,7 +199,7 @@
 
         function totals() {
             let count = 0, extra = 0;
-            Object.entries(cart).forEach(([id, q]) => { count += q; extra += q * ITEMS[id].price; });
+            Object.entries(cart).forEach(([id, q]) => { count += q; extra += q * (ITEMS[id]?.price || 0); });
             return { count, extra };
         }
 
@@ -208,7 +213,7 @@
 
         function renderSheet() {
             document.getElementById('sheetBody').innerHTML = Object.entries(cart).map(([id, q]) => {
-                const it = ITEMS[id];
+                const it = ITEMS[id] || {name:'รายการจากคำขอเดิม',img:'',price:0};
                 return `<div class="sheet-line">
                     <img src="${it.img}" alt="">
                     <div class="nm">${it.name}<small>${it.price ? '฿' + it.price + ' / ชิ้น' : 'รวมในบุฟเฟต์'}</small></div>
@@ -220,12 +225,12 @@
 
         function openSheet(id) {
             if (id === 'sheet') renderSheet();
-            document.getElementById(id).classList.add('open');
+            dialogOpen(id, 'open');
             document.getElementById('sheetOverlay').classList.add('open');
         }
 
         function closeSheets() {
-            document.querySelectorAll('.sheet').forEach(s => s.classList.remove('open'));
+            document.querySelectorAll('.sheet.open').forEach(s => dialogClose(s.id, 'open'));
             document.getElementById('sheetOverlay').classList.remove('open');
         }
 
@@ -279,30 +284,44 @@
         }
 
         async function submitOrder() {
-            const items = Object.entries(cart).map(([menu_item_id, quantity]) => ({ menu_item_id, quantity }));
+            if (window.orderSending) return;
+
+            const items = pendingOrder ? JSON.parse(pendingOrder.payload) : Object.entries(cart).map(([menu_item_id, quantity]) => ({ menu_item_id, quantity }));
             if (items.length === 0) return;
             const btn = document.getElementById('sendBtn');
+            window.orderSending = true;
             btn.disabled = true;
             btn.textContent = 'กำลังส่ง…';
             try {
-                const res = await fetch('/orders', {
+                const payload = JSON.stringify(items);
+                if (!pendingOrder || pendingOrder.payload !== payload) {
+                    const bytes = new Uint8Array(16); crypto.getRandomValues(bytes);
+                    pendingOrder = { payload, key: Array.from(bytes, x => x.toString(16).padStart(2,'0')).join('') };
+                    try { sessionStorage.setItem(STORE_KEY + ':pending', JSON.stringify(pendingOrder)); } catch (err) {}
+                }
+                const res = await requestFetch('/orders', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token: TOKEN, items })
+                    body: JSON.stringify({ token: TOKEN, items, request_key: pendingOrder.key })
                 });
                 const data = await res.json();
                 if (data.success) {
                     cart = {};
+                    try { sessionStorage.removeItem(STORE_KEY + ':pending'); } catch (err) {}
+                    pendingOrder = null;
                     save();
                     window.location.href = `/orders?token=${TOKEN}&sent=1`;
                     return;
                 }
+                if (res.status < 500) { pendingOrder = null; try { sessionStorage.removeItem(STORE_KEY + ':pending'); } catch (err) {} }
                 toast(data.message || 'ส่งออเดอร์ไม่สำเร็จ', true);
             } catch (err) {
-                toast('เชื่อมต่อไม่ได้ ลองใหม่อีกครั้ง', true);
+                toast('ยังไม่ได้รับคำตอบ กดลองส่งรายการเดิมอีกครั้งได้', true);
+            } finally {
+                window.orderSending = false;
+                btn.disabled = false;
+                btn.textContent = pendingOrder ? 'ลองส่งรายการเดิมอีกครั้ง' : 'ส่งออเดอร์เข้าครัว';
             }
-            btn.disabled = false;
-            btn.textContent = 'ส่งออเดอร์เข้าครัว';
         }
 
         // Highlight the tab of the section being read
@@ -313,7 +332,10 @@
                 tabs.forEach(t => {
                     const on = t.dataset.cat === e.target.dataset.cat;
                     t.classList.toggle('active', on);
-                    if (on) t.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+                    if (on) {
+                        const strip = t.parentElement;
+                        strip.scrollTo({ left: t.offsetLeft - (strip.clientWidth - t.offsetWidth) / 2, behavior: 'smooth' });
+                    }
                 });
             });
         }, { rootMargin: '-60px 0px -75% 0px' });
@@ -321,9 +343,44 @@
 
         document.querySelectorAll('.ctl').forEach(el => renderControl(el.dataset.id));
         renderCart();
+        if (pendingOrder) document.getElementById('sendBtn').textContent = 'ลองส่งรายการเดิมอีกครั้ง';
 
-        const socket = io();
-        socket.on('stock-updated', () => location.reload());
+        const socket = io({ auth:{ token:TOKEN } });
+        let stockTimer, stockLoading = false, stockAgain = false, stockDelay = 2000;
+        async function refreshStock() {
+            if (stockLoading) { stockAgain = true; return; }
+            stockLoading = true;
+            clearTimeout(stockTimer);
+            try {
+                const res = await requestFetch('/menu/data?token=' + TOKEN);
+                if (res.status === 400) return diningEnded();
+                if (!res.ok) throw new Error();
+                const data = await res.json();
+                data.menuItems.forEach(item => {
+                    if (!ITEMS[item.menu_item_id]) return;
+                    ITEMS[item.menu_item_id].available = item.availability === 1;
+                    const row = document.querySelector('.menu-row[data-id="'+item.menu_item_id+'"]');
+                    row?.classList.toggle('sold-out', !item.availability);
+                    const tag = row?.querySelector('.sold-tag');
+                    if (tag) tag.hidden = !!item.availability;
+                    renderControl(item.menu_item_id);
+                });
+                stockDelay = 2000;
+                if (document.getElementById('sheet').classList.contains('open')) renderSheet();
+            } catch (err) {
+                toast('อัปเดตสต็อกไม่ได้ กำลังลองเชื่อมต่อใหม่', true);
+                stockTimer = setTimeout(refreshStock,stockDelay);
+                stockDelay = Math.min(stockDelay * 2,10000);
+            } finally {
+                stockLoading = false;
+                if (stockAgain) { stockAgain = false; clearTimeout(stockTimer); stockTimer = setTimeout(refreshStock,350); }
+            }
+        }
+        socket.on('stock-updated', () => { clearTimeout(stockTimer); stockTimer = setTimeout(refreshStock,350); });
+        socket.on('connect', refreshStock);
+        socket.on('connect_error', refreshStock);
+        socket.on('new-order', () => toast('มีออเดอร์ใหม่ของโต๊ะ ดูได้ในหน้าออเดอร์'));
+        socket.on('session-closed', diningEnded);
     </script>
 </body>
 </html>

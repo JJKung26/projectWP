@@ -1,46 +1,17 @@
-const { tunnelmole } = require('tunnelmole');
-
-let publicTunnelUrl = null;
-let currentPort = 3000;
-let isConnecting = false;
-
-async function startTunnel(port = 3000) {
-    currentPort = port;
-    if (isConnecting) return publicTunnelUrl;
-    isConnecting = true;
-
-    try {
-        console.log(`🔄 Initializing Tunnelmole tunnel on port ${port}...`);
-        const url = await tunnelmole({ port });
-        if (url) {
-            publicTunnelUrl = url.trim().replace(/\/$/, '');
-            console.log(`✅ Tunnelmole is online! Public HTTPS URL: ${publicTunnelUrl}`);
-        }
-        isConnecting = false;
-        return publicTunnelUrl;
-    } catch (err) {
-        console.warn('⚠️ Tunnelmole connection warning:', err.message);
-        isConnecting = false;
-        return null;
-    }
-}
-
 function getPublicUrl(req) {
-    if (publicTunnelUrl) {
-        return publicTunnelUrl;
+    if (process.env.PUBLIC_URL) {
+        let url;
+        try { url = new URL(process.env.PUBLIC_URL); } catch { throw Object.assign(new Error('PUBLIC_URL ไม่ใช่ URL ที่ถูกต้อง เช่น http://192.168.1.35:3000'), { status:503, expose:true }); }
+        if (!['http:', 'https:'].includes(url.protocol) || ['localhost','127.0.0.1','[::1]'].includes(url.hostname)) {
+            throw Object.assign(new Error('PUBLIC_URL ต้องเป็น URL ที่มือถือเข้าได้ เช่น IP ของเครื่องบน Wi-Fi'), { status: 503, expose:true });
+        }
+        return url.origin;
     }
     if (req) {
-        return `${req.protocol}://${req.get('host')}`;
+        const host = req.hostname;
+        if (!['localhost','127.0.0.1','::1'].includes(host)) return req.protocol + '://' + req.get('host');
+        throw Object.assign(new Error('กรุณาเปิด Cloudflare ด้วย npm start หรือตั้ง PUBLIC_URL เป็น IP บน Wi-Fi ก่อนเปิดโต๊ะ'), { status: 503, expose:true });
     }
-    return `http://localhost:${currentPort}`;
+    return `http://localhost:${process.env.PORT || 3000}`;
 }
-
-function getCurrentTunnelUrl() {
-    return publicTunnelUrl;
-}
-
-module.exports = {
-    startTunnel,
-    getPublicUrl,
-    getCurrentTunnelUrl
-};
+module.exports = { getPublicUrl };

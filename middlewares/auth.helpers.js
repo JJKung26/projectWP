@@ -9,7 +9,7 @@ const COOKIE_OPTIONS = {
     httpOnly: true,
     signed: true,
     sameSite: 'strict',
-    secure: false,              // ต้องเป็น false เพราะรันบน http://localhost ตอนตรวจงาน
+    secure: process.env.COOKIE_SECURE === 'true',              // ต้องเป็น false เพราะรันบน http://localhost ตอนตรวจงาน
     maxAge: 12 * 60 * 60 * 1000 // 12 ชั่วโมง
     
 };

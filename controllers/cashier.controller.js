@@ -1,285 +1,149 @@
 const db = require('../database/database');
 const QRCode = require('qrcode');
-const crypto = require('crypto');
+const { randomUUID } = require('crypto');
 const tunnel = require('../utils/tunnel');
+const emit = require('../utils/events');
+const { check, id, money, today } = require('../utils/validation');
+const { openSession } = require('../utils/sessions');
+const { totals, itemsFor } = require('../utils/billing');
+const promptpay = require('../utils/promptpay');
 
-// Get all 50 tables, active sessions, and waiting queues
 exports.getTables = async (req, res) => {
-    try {
-        const tables = await db.query(`
-            SELECT t.*, s.session_id, s.qr_token, s.guest_count, s.started_at, s.buffet_price
-            FROM DiningTable t
-            LEFT JOIN DiningSession s ON t.table_id = s.table_id AND s.session_status = 'ACTIVE'
-            ORDER BY CAST(t.table_no AS INTEGER) ASC
-        `);
-
-        const today = new Date().toISOString().split('T')[0];
-        const waitingQueues = await db.query(`
-            SELECT * FROM QueueTicket
-            WHERE queue_date = ? AND queue_status IN ('WAITING', 'CALLED')
-            ORDER BY queue_ticket_id ASC
-        `, [today]);
-
-        const availableCount = tables.filter(t => t.table_status === 'AVAILABLE').length;
-        const occupiedCount = tables.filter(t => t.table_status === 'OCCUPIED').length;
-
-        res.render('cashier/tables', {
-            tables,
-            waitingQueues,
-            availableCount,
-            occupiedCount,
-            tunnelUrl: tunnel.getCurrentTunnelUrl(),
-            title: 'จัดการโต๊ะอาหาร & บัตรคิว - แคชเชียร์'
-        });
-    } catch (err) {
-        console.error('Error fetching cashier tables:', err);
-        res.status(500).render('error', { message: 'เกิดข้อผิดพลาดในการโหลดข้อมูลโต๊ะ' });
-    }
+    const tables = await db.query(`SELECT t.*, s.session_id, s.qr_token, s.guest_count, s.started_at, s.buffet_price
+        FROM DiningTable t LEFT JOIN DiningSession s ON t.table_id = s.table_id AND s.session_status = 'ACTIVE'
+        ORDER BY CAST(t.table_no AS INTEGER)`);
+    const waitingQueues = await db.query(`SELECT * FROM QueueTicket WHERE queue_date = ? AND queue_status IN ('WAITING','CALLED')
+        ORDER BY CAST(SUBSTR(queue_no, 2) AS INTEGER)`, [today()]);
+    let tunnelUrl = '', urlError = '';
+    try { tunnelUrl = tunnel.getPublicUrl(req); } catch (err) { urlError = err.message; }
+    res.render('cashier/tables', { tables, waitingQueues,
+        availableCount: tables.filter(t => t.table_status === 'AVAILABLE').length,
+        occupiedCount: tables.filter(t => t.table_status === 'OCCUPIED').length,
+        tunnelUrl, urlError, queueDate: today(), title: 'จัดการโต๊ะและคิว' });
 };
-
-// Open a new table session & generate QR Token with Tunnelmole URL
+async function qrData(req, session) {
+    const customerUrl = tunnel.getPublicUrl(req) + '/qr/' + session.qr_token;
+    return { ...session, customer_url: customerUrl, buffet_totals: totals(session, []),
+        qr_image: await QRCode.toDataURL(customerUrl, { width: 300, margin: 2 }) };
+}
 exports.openTable = async (req, res) => {
-    const { table_id, guest_count, buffet_price, queue_ticket_id } = req.body;
-    const employee_id = req.staff.employee_id;
-
-    try {
-        // Verify table availability
-        const table = await db.get('SELECT * FROM DiningTable WHERE table_id = ?', [table_id]);
-        if (!table) {
-            return res.status(404).json({ success: false, message: 'ไม่พบข้อมูลโต๊ะ' });
-        }
-        if (table.table_status === 'OCCUPIED') {
-            return res.status(400).json({ success: false, message: 'โต๊ะนี้มีผู้ใช้งานอยู่แล้ว' });
-        }
-
-        const sessionId = 'SES-' + Date.now();
-        const qrToken = 'QR-' + table.table_no + '-' + crypto.randomBytes(4).toString('hex');
-        const price = parseFloat(buffet_price) || 279.0;
-        const count = parseInt(guest_count) || 1;
-
-        // Create DiningSession
-        await db.run(`
-            INSERT INTO DiningSession (session_id, table_id, opened_by, queue_ticket_id, qr_token, guest_count, buffet_price, started_at, session_status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, 'ACTIVE')
-        `, [sessionId, table_id, employee_id, queue_ticket_id || null, qrToken, count, price]);
-
-        // Update table status to OCCUPIED
-        await db.run('UPDATE DiningTable SET table_status = "OCCUPIED" WHERE table_id = ?', [table_id]);
-
-        // If opened from a queue ticket, mark queue as SEATED
-        if (queue_ticket_id) {
-            await db.run('UPDATE QueueTicket SET queue_status = "SEATED" WHERE queue_ticket_id = ?', [queue_ticket_id]);
-        }
-
-        // Generate Tunnelmole QR Code
-        const baseUrl = tunnel.getPublicUrl(req);
-        const customerUrl = `${baseUrl}/qr/${qrToken}`;
-        const qrImage = await QRCode.toDataURL(customerUrl, { width: 300, margin: 2 });
-
-        // Emit socket events
-        const io = req.app.get('socketio');
-        if (io) {
-            io.emit('table-status-changed', { table_id, table_status: 'OCCUPIED', session_id: sessionId });
-            if (queue_ticket_id) {
-                io.emit('queue-updated');
-            }
-        }
-
-        res.json({
-            success: true,
-            message: `เปิดโต๊ะ ${table.table_no} เรียบร้อยแล้ว`,
-            session_id: sessionId,
-            qr_token: qrToken,
-            table_no: table.table_no,
-            guest_count: count,
-            buffet_price: price,
-            customer_url: customerUrl,
-            qr_image: qrImage,
-            started_at: new Date().toLocaleTimeString('th-TH')
-        });
-    } catch (err) {
-        console.error('Error opening table:', err);
-        res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการเปิดโต๊ะ' });
-    }
+    // ตรวจ URL ก่อนเขียนข้อมูล เพื่อไม่เปิดโต๊ะแล้วสร้าง QR ไม่ได้
+    tunnel.getPublicUrl(req);
+    const session = await openSession(req.body, req.staff.employee_id);
+    emit(req, 'table-status-changed', session);
+    if (req.body.queue_ticket_id) emit(req, 'queue-updated');
+    res.json({ success: true, ...await qrData(req, session) });
 };
-
-// Generate QR Code Data URL with Tunnelmole for print/display
 exports.getQrCode = async (req, res) => {
-    const { token } = req.params;
-    try {
-        const session = await db.get(`
-            SELECT s.*, t.table_no 
-            FROM DiningSession s
-            JOIN DiningTable t ON s.table_id = t.table_id
-            WHERE s.qr_token = ? AND s.session_status = 'ACTIVE'
-        `, [token]);
-
-        if (!session) {
-            return res.status(404).json({ success: false, message: 'รหัสโต๊ะหรือ QR ไม่ถูกต้อง' });
-        }
-
-        const baseUrl = tunnel.getPublicUrl(req);
-        const customerUrl = `${baseUrl}/qr/${token}`;
-        const qrImage = await QRCode.toDataURL(customerUrl, { width: 300, margin: 2 });
-
-        res.json({
-            success: true,
-            table_no: session.table_no,
-            session_id: session.session_id,
-            guest_count: session.guest_count,
-            buffet_price: session.buffet_price,
-            started_at: session.started_at,
-            customer_url: customerUrl,
-            qr_image: qrImage
-        });
-    } catch (err) {
-        console.error('Error generating QR:', err);
-        res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการสร้าง QR Code' });
-    }
+    const session = await db.get(`SELECT s.*, t.table_no FROM DiningSession s JOIN DiningTable t ON t.table_id = s.table_id
+        WHERE s.qr_token = ? AND s.session_status = 'ACTIVE'`, [req.params.token]);
+    check(session, 404, 'ไม่พบรอบบริการที่ยังเปิดอยู่');
+    res.json({ success: true, ...await qrData(req, session) });
 };
-
-// View Bill summary for a session
 exports.getBill = async (req, res) => {
-    const { sessionId } = req.params;
-    try {
-        const session = await db.get(`
-            SELECT s.*, t.table_no, e.full_name as opener_name
-            FROM DiningSession s
-            JOIN DiningTable t ON s.table_id = t.table_id
-            LEFT JOIN Employee e ON s.opened_by = e.employee_id
-            WHERE s.session_id = ?
-        `, [sessionId]);
-
-        if (!session) {
-            return res.status(404).render('error', { message: 'ไม่พบข้อมูลการใช้บริการ' });
+    const data = await db.transaction(async () => {
+        const session = await db.get(`SELECT s.*, t.table_no FROM DiningSession s JOIN DiningTable t ON t.table_id = s.table_id WHERE session_id = ?`, [req.params.sessionId]);
+        check(session, 404, 'ไม่พบรอบบริการ');
+        const bill = await db.get('SELECT * FROM Bill WHERE session_id = ?', [session.session_id]);
+        if (bill?.bill_status === 'PAID') {
+            check(bill.snapshot_json, 409, 'บิลเก่าไม่มีข้อมูลรายการ ณ เวลาชำระ จึงไม่สร้างใบเสร็จย้อนหลังจากราคาปัจจุบัน');
+            const payment = await db.get("SELECT * FROM Payment WHERE bill_id = ? AND payment_status = 'SUCCESS'", [bill.bill_id]);
+            check(payment, 409, 'บิลนี้ไม่มีข้อมูลการชำระ กรุณาตรวจฐานข้อมูล');
+            return { ...JSON.parse(bill.snapshot_json), bill, payment, paid: true };
         }
-
-        // Get ordered items
-        const items = await db.query(`
-            SELECT oi.*, mi.item_name, mi.charge_type
-            FROM OrderItem oi
-            JOIN FoodOrder fo ON oi.order_id = fo.order_id
-            JOIN MenuItem mi ON oi.menu_item_id = mi.menu_item_id
-            WHERE fo.session_id = ? AND oi.item_status != 'CANCELLED'
-        `, [sessionId]);
-
-        // Calculate Totals
-        const buffetTotal = session.guest_count * session.buffet_price;
-        let alacarteTotal = 0;
-
-        items.forEach(item => {
-            if (item.charge_type === 'ALACARTE') {
-                alacarteTotal += item.quantity * item.unit_price_at_order;
-            }
-        });
-
-        const subtotal = buffetTotal + alacarteTotal;
-        const taxAmount = Math.round(subtotal * 0.07 * 100) / 100; // 7% VAT
-        const netAmount = subtotal + taxAmount;
-
-        res.render('cashier/bill', {
-            session,
-            items,
-            buffetTotal,
-            alacarteTotal,
-            subtotal,
-            taxAmount,
-            netAmount,
-            title: `ตรวจสอบบิล - โต๊ะ ${session.table_no}`
-        });
-    } catch (err) {
-        console.error('Error fetching bill:', err);
-        res.status(500).render('error', { message: 'เกิดข้อผิดพลาดในการคำนวณบิล' });
-    }
+        check(session.session_status === 'ACTIVE', 409, 'รอบบริการปิดแล้ว');
+        const items = await itemsFor(session.session_id);
+        return { session, items, ...totals(session, items), bill: null, payment: null, paid: false };
+    });
+    res.render('cashier/bill', { ...data, title: data.paid ? 'ใบเสร็จรับเงิน' : 'ตรวจสอบบิล' });
 };
-
-// Process Payment & Close Session
+exports.getPromptpayQr = async (req, res) => {
+    // ยอดมาจากฐานข้อมูลเท่านั้น ไม่รับจำนวนเงินหรือเลขผู้รับจากหน้าเว็บ
+    const amount = await db.transaction(async () => {
+        const session = await db.get("SELECT * FROM DiningSession WHERE session_id = ?", [req.params.sessionId]);
+        check(session, 404, 'ไม่พบรอบบริการ');
+        check(session.session_status === 'ACTIVE', 409, 'รอบบริการปิดแล้ว');
+        const items = await itemsFor(session.session_id);
+        check(items.every(i => i.item_status === 'SERVED'), 409, 'กรุณาเสิร์ฟหรือยกเลิกอาหารที่ค้างก่อนชำระเงิน');
+        return totals(session, items).netAmount;
+    });
+    const { number, payload } = promptpay.paymentPayload(amount);
+    res.set('Cache-Control', 'no-store');
+    res.json({ success: true, amount, number,
+        qr_image: await QRCode.toDataURL(payload, { width: 300, margin: 4, errorCorrectionLevel: 'M' }) });
+};
 exports.processPayment = async (req, res) => {
-    const { session_id, payment_method, amount_received } = req.body;
-    const employee_id = req.staff.employee_id;
-
-    try {
-        const session = await db.get('SELECT * FROM DiningSession WHERE session_id = ? AND session_status = "ACTIVE"', [session_id]);
-        if (!session) {
-            return res.status(400).json({ success: false, message: 'รอบการใช้บริการนี้ปิดไปแล้วหรือไม่มีอยู่จริง' });
+    const { session_id } = req.body;
+    id(session_id, 'รอบบริการ');
+    const method = ({ QR: 'PROMPTPAY', CARD: 'CREDIT_CARD' })[req.body.payment_method] || req.body.payment_method;
+    check(['CASH','PROMPTPAY','CREDIT_CARD'].includes(method), 400, 'ช่องทางชำระไม่ถูกต้อง');
+    const received = money(req.body.amount_received);
+    const expected = money(req.body.expected_total);
+    const result = await db.transaction(async () => {
+        const existing = await db.get(`SELECT b.*, p.amount_received, p.change_amount, p.payment_method FROM Bill b
+            JOIN Payment p ON p.bill_id = b.bill_id AND p.payment_status = 'SUCCESS' WHERE b.session_id = ? AND b.bill_status = 'PAID'`, [session_id]);
+        if (existing) {
+            check(existing.payment_method === method && money(existing.amount_received) === received && money(existing.net_amount) === expected, 409, 'รอบนี้ชำระแล้วด้วยข้อมูลอื่น');
+            return { receipt_no: existing.receipt_no, net_amount: existing.net_amount, change_amount: existing.change_amount };
         }
-
-        // Get items and calculate final amount
-        const items = await db.query(`
-            SELECT oi.*, mi.charge_type
-            FROM OrderItem oi
-            JOIN FoodOrder fo ON oi.order_id = fo.order_id
-            JOIN MenuItem mi ON oi.menu_item_id = mi.menu_item_id
-            WHERE fo.session_id = ? AND oi.item_status != 'CANCELLED'
-        `, [session_id]);
-
-        const buffetTotal = session.guest_count * session.buffet_price;
-        let alacarteTotal = 0;
-        items.forEach(i => {
-            if (i.charge_type === 'ALACARTE') {
-                alacarteTotal += i.quantity * i.unit_price_at_order;
-            }
-        });
-
-        const subtotal = buffetTotal + alacarteTotal;
-        const taxAmount = Math.round(subtotal * 0.07 * 100) / 100;
-        const netAmount = subtotal + taxAmount;
-
-        const billId = 'BILL-' + Date.now();
-        const receiptNo = 'RCP-' + Date.now();
-
-        // 1. Insert Bill
-        await db.run(`
-            INSERT INTO Bill (bill_id, session_id, tax_amount, net_amount, bill_status, receipt_no)
-            VALUES (?, ?, ?, ?, 'PAID', ?)
-        `, [billId, session_id, taxAmount, netAmount, receiptNo]);
-
-        // 2. Insert Payment
-        const paymentId = 'PAY-' + Date.now();
-        await db.run(`
-            INSERT INTO Payment (payment_id, bill_id, received_by, payment_method, amount, payment_status)
-            VALUES (?, ?, ?, ?, ?, 'SUCCESS')
-        `, [paymentId, billId, employee_id, payment_method, netAmount]);
-
-        // 3. Update Session to CLOSED
-        await db.run('UPDATE DiningSession SET session_status = "CLOSED", ends_at = CURRENT_TIMESTAMP WHERE session_id = ?', [session_id]);
-
-        // 4. Update Table to AVAILABLE
-        await db.run('UPDATE DiningTable SET table_status = "AVAILABLE" WHERE table_id = ?', [session.table_id]);
-
-        // Emit Socket event
-        const io = req.app.get('socketio');
-        if (io) {
-            io.emit('table-status-changed', { table_id: session.table_id, table_status: 'AVAILABLE' });
-            io.emit('session-closed', { session_id });
+        const session = await db.get(`SELECT s.*, t.table_no FROM DiningSession s JOIN DiningTable t ON s.table_id = t.table_id WHERE session_id = ?`, [session_id]);
+        check(session, 404, 'ไม่พบรอบบริการ');
+        check(session.session_status === 'ACTIVE', 409, 'รอบบริการปิดแล้ว');
+        if (method === 'PROMPTPAY') {
+            promptpay.getNumber();
+            check(req.body.promptpay_verified === true, 400, 'กรุณาตรวจสอบเงินเข้าบัญชีแล้วก่อนยืนยันพร้อมเพย์');
         }
-
-        res.json({
-            success: true,
-            message: 'รับชำระเงินและปิดรอบบริการสำเร็จ',
-            receipt_no: receiptNo,
-            net_amount: netAmount
-        });
-    } catch (err) {
-        console.error('Error processing payment:', err);
-        res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการรับชำระเงิน' });
+        const items = await itemsFor(session_id);
+        check(items.every(i => i.item_status === 'SERVED'), 409, 'กรุณาเสิร์ฟหรือยกเลิกอาหารที่ค้างก่อนชำระเงิน');
+        const amounts = totals(session, items);
+        const net = money(amounts.netAmount);
+        check(method !== 'PROMPTPAY' || net > 0, 400, 'ยอดพร้อมเพย์ต้องมากกว่า 0 บาท');
+        check(expected === net, 409, 'ยอดบิลเปลี่ยนแล้ว กรุณาโหลดบิลล่าสุดก่อนรับเงิน');
+        check(received >= net, 400, 'รับเงินไม่ครบ');
+        check(method === 'CASH' || received === net, 400, 'พร้อมเพย์และบัตรต้องรับเท่ากับยอดสุทธิ');
+        const billId = randomUUID(), receiptNo = 'R-' + randomUUID();
+        const snapshot = JSON.stringify({ session, items, ...amounts });
+        await db.run(`INSERT INTO Bill(bill_id,session_id,subtotal,tax_amount,before_rounding,rounding_amount,net_amount,bill_status,receipt_no,snapshot_json)
+            VALUES(?,?,?,?,?,?,?,'PAID',?,?)`, [billId,session_id,amounts.subtotal,amounts.taxAmount,amounts.beforeRounding,amounts.roundingAmount,amounts.netAmount,receiptNo,snapshot]);
+        const change = (received - net) / 100;
+        await db.run(`INSERT INTO Payment(payment_id,bill_id,received_by,payment_method,amount,amount_received,change_amount,paid_at)
+            VALUES(?,?,?,?,?,?,?,CURRENT_TIMESTAMP)`, [randomUUID(),billId,req.staff.employee_id,method,amounts.netAmount,received/100,change]);
+        await db.run("UPDATE DiningSession SET session_status = 'CLOSED', ends_at = CURRENT_TIMESTAMP WHERE session_id = ?", [session_id]);
+        await db.run("UPDATE DiningTable SET table_status = 'AVAILABLE' WHERE table_id = ?", [session.table_id]);
+        return { receipt_no: receiptNo, net_amount: amounts.netAmount, change_amount: change, table_id: session.table_id };
+    });
+    if (result.table_id) {
+        emit(req, 'table-status-changed', { table_id: result.table_id, table_status: 'AVAILABLE' });
+        emit(req, 'session-closed', { session_id });
     }
+    res.json({ success: true, ...result, receipt_url: '/cashier/bill/' + session_id });
 };
-
-// Reset table status manually
 exports.resetTable = async (req, res) => {
     const { table_id } = req.body;
-    try {
-        // Cancel the open session too, otherwise its QR keeps accepting orders
-        await db.run(`UPDATE DiningSession SET session_status = 'CANCELLED', ends_at = CURRENT_TIMESTAMP
-                      WHERE table_id = ? AND session_status = 'ACTIVE'`, [table_id]);
-        await db.run('UPDATE DiningTable SET table_status = "AVAILABLE" WHERE table_id = ?', [table_id]);
-        const io = req.app.get('socketio');
-        if (io) {
-            io.emit('table-status-changed', { table_id, table_status: 'AVAILABLE' });
+    id(table_id, 'รหัสโต๊ะ');
+    const session = await db.transaction(async () => {
+        const table = await db.get('SELECT * FROM DiningTable WHERE table_id = ?', [table_id]);
+        check(table, 404, 'ไม่พบโต๊ะ');
+        const active = await db.get("SELECT * FROM DiningSession WHERE table_id = ? AND session_status = 'ACTIVE'", [table_id]);
+        check(req.body.expected_status === table.table_status &&
+            (req.body.expected_session_id || null) === (active?.session_id || null),
+            409, 'สถานะโต๊ะเปลี่ยนแล้ว กรุณาดูข้อมูลล่าสุดก่อนรีเซ็ต');
+        if (active) {
+            const count = await db.get(`SELECT COUNT(*) n FROM OrderItem oi JOIN FoodOrder fo ON fo.order_id = oi.order_id
+                WHERE fo.session_id = ? AND oi.item_status != 'CANCELLED'`, [active.session_id]);
+            check(count.n === 0, 409, 'โต๊ะมีรายการอาหาร กรุณาเช็กบิลก่อนรีเซ็ต');
+            await db.run("UPDATE DiningSession SET session_status = 'CANCELLED', ends_at = CURRENT_TIMESTAMP WHERE session_id = ?", [active.session_id]);
         }
-        res.json({ success: true, message: 'รีเซ็ตสถานะโต๊ะเรียบร้อยแล้ว' });
-    } catch (err) {
-        res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการรีเซ็ตโต๊ะ' });
-    }
+        await db.run("UPDATE DiningTable SET table_status = 'AVAILABLE' WHERE table_id = ?", [table_id]);
+        return active;
+    });
+    if (session) emit(req, 'session-closed', { session_id: session.session_id });
+    emit(req, 'table-status-changed', { table_id, table_status: 'AVAILABLE' });
+    res.json({ success: true });
+};
+exports.getReceipts = async (req, res) => {
+    const receipts = await db.query(`SELECT b.*, t.table_no, p.paid_at FROM Bill b JOIN DiningSession s ON s.session_id = b.session_id
+        JOIN DiningTable t ON t.table_id = s.table_id JOIN Payment p ON p.bill_id = b.bill_id AND p.payment_status = 'SUCCESS'
+        WHERE b.bill_status = 'PAID' ORDER BY p.rowid DESC LIMIT 200`);
+    res.render('cashier/receipts', { receipts, title: 'ใบเสร็จย้อนหลัง' });
 };

@@ -6,6 +6,7 @@ const customerController = require('../controllers/customer.controller');
 router.get('/qr/:token', customerController.landingQr);
 
 // Customer ordering menu page
+router.get('/menu/data', customerController.getMenuData);
 router.get('/menu', customerController.getMenu);
 
 // Submit order

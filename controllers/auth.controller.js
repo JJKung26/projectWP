@@ -15,6 +15,7 @@ exports.showLogin = (req, res) => {
 
 exports.login = async (req, res) => {
     const { username, password } = req.body;
+    if (typeof username !== 'string' || typeof password !== 'string') return res.status(400).render('auth/login', {title:'เข้าสู่ระบบ',error:'ข้อมูลเข้าสู่ระบบไม่ถูกต้อง',username:'',next:''});
     const next = safeNextPath(req.body.next);
 
     const employee = await db.get('SELECT * FROM Employee WHERE username = ?', [username]);

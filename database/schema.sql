@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS DiningTable (
     table_id TEXT PRIMARY KEY,
     table_no TEXT UNIQUE NOT NULL,
     capacity INTEGER NOT NULL DEFAULT 4,
-    table_status TEXT NOT NULL DEFAULT 'AVAILABLE' CHECK(table_status IN ('AVAILABLE', 'OCCUPIED', 'CLEANING'))
+    table_status TEXT NOT NULL DEFAULT 'AVAILABLE' CHECK(table_status IN ('AVAILABLE', 'OCCUPIED'))
 );
 
 -- 3. QueueTicket
@@ -36,6 +36,9 @@ CREATE TABLE IF NOT EXISTS DiningSession (
     qr_token TEXT UNIQUE NOT NULL,
     guest_count INTEGER NOT NULL,
     buffet_price REAL NOT NULL DEFAULT 279.00,
+    child_count INTEGER NOT NULL DEFAULT 0,
+    free_child_count INTEGER NOT NULL DEFAULT 0,
+    child_price REAL NOT NULL DEFAULT 179.00,
     started_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     ends_at DATETIME,
     session_status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK(session_status IN ('ACTIVE', 'CLOSED', 'CANCELLED'))
@@ -54,9 +57,11 @@ CREATE TABLE IF NOT EXISTS MenuItem (
     category_id TEXT NOT NULL REFERENCES Category(category_id),
     item_name TEXT NOT NULL,
     description TEXT,
+    sort_order INTEGER NOT NULL DEFAULT 0,
     charge_type TEXT NOT NULL DEFAULT 'BUFFET' CHECK(charge_type IN ('BUFFET', 'ALACARTE')),
     unit_price REAL NOT NULL DEFAULT 0.0,
     availability INTEGER NOT NULL DEFAULT 1 CHECK(availability IN (0, 1)),
+    is_active INTEGER NOT NULL DEFAULT 1 CHECK(is_active IN (0, 1)),
     image_url TEXT
 );
 
