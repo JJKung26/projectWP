@@ -1,9 +1,4 @@
 <%- include('../partials/header') %>
-<%
-    // SQLite CURRENT_TIMESTAMP is UTC without a zone marker
-    const toTime = s => new Date(String(s).replace(' ', 'T') + 'Z')
-        .toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok' });
-%>
 
 <div class="container">
     <div class="page-head">
@@ -38,14 +33,14 @@
                     <div class="round-card-header">
                         <div class="round-card-title-group">
                             <span class="round-card-table">โต๊ะ <%= round.table_no %></span>
-                            <span class="round-card-time">สั่งเมื่อ <%= toTime(round.ordered_at) %> น.</span>
+                            <span class="round-card-time">สั่งเมื่อ <%= thaiTime(round.ordered_at) %> น.</span>
                             <span class="round-card-summary font-sm muted">
                                 <%= totalItemsCount %> รายการ (<%= totalQty %> ชิ้น)
                             </span>
                         </div>
                         <div class="round-card-header-actions">
                             <button class="btn btn-success btn-sm" onclick="confirmServedRound('<%= round.order_id %>')">เสิร์ฟแล้ว</button>
-                            <button class="btn-dropdown-toggle" onclick="toggleServingDropdown('<%= round.order_id %>')" id="toggle-btn-<%= round.order_id %>">
+                            <button class="btn-dropdown-toggle" onclick="toggleOrderDropdown('<%= round.order_id %>')" id="toggle-btn-<%= round.order_id %>">
                                 <span class="toggle-text">ซ่อนรายการ</span>
                                 <svg class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
                             </button>
@@ -73,37 +68,6 @@
     <% } %>
 </div>
 
-<script>
-    const socket = io({ auth:{ role:'SERVICE' } });
-    const refreshLive = liveRegion(socket, ['.container'], ['new-order','order-status-changed','stock-updated','session-closed'], null);
-
-    function toggleServingDropdown(orderId) {
-        const dropdown = document.getElementById('dropdown-' + orderId);
-        const btn = document.getElementById('toggle-btn-' + orderId);
-        if (!dropdown || !btn) return;
-
-        const isOpen = dropdown.classList.contains('open');
-        if (isOpen) {
-            dropdown.classList.remove('open');
-            btn.classList.add('collapsed');
-            btn.querySelector('.toggle-text').textContent = 'ดูรายการ';
-        } else {
-            dropdown.classList.add('open');
-            btn.classList.remove('collapsed');
-            btn.querySelector('.toggle-text').textContent = 'ซ่อนรายการ';
-        }
-    }
-
-    async function confirmServedRound(order_id) {
-        return sendStaffAction('/serving/confirm-served',{order_id},refreshLive);
-    }
-
-    async function confirmServed(order_item_id) {
-        return sendStaffAction('/serving/confirm-served',{order_item_id},refreshLive);
-    }
-
-
-
-</script>
+<script src="/js/serving/dashboard.js"></script>
 
 <%- include('../partials/footer') %>

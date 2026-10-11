@@ -1,9 +1,10 @@
-require('dotenv').config({ quiet: true });
 const express = require('express');
 const http = require('http');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const { Server } = require('socket.io');
+const { getSessionSecret } = require('./utils/session-secret');
+const { thaiDate, thaiTime } = require('./utils/datetime');
 
 const app = express();
 const server = http.createServer(app);
@@ -12,21 +13,20 @@ const io = new Server(server);
 // Store io in app context
 app.set('socketio', io);
 
-app.locals.thaiDate = value => value ? new Date(String(value).replace(' ', 'T') + 'Z').toLocaleString('th-TH', { timeZone:'Asia/Bangkok' }) : 'ไม่พบเวลาที่บันทึก';
+Object.assign(app.locals, { thaiDate, thaiTime });
 // View engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
-// อ่านกุญแจจาก .env เท่านั้น
-const SESSION_SECRET = process.env.SESSION_SECRET;
-if (!SESSION_SECRET || SESSION_SECRET.length < 32 || SESSION_SECRET === 'moo-krata-dev-secret-2026') {
-    throw new Error('ตั้ง SESSION_SECRET ใหม่อย่างน้อย 32 ตัวอักษรใน .env ก่อนเริ่มระบบ');
-}
+const SESSION_SECRET = getSessionSecret();
 
 // Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use((req, res, next) => { req.body ??= {}; next(); });
+app.use((req, res, next) => {
+    req.body ??= {};
+    next();
+});
 app.use(cookieParser(SESSION_SECRET));
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -46,7 +46,7 @@ const { notFound, errorHandler } = require('./middlewares/error.middleware');
 const PORT = process.env.PORT || 3000;
 
 // Use Routes
-app.use('/', authRoutes);   // ต้องอยู่ก่อน guard เพราะหน้า login ต้องเข้าได้โดยไม่ต้องล็อกอิน
+app.use('/', authRoutes); // ต้องอยู่ก่อน guard เพราะหน้า login ต้องเข้าได้โดยไม่ต้องล็อกอิน
 
 // ตรวจสิทธิ์ที่ path prefix ตอน mount — ครอบทุก route ใต้ prefix นั้นในครั้งเดียว
 // จึงไม่ต้องแก้ไฟล์ routes/*.js เดิม และไม่มีทางลืมใส่ตอนเพิ่ม route ใหม่
@@ -78,29 +78,38 @@ io.use(async (socket, next) => {
         const req = socket.request;
         cookieParser(SESSION_SECRET)(req, {}, () => {});
         const { role, token } = socket.handshake.auth;
-        if (token !== undefined && typeof token !== 'string') return next(new Error('QR ไม่ถูกต้อง'));
+        if (token !== undefined && typeof token !== 'string')
+            return next(new Error('QR ไม่ถูกต้อง'));
         if (role) {
-            if (!['CASHIER','KITCHEN','SERVICE','ADMIN'].includes(role)) return next(new Error('ไม่มีสิทธิ์'));
+            if (!['CASHIER', 'KITCHEN', 'SERVICE', 'ADMIN'].includes(role))
+                return next(new Error('ไม่มีสิทธิ์'));
             const staff = await resolveStaff(req, role);
             if (!staff) return next(new Error('กรุณาเข้าสู่ระบบ'));
             socket.data.room = 'staff:' + role;
         } else {
-            const session = await db.get("SELECT session_id FROM DiningSession WHERE qr_token = ? AND session_status = 'ACTIVE'", [token || '']);
+            const session = await db.get(
+                "SELECT session_id FROM DiningSession WHERE qr_token = ? AND session_status = 'ACTIVE'",
+                [token || '']
+            );
             if (!session) return next(new Error('รอบบริการปิดแล้วหรือ QR ไม่ถูกต้อง'));
             socket.data.room = 'session:' + session.session_id;
             socket.data.customer = true;
         }
         next();
-    } catch (err) { next(err); }
+    } catch (err) {
+        next(err);
+    }
 });
 io.on('connection', socket => {
     socket.join(socket.data.room);
     if (socket.data.customer) socket.join('customers');
 });
 
-server.on('error', (err) => {
+server.on('error', err => {
     if (err.code === 'EADDRINUSE') {
-        console.error(` PORT : ${PORT} ถูกใช้งานอยู่แล้ว ปิดโปรแกรมที่ใช้พอร์ตนี้ก่อน หรือเปลี่ยน PORT`);
+        console.error(
+            ` PORT : ${PORT} ถูกใช้งานอยู่แล้ว ปิดโปรแกรมที่ใช้พอร์ตนี้ก่อน หรือเปลี่ยน PORT`
+        );
         process.exit(1);
     } else {
         throw err;
@@ -109,23 +118,27 @@ server.on('error', (err) => {
 
 async function start(port = PORT) {
     await db.ready;
-    return server.listen(port, '0.0.0.0', async () => {
-    const listeningPort = server.address().port;
-    console.log(`=======================================================`);
-    console.log(`🔥 Moo Krata Restaurant QR System running on:`);
-    console.log(`👉 Local: http://localhost:${listeningPort}`);
-    console.log(`👉 Cashier: http://localhost:${listeningPort}/cashier/tables`);
-    console.log(`👉 Kitchen: http://localhost:${listeningPort}/kitchen`);
-    console.log(`👉 Serving: http://localhost:${listeningPort}/serving`);
-    console.log(`=======================================================`);
-
-    // ตัวเปิด Cloudflare ส่ง PUBLIC_URL ให้เว็บก่อนเริ่ม Server
-    if (process.env.PUBLIC_URL) {
-        console.log(`🌐 Public Customer URL: ${process.env.PUBLIC_URL}`);
+    return server.listen(port, '0.0.0.0', () => {
+        const listeningPort = server.address().port;
         console.log(`=======================================================`);
-    }
-});
+        console.log(`🔥 Moo Krata Restaurant QR System running on:`);
+        console.log(`👉 Local: http://localhost:${listeningPort}`);
+        console.log(`👉 Cashier: http://localhost:${listeningPort}/cashier/tables`);
+        console.log(`👉 Kitchen: http://localhost:${listeningPort}/kitchen`);
+        console.log(`👉 Serving: http://localhost:${listeningPort}/serving`);
+        console.log(`=======================================================`);
 
+        // ตัวเปิด Cloudflare ส่ง PUBLIC_URL ให้เว็บก่อนเริ่ม Server
+        if (process.env.PUBLIC_URL) {
+            console.log(`🌐 Public Customer URL: ${process.env.PUBLIC_URL}`);
+            console.log(`=======================================================`);
+        }
+    });
 }
-if (require.main === module) start().catch(err => { console.error('Startup failed:', err.message); process.exitCode = 1; db.db.close(); });
+if (require.main === module)
+    start().catch(err => {
+        console.error('Startup failed:', err.message);
+        process.exitCode = 1;
+        db.db.close();
+    });
 module.exports = { app, server, io, start };

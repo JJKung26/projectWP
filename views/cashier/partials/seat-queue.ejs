@@ -1,0 +1,36 @@
+<!-- Seat a queue ticket at a free table -->
+<div class="modal-overlay" id="seatQueueModal">
+    <div class="modal-content" style="max-width: 420px;">
+        <div class="modal-head">
+            <div>
+                <h2>จัดโต๊ะให้คิว <span id="seatQueueNo"></span></h2>
+                <p>ลูกค้า <strong id="seatQueueGuests">-</strong> ท่าน</p>
+            </div>
+            <button type="button" class="icon-btn" onclick="closeModal('seatQueueModal')" aria-label="ปิด">✕</button>
+        </div>
+        <form onsubmit="submitSeatQueue(event)">
+            <input type="hidden" id="seatQueueTicketId">
+            <% const availTables=tables.filter(t=> t.table_status === 'AVAILABLE'); %>
+            <fieldset class="form-group seat-table-picker">
+                <legend class="form-label">โต๊ะว่าง <% if (availTables.length > 8) { %><small>เลื่อนดูโต๊ะเพิ่มเติม</small><% } %></legend>
+                <div class="seat-table-options" id="seatTableSelect">
+                    <% if (availTables.length===0) { %>
+                        <p class="seat-table-empty">ไม่มีโต๊ะว่างตอนนี้</p>
+                    <% } else { %>
+                        <% availTables.forEach((at, index)=> { %>
+                            <label>
+                                <input type="radio" name="seat_table" value="<%= at.table_id %>" required <%= index === 0 ? 'checked' : '' %>>
+                                <span><strong>โต๊ะ <%= at.table_no %></strong><small><%= at.capacity %> ที่นั่ง</small></span>
+                            </label>
+                        <% }); %>
+                    <% } %>
+                </div>
+            </fieldset>
+            <%- include('../../partials/guest-inputs', { guestPrefix: 'seat', priceId: 'seatBuffetPrice' }) %>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('seatQueueModal')">ยกเลิก</button>
+                <button type="submit" class="btn btn-primary grow" <%= availTables.length === 0 ? 'disabled' : '' %>>เปิดโต๊ะให้คิวนี้</button>
+            </div>
+        </form>
+    </div>
+</div>

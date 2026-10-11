@@ -15,7 +15,8 @@ function notFound(req, res) {
 function errorHandler(err, req, res, _next) {
     const status = err.status || (err.type === 'entity.parse.failed' ? 400 : 500);
     if (status >= 500) console.error('Server error:', err.message);
-    const message = status < 500 || err.expose ? err.message : 'เกิดข้อผิดพลาดภายในระบบ กรุณาลองใหม่อีกครั้ง';
+    const message =
+        status < 500 || err.expose ? err.message : 'เกิดข้อผิดพลาดภายในระบบ กรุณาลองใหม่อีกครั้ง';
     if (wantsHtml(req)) {
         return res.status(status).render('error', { message });
     }

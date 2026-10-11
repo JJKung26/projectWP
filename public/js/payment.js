@@ -1,16 +1,22 @@
-let qrLoadId = 0, qrReady = false, paymentSending = false;
+let qrLoadId = 0,
+    qrReady = false,
+    paymentSending = false;
 const payElement = id => document.getElementById(id);
 const selectedPayMethod = () => payElement('payMethod').querySelector('input:checked').value;
 
-function closeModal() { dialogClose('paymentModal'); }
+function closeModal() {
+    dialogClose('paymentModal');
+}
 function openPayment() {
     payElement('payCash').checked = true;
     togglePayDetails();
     dialogOpen('paymentModal');
 }
 function updatePaymentButton() {
-    payElement('confirmPayment').disabled = paymentSending ||
-        (selectedPayMethod() === 'PROMPTPAY' && (!qrReady || !payElement('promptpayVerified').checked));
+    payElement('confirmPayment').disabled =
+        paymentSending ||
+        (selectedPayMethod() === 'PROMPTPAY' &&
+            (!qrReady || !payElement('promptpayVerified').checked));
 }
 function togglePayDetails() {
     ++qrLoadId; // ไม่ใช้ผลโหลดเก่าเมื่อพนักงานเปลี่ยนช่องทาง
@@ -25,7 +31,9 @@ function togglePayDetails() {
     updatePaymentButton();
 }
 function calcChange() {
-    payElement('changeAmount').textContent = (Math.max(0,Math.round(Number(payElement('amountReceived').value)*100)-NET*100)/100).toFixed(2);
+    payElement('changeAmount').textContent = (
+        Math.max(0, Math.round(Number(payElement('amountReceived').value) * 100) - NET * 100) / 100
+    ).toFixed(2);
 }
 async function loadPromptpay() {
     const load = ++qrLoadId;
@@ -37,7 +45,9 @@ async function loadPromptpay() {
     payElement('promptpayStatus').textContent = 'กำลังสร้าง QR ตามยอดบิล…';
     updatePaymentButton();
     try {
-        const res = await requestFetch('/cashier/promptpay/' + encodeURIComponent(SESSION_ID), {headers:{Accept:'application/json'}});
+        const res = await requestFetch('/cashier/promptpay/' + encodeURIComponent(SESSION_ID), {
+            headers: { Accept: 'application/json' }
+        });
         const data = await res.json();
         if (load !== qrLoadId) return;
         if (!data.success) throw new Error(data.message);
@@ -53,7 +63,9 @@ async function loadPromptpay() {
         payElement('promptpayVerified').disabled = false;
     } catch (err) {
         if (load !== qrLoadId) return;
-        payElement('promptpayStatus').textContent = ['TimeoutError','TypeError'].includes(err.name) ? 'โหลด QR ไม่สำเร็จ กรุณาลองอีกครั้ง' : err.message;
+        payElement('promptpayStatus').textContent = ['TimeoutError', 'TypeError'].includes(err.name)
+            ? 'โหลด QR ไม่สำเร็จ กรุณาลองอีกครั้ง'
+            : err.message;
     }
     if (load === qrLoadId) updatePaymentButton();
 }
@@ -61,20 +73,35 @@ async function submitPayment(e) {
     e.preventDefault();
     if (paymentSending || payElement('confirmPayment').disabled) return;
     const payment_method = selectedPayMethod();
-    const promptpay_verified = payment_method === 'PROMPTPAY' && qrReady && payElement('promptpayVerified').checked;
+    const promptpay_verified =
+        payment_method === 'PROMPTPAY' && qrReady && payElement('promptpayVerified').checked;
     if (payment_method === 'PROMPTPAY' && !promptpay_verified) return;
     paymentSending = true;
     payElement('payMethod').disabled = payElement('reloadPromptpay').disabled = true;
     updatePaymentButton();
     try {
-        const amount_received = payment_method === 'CASH' ? payElement('amountReceived').value : NET;
-        const res = await requestFetch('/cashier/payment', {method:'POST',headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({session_id:SESSION_ID,payment_method,amount_received,expected_total:NET,promptpay_verified})});
+        const amount_received =
+            payment_method === 'CASH' ? payElement('amountReceived').value : NET;
+        const res = await requestFetch('/cashier/payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                session_id: SESSION_ID,
+                payment_method,
+                amount_received,
+                expected_total: NET,
+                promptpay_verified
+            })
+        });
         const data = await res.json();
         if (data.success) location.href = data.receipt_url;
-        else { alert(data.message); if (res.status === 409) location.reload(); }
-    } catch { alert('เชื่อมต่อไม่ได้ กดอีกครั้งเพื่อรับผลการชำระเดิม'); }
-    finally {
+        else {
+            alert(data.message);
+            if (res.status === 409) location.reload();
+        }
+    } catch {
+        alert('เชื่อมต่อไม่ได้ กดอีกครั้งเพื่อรับผลการชำระเดิม');
+    } finally {
         paymentSending = false;
         payElement('payMethod').disabled = payElement('reloadPromptpay').disabled = false;
         updatePaymentButton();

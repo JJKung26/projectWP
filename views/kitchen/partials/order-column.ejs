@@ -1,0 +1,65 @@
+<%
+    const heading = isCooking ? 'กำลังทำ' : 'รอคิว';
+    const badgeClass = isCooking ? 'badge-pill-preparing' : 'badge-pill-waiting';
+    const badgeLabel = isCooking ? 'PREPARING' : 'WAITING';
+    const nextStatus = isCooking ? 'READY' : 'COOKING';
+    const actionLabel = isCooking ? 'เสร็จแล้ว' : 'เริ่มทำ';
+    const actionTitle = isCooking ? 'เปลี่ยนสถานะทุกรายการเป็นเสร็จแล้ว' : 'เปลี่ยนสถานะทุกรายการเป็นกำลังทำ';
+%>
+<div class="kitchen-col-card">
+    <div class="kitchen-col-header">
+        <h2><%= heading %></h2>
+        <span class="<%= badgeClass %>"><%= badgeLabel %> (<%= rounds.length %>)</span>
+    </div>
+    <% if (rounds.length === 0) { %>
+        <div class="empty" style="padding: 40px 10px;">
+            <p class="muted">ไม่มีรายการ<%= heading %></p>
+        </div>
+    <% } else { %>
+        <div class="round-card-list">
+            <% rounds.forEach(round => {
+                const totalQty = round.items.reduce((sum, item) => sum + item.quantity, 0);
+            %>
+                <div class="round-card<%= isCooking ? ' is-cooking' : '' %>" id="round-card-<%= round.order_id %>">
+                    <div class="round-card-header">
+                        <div class="round-card-title-group">
+                            <span class="round-card-table">โต๊ะ <%= round.table_no %></span>
+                            <span class="round-card-time">สั่งเมื่อ <%= thaiTime(round.ordered_at) %> น.</span>
+                            <span class="round-card-summary font-sm muted">
+                                <%= round.items.length %> รายการ (<%= totalQty %> ชิ้น)
+                            </span>
+                        </div>
+                        <div class="round-card-header-actions">
+                            <button class="btn <%= isCooking ? 'btn-success' : 'btn-secondary' %> btn-sm"
+                                    onclick="updateRoundStatus('<%= round.order_id %>', '<%= nextStatus %>')"
+                                    title="<%= actionTitle %>"><%= actionLabel %></button>
+                            <button class="btn-dropdown-toggle" onclick="toggleOrderDropdown('<%= round.order_id %>')" id="toggle-btn-<%= round.order_id %>">
+                                <span class="toggle-text">ซ่อนรายการ</span>
+                                <svg class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="round-card-dropdown open" id="dropdown-<%= round.order_id %>">
+                        <div class="round-card-items">
+                            <% round.items.forEach(item => { %>
+                                <div class="round-item-row<%= isCooking ? ' is-cooking' : '' %>">
+                                    <img class="round-item-thumb" src="<%= item.image_url %>" alt="" onerror="this.style.visibility='hidden'">
+                                    <div class="round-item-details">
+                                        <div class="round-item-name"><%= item.item_name %></div>
+                                    </div>
+                                    <div class="round-item-qty">
+                                        <small>×</small><%= item.quantity %>
+                                    </div>
+                                    <div class="round-item-actions">
+                                        <button class="btn btn-ghost btn-sm" onclick="cancelGeneral('<%= item.order_item_id %>')">ยกเลิก</button>
+                                        <button class="btn btn-ghost btn-sm text-danger" onclick="cancelItem('<%= item.order_item_id %>')" title="ยกเลิกเพราะวัตถุดิบหมด">ของหมด</button>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        </div>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+    <% } %>
+</div>

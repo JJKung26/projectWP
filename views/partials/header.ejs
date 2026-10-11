@@ -7,7 +7,7 @@
     <title>
         <%= typeof title !=='undefined' ? title : 'ระบบสั่งอาหารร้านหมูกระทะ' %>
     </title>
-    <link rel="stylesheet" href="/css/style.css?v=clean-scroll">
+    <%- include('styles') %>
     <script src="/socket.io/socket.io.js"></script>
     <script src="/js/print.js"></script>
     <script src="/js/ui.js"></script><script src="/js/live.js"></script>

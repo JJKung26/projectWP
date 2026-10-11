@@ -1,0 +1,64 @@
+/* Mitr draws a slashed zero; set numerals in Plex instead */
+.stat-value,
+.table-card .table-number,
+.slip-table-badge,
+.queue-no-badge,
+.status-summary b,
+.price.paid,
+.stepper-input input {
+    font-family: var(--font-body);
+    font-weight: 600;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+@media (max-width: 720px) {
+    .navbar {
+        padding: 0 12px;
+    }
+
+    .brand-sub,
+    .brand-name {
+        display: none;
+    }
+
+    .nav-link {
+        padding: 0 9px;
+        font-size: 0.85rem;
+    }
+
+    .container {
+        padding: 0 14px;
+        margin: 20px auto;
+    }
+
+    .page-head h1 {
+        font-size: 1.35rem;
+    }
+
+    .stat {
+        padding: 8px 12px;
+        min-width: 0;
+        flex: 1;
+    }
+
+    .grid-50-tables {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+
+    .table-card {
+        padding: 10px;
+        min-height: 76px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        transition: none !important;
+        animation: none !important;
+    }
+}

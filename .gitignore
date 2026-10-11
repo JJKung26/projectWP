@@ -18,6 +18,7 @@ docs/superpowers/
 
 # Environment and OS files
 .env
+session-secret.key
 .DS_Store
 npm-debug.log*
 

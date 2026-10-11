@@ -8,20 +8,43 @@ async function requestFetch(url, options = {}) {
 }
 
 const dialogFocus = new Map();
+function toggleOrderDropdown(orderId) {
+    const dropdown = document.getElementById('dropdown-' + orderId);
+    const button = document.getElementById('toggle-btn-' + orderId);
+    if (!dropdown || !button) return;
+
+    const isOpen = dropdown.classList.toggle('open');
+    button.classList.toggle('collapsed', !isOpen);
+    button.querySelector('.toggle-text').textContent = isOpen ? 'ซ่อนรายการ' : 'ดูรายการ';
+}
+
 async function sendStaffAction(url, body, refresh) {
     if (window.staffSending) return;
     window.staffSending = true;
-    const controls = [...document.querySelectorAll('.container button')].map(el => [el,el.disabled]);
-    controls.forEach(([el]) => el.disabled = true);
+    const controls = [...document.querySelectorAll('.container button')].map(el => [
+        el,
+        el.disabled
+    ]);
+    controls.forEach(([el]) => (el.disabled = true));
     try {
-        const response = await requestFetch(url, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+        const response = await requestFetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
         const data = await response.json();
         if (!data.success) throw new Error(data.message || 'ทำรายการไม่สำเร็จ');
         refresh();
-    } catch (err) { alert(['TimeoutError','TypeError'].includes(err.name) ? 'ยังไม่ได้รับคำตอบ กรุณาดูสถานะล่าสุดก่อนลองอีกครั้ง' : err.message); refresh(); }
-    finally {
+    } catch (err) {
+        alert(
+            ['TimeoutError', 'TypeError'].includes(err.name)
+                ? 'ยังไม่ได้รับคำตอบ กรุณาดูสถานะล่าสุดก่อนลองอีกครั้ง'
+                : err.message
+        );
+        refresh();
+    } finally {
         window.staffSending = false;
-        controls.forEach(([el,disabled]) => el.disabled = disabled);
+        controls.forEach(([el, disabled]) => (el.disabled = disabled));
     }
 }
 function dialogOpen(id, state = 'active') {
@@ -31,10 +54,19 @@ function dialogOpen(id, state = 'active') {
     dialog.setAttribute('aria-modal', 'true');
     dialog.setAttribute('aria-hidden', 'false');
     const title = dialog.querySelector('h2,h3');
-    if (title) { title.id ||= id + 'Title'; dialog.setAttribute('aria-labelledby', title.id); }
+    if (title) {
+        title.id ||= id + 'Title';
+        dialog.setAttribute('aria-labelledby', title.id);
+    }
     dialog.classList.add(state);
     dialog.tabIndex = -1;
-    (dialog.querySelector('[data-dialog-focus]') || dialog.querySelector('input:not([type=hidden]):not(:disabled),select:not(:disabled),button:not(:disabled),a[href]') || dialog).focus();
+    (
+        dialog.querySelector('[data-dialog-focus]') ||
+        dialog.querySelector(
+            'input:not([type=hidden]):not(:disabled),select:not(:disabled),button:not(:disabled),a[href]'
+        ) ||
+        dialog
+    ).focus();
 }
 function dialogClose(id, state = 'active') {
     const dialog = document.getElementById(id);
@@ -45,26 +77,45 @@ function dialogClose(id, state = 'active') {
     dialogFocus.delete(id);
 }
 function closeActiveDialog(dialog) {
-    if (window.orderSending || window.printingDocument || dialog.querySelector('button[type=submit]:disabled')) return;
+    if (
+        window.orderSending ||
+        window.printingDocument ||
+        dialog.querySelector('button[type=submit]:disabled')
+    )
+        return;
     if (dialog.classList.contains('sheet')) closeSheets();
     else closeModal(dialog.id);
 }
 document.addEventListener('keydown', event => {
     const dialog = document.querySelector('.modal-overlay.active,.sheet.open');
     if (!dialog) return;
-    if (event.key === 'Escape') { event.preventDefault(); closeActiveDialog(dialog); }
+    if (event.key === 'Escape') {
+        event.preventDefault();
+        closeActiveDialog(dialog);
+    }
     if (event.key !== 'Tab') return;
-    const controls = [...dialog.querySelectorAll('button,input,select,a[href],[tabindex="0"]')]
-        .filter(el => !el.disabled && el.offsetParent !== null);
-    const first = controls[0], last = controls.at(-1);
-    if (!first) { event.preventDefault(); return; }
+    const controls = [
+        ...dialog.querySelectorAll('button,input,select,a[href],[tabindex="0"]')
+    ].filter(el => !el.disabled && el.offsetParent !== null);
+    const first = controls[0],
+        last = controls.at(-1);
+    if (!first) {
+        event.preventDefault();
+        return;
+    }
     if (event.shiftKey && (document.activeElement === first || document.activeElement === dialog)) {
-        event.preventDefault(); last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+        event.preventDefault();
+        last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+    }
 });
 document.addEventListener('click', event => {
     if (event.target.matches('.modal-overlay.active')) closeActiveDialog(event.target);
 });
 document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.modal-overlay,.sheet').forEach(el => el.setAttribute('aria-hidden','true'));
+    document
+        .querySelectorAll('.modal-overlay,.sheet')
+        .forEach(el => el.setAttribute('aria-hidden', 'true'));
 });

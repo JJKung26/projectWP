@@ -1,6 +1,5 @@
 // ค่าคงที่และฟังก์ชันล้วนของระบบยืนยันตัวตน
 
-
 const ROLES = ['ADMIN', 'CASHIER', 'KITCHEN', 'SERVICE'];
 
 const COOKIE_PREFIX = 'staff_';
@@ -9,9 +8,8 @@ const COOKIE_OPTIONS = {
     httpOnly: true,
     signed: true,
     sameSite: 'strict',
-    secure: process.env.COOKIE_SECURE === 'true',              // ต้องเป็น false เพราะรันบน http://localhost ตอนตรวจงาน
+    secure: process.env.COOKIE_SECURE === 'true', // ต้องเป็น false เพราะรันบน http://localhost ตอนตรวจงาน
     maxAge: 12 * 60 * 60 * 1000 // 12 ชั่วโมง
-    
 };
 
 const HOME_BY_ROLE = {

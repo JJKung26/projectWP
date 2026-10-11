@@ -1,5 +1,5 @@
 -- สร้างอัตโนมัติด้วย npm run seed:accounts — ห้ามแก้ไฟล์นี้ด้วยมือ
--- รหัสผ่านจริงดูได้ที่ scripts/generate-accounts.js และ README.txt
+-- รหัสผ่านเริ่มต้นดูได้ที่ scripts/generate-accounts.js
 
 INSERT OR IGNORE INTO Employee (employee_id, username, password_hash, full_name, role) VALUES
 ('EMP-000', 'admin', '$2b$10$QNHpUKjBGGDBYxOJYOJ04eLtBdv9ZqVRvXTYB9.KISpEqWb7iF6je', 'ผู้ดูแลระบบ', 'ADMIN'),

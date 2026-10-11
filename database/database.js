@@ -14,7 +14,8 @@ function raw(method, sql, params = []) {
         });
     });
 }
-const exec = sql => new Promise((resolve, reject) => db.exec(sql, err => err ? reject(err) : resolve()));
+const exec = sql =>
+    new Promise((resolve, reject) => db.exec(sql, err => (err ? reject(err) : resolve())));
 const ready = (async () => {
     await exec('PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL;');
     await exec(fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8'));
@@ -43,7 +44,8 @@ const ready = (async () => {
     ];
     for (const [table, name, type] of columns) {
         const info = await raw('all', 'PRAGMA table_info(' + table + ')');
-        if (!info.some(c => c.name === name)) await exec('ALTER TABLE ' + table + ' ADD COLUMN ' + name + ' ' + type);
+        if (!info.some(c => c.name === name))
+            await exec('ALTER TABLE ' + table + ' ADD COLUMN ' + name + ' ' + type);
     }
     // หยุด startup หากข้อมูลเก่าซ้ำ แทนการลบข้อมูลลูกค้าเอง
     await exec(`CREATE UNIQUE INDEX IF NOT EXISTS one_active_session ON DiningSession(table_id) WHERE session_status = 'ACTIVE';
@@ -58,9 +60,13 @@ const ready = (async () => {
     await exec(`UPDATE DiningTable SET table_status = CASE
         WHEN EXISTS (SELECT 1 FROM DiningSession s WHERE s.table_id = DiningTable.table_id AND s.session_status = 'ACTIVE')
         THEN 'OCCUPIED' ELSE 'AVAILABLE' END WHERE table_status = 'CLEANING'`);
-    for (const file of ['seed.sql', 'seed-accounts.sql']) await exec(fs.readFileSync(path.join(__dirname, file), 'utf8'));
+    for (const file of ['seed.sql', 'seed-accounts.sql'])
+        await exec(fs.readFileSync(path.join(__dirname, file), 'utf8'));
     const old = await raw('get', 'SELECT COUNT(*) AS n FROM Employee WHERE password_hash IS NULL');
-    if (old.n) throw new Error('บัญชีเก่าไม่มี password_hash: รัน npm run seed:accounts เพื่อกำหนดรหัสผ่าน');
+    if (old.n)
+        throw new Error(
+            'บัญชีเก่าไม่มี password_hash: รัน npm run seed:accounts เพื่อกำหนดรหัสผ่าน'
+        );
 })();
 // ทุกคำสั่งใช้คิวเดียวกัน จึงไม่มี request อื่นแทรกใน Transaction ของ connection นี้
 const context = new AsyncLocalStorage();
@@ -71,23 +77,30 @@ function exclusive(work) {
     return result;
 }
 function command(method, sql, params) {
-    return context.getStore() ? raw(method, sql, params) : exclusive(() => raw(method, sql, params));
+    return context.getStore()
+        ? raw(method, sql, params)
+        : exclusive(() => raw(method, sql, params));
 }
 async function transaction(work) {
     if (context.getStore()) return work();
-    return exclusive(() => context.run(true, async () => {
-        await raw('run', 'BEGIN IMMEDIATE');
-        try {
-            const result = await work();
-            await raw('run', 'COMMIT');
-            return result;
-        } catch (err) {
-            await raw('run', 'ROLLBACK');
-            throw err;
-        }
-    }));
+    return exclusive(() =>
+        context.run(true, async () => {
+            await raw('run', 'BEGIN IMMEDIATE');
+            try {
+                const result = await work();
+                await raw('run', 'COMMIT');
+                return result;
+            } catch (err) {
+                await raw('run', 'ROLLBACK');
+                throw err;
+            }
+        })
+    );
 }
-module.exports = { db, ready, transaction,
+module.exports = {
+    db,
+    ready,
+    transaction,
     query: (sql, params = []) => command('all', sql, params),
     get: (sql, params = []) => command('get', sql, params),
     run: (sql, params = []) => command('run', sql, params)

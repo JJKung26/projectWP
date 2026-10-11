@@ -1,7 +1,4 @@
 <%
-    // SQLite CURRENT_TIMESTAMP is UTC without a zone marker
-    const toTime = s => new Date(String(s).replace(' ', 'T') + 'Z')
-        .toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok' });
     const statusInfo = {
         PENDING:   { cls: 'badge-pending',   label: 'รอคิวครัว' },
         COOKING:   { cls: 'badge-cooking',   label: 'กำลังเตรียม' },
@@ -10,12 +7,6 @@
         CANCELLED: { cls: 'badge-cancelled', label: 'ยกเลิก' }
     };
     const count = st => orders.filter(o => o.item_status === st).reduce((n, o) => n + o.quantity, 0);
-    const groups = [];
-    orders.forEach(o => {
-        let g = groups.find(x => x.order_id === o.order_id);
-        if (!g) { g = { roundNum: o.round_no, order_id: o.order_id, ordered_at: o.ordered_at, items: [] }; groups.push(g); }
-        g.items.push(o);
-    });
 %>
 <!DOCTYPE html>
 <html lang="th">
@@ -24,7 +15,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#ffffff">
     <title>ออเดอร์ · โต๊ะ <%= session.table_no %></title>
-    <link rel="stylesheet" href="/css/style.css?v=clean-scroll">
+    <%- include('../partials/styles') %>
     <script src="/socket.io/socket.io.js"></script><script src="/js/ui.js"></script><script src="/js/live.js"></script>
 </head>
 <body class="cust" style="background: var(--paper);">
@@ -84,7 +75,7 @@
                     <div class="cust-round-header" onclick="toggleCustDropdown('<%= g.order_id %>')">
                         <div class="cust-round-title">
                             <span class="cust-round-badge">รอบที่ <%= g.roundNum %></span>
-                            <span class="cust-round-time">สั่งเมื่อ <%= toTime(g.ordered_at) %> น.</span>
+                            <span class="cust-round-time">สั่งเมื่อ <%= thaiTime(g.ordered_at) %> น.</span>
                         </div>
                         <div class="cust-round-meta">
                             <span class="badge <%= roundBadgeCls %>"><%= roundBadgeLabel %></span>
@@ -117,36 +108,7 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-    <script>
-        if (new URLSearchParams(location.search).get('sent')) {
-            const t = document.getElementById('toast');
-            t.textContent = 'ส่งออเดอร์เข้าครัวเรียบร้อยแล้ว';
-            t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 2600);
-            history.replaceState(null, '', location.pathname + '?token=<%= token %>');
-        }
-
-        function toggleCustDropdown(orderId) {
-            const dropdown = document.getElementById('cust-dropdown-' + orderId);
-            const btn = document.getElementById('cust-btn-' + orderId);
-            if (!dropdown || !btn) return;
-
-            const isOpen = dropdown.classList.contains('open');
-            if (isOpen) {
-                dropdown.classList.remove('open');
-                btn.classList.add('collapsed');
-            } else {
-                dropdown.classList.add('open');
-                btn.classList.remove('collapsed');
-            }
-        }
-
-        const socket = io({ auth:{ token:'<%= token %>' } });
-        liveRegion(socket, ['main'], ['new-order','order-status-changed']);
-        socket.on('session-closed', diningEnded);
-        socket.on('connect_error', () => {
-            requestFetch('/menu/data?token=<%= token %>').then(r => { if (r.status === 400) diningEnded(); }).catch(() => {});
-        });
-    </script>
+    <script>const TOKEN = '<%= token %>';</script>
+    <script src="/js/customer/order-status.js"></script>
 </body>
 </html>

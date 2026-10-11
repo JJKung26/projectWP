@@ -1,0 +1,45 @@
+<!-- Open-table slip with customer QR -->
+<div class="modal-overlay" id="slipModal">
+    <div class="modal-content" style="max-width: 420px;">
+        <div class="receipt-slip order-slip print-target" id="slipPrintArea">
+            <div class="slip-header">
+                <%- include('../../partials/shop-logo', { logoClass: 'order-slip-logo' }) %>
+                <div class="slip-title">ร้านหมูกระทะ บุฟเฟต์</div>
+                <div class="slip-subtitle">ใบ QR สำหรับสั่งอาหาร</div>
+                <h2 class="order-slip-table" tabindex="-1" data-dialog-focus>หมายเลขโต๊ะ: <span id="slipTableNo">-</span></h2>
+            </div>
+            <div class="order-slip-meta">
+                <div class="slip-row"><span>จำนวนลูกค้า: <span id="slipGuestCount">-</span> ท่าน</span><span id="slipStartedAt">-</span></div>
+                <div class="slip-row"><span>ระยะเวลา: 2 ชั่วโมง</span><span>รอบ: <span id="slipSessionId">-</span></span></div>
+            </div>
+            <div class="order-slip-time">เริ่มเวลา: <strong id="slipStartTime">--:--</strong></div>
+            <div class="slip-qr-box">
+                <img id="slipQrImg" class="slip-qr-img" src="" alt="QR Code สั่งอาหาร">
+                <div class="slip-qr-caption">สแกน QR Code เพื่อสั่งอาหาร</div>
+                <div class="slip-url" id="slipUrlText">-</div>
+            </div>
+            <div class="order-slip-time">หมดเวลา: <strong id="slipEndTime">--:--</strong></div>
+            <div class="order-slip-end-date" id="slipEndDate"></div>
+            <div class="slip-details">
+                <div class="slip-row"><span>ผู้ใหญ่ <span id="slipAdultCount">-</span> ท่าน</span><strong><span id="slipBuffetPrice">279</span> บาท/ท่าน</strong></div>
+                <div class="slip-row" id="slipChildRow"><span>เด็ก 90–120 ซม. <span id="slipChildCount">0</span> ท่าน</span><strong><span id="slipChildPrice">179</span> บาท/ท่าน</strong></div>
+                <div class="slip-row" id="slipFreeChildRow"><span>เด็กต่ำกว่า 90 ซม. <span id="slipFreeChildCount">0</span> ท่าน</span><strong>ทานฟรี</strong></div>
+                <div class="slip-row"><span>ยอดบุฟเฟต์ (Subtotal)</span><strong><span id="slipEstTotal">-</span> บาท</strong></div>
+                <div class="slip-row"><span>VAT 7%</span><strong><span id="slipVat">-</span> บาท</strong></div>
+                <div class="slip-row"><span>ปัดเศษลง</span><span><span id="slipRounding">-</span> บาท</span></div>
+                <div class="slip-row total"><span>ยอดรวม (รวม VAT)</span><strong><span id="slipGrandTotal">-</span> บาท</strong></div>
+            </div>
+            <div class="slip-footer">
+                <div>ยอดนี้รวม VAT 7% แล้ว ไม่รวมรายการที่คิดเพิ่ม</div>
+                <div>กรุณานำใบนี้ไปชำระเงินที่แคชเชียร์</div>
+                <div class="order-slip-note">ใบนี้ไม่ใช่หลักฐานการชำระเงิน</div>
+            </div>
+        </div>
+        <div class="no-print modal-actions">
+            <button class="btn btn-secondary" onclick="copySlipUrl()">คัดลอกลิงก์</button>
+            <%- include('../../partials/paper', { paperId: 'qr-paper', defaultPaper: '80' }) %>
+            <button class="btn btn-secondary" onclick="printSlip()">พิมพ์</button>
+            <button class="btn btn-dark grow" onclick="closeModal('slipModal')">เสร็จ</button>
+        </div>
+    </div>
+</div>

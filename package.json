@@ -8,7 +8,6 @@
     "start:local": "node server.js",
     "start:cloudflare": "node scripts/start-cloudflare.js",
     "test:cloudflare-load": "node scripts/test-cloudflare-load.js",
-    "test": "node --test \"tests/**/*.test.js\"",
     "seed:accounts": "node scripts/generate-accounts.js",
     "backup": "node scripts/backup-database.js"
   },
@@ -19,7 +18,6 @@
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
-    "dotenv": "^18.0.1",
     "ejs": "^6.0.1",
     "express": "^5.2.1",
     "promptpay-qr": "^0.5.0",
@@ -28,8 +26,6 @@
     "sqlite3": "^6.0.1"
   },
   "devDependencies": {
-    "jsqr": "^1.4.0",
-    "pngjs": "^7.0.0",
     "socket.io-client": "^4.8.4"
   },
   "engines": {

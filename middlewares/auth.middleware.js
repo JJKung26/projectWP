@@ -38,8 +38,8 @@ function requireRole(role) {
         }
 
         if (staff) {
-            req.staff = staff;          // ให้ controller ใช้แทน employee_id ที่ hardcode
-            res.locals.staff = staff;   // ให้ view ใช้แสดงชื่อบน navbar
+            req.staff = staff; // ให้ controller ใช้แทน employee_id ที่ hardcode
+            res.locals.staff = staff; // ให้ view ใช้แสดงชื่อบน navbar
             return next();
         }
 
