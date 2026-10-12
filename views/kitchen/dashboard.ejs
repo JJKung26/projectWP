@@ -4,26 +4,17 @@
     const cooking = orderItems.filter(i => i.item_status === 'COOKING').length;
     const soldOut = menuItems.filter(m => m.availability === 0).length;
 %>
-
 <div class="container">
     <div class="page-head">
-        <div>
-            <div class="eyebrow">ครัว</div>
-            <h1>คิวออเดอร์</h1>
-            <p>เรียงตามเวลาสั่ง รายการเก่าสุดอยู่ก่อน</p>
-        </div>
+        <div> <div class="eyebrow">ครัว</div> <h1>คิวออเดอร์</h1> <p>เรียงตามเวลาสั่ง รายการเก่าสุดอยู่ก่อน</p> </div>
         <div class="stat-strip">
-            <div class="stat">
-                <div class="stat-label"><span class="dot warn"></span>รอทำ</div>
-                <div class="stat-value"><%= pending %></div>
-            </div>
+            <div class="stat"> <div class="stat-label"><span class="dot warn"></span>รอทำ</div> <div class="stat-value"><%= pending %></div> </div>
             <div class="stat">
                 <div class="stat-label"><span class="dot" style="background: var(--info);"></span>กำลังทำ</div>
                 <div class="stat-value"><%= cooking %></div>
             </div>
         </div>
     </div>
-
     <div class="tabs" role="tablist">
         <button class="tab active" id="btnOrdersTab" role="tab" onclick="showTab('ordersTab')">
             ออเดอร์ <span class="count-pill"><%= orderItems.length %></span>
@@ -32,7 +23,6 @@
             สต็อกวัตถุดิบ<% if (soldOut > 0) { %> <span class="badge badge-cancelled plain">หมด <%= soldOut %></span><% } %>
         </button>
     </div>
-
     <div id="ordersTab">
         <% if (!orderRounds || orderRounds.length === 0) { %>
             <div class="card empty">
@@ -49,20 +39,16 @@
             </div>
         <% } %>
     </div>
-
     <div id="stockTab" style="display: none;">
         <p class="muted" style="margin-bottom: 14px;">ปิดสวิตช์เมื่อวัตถุดิบหมด เมนูนั้นจะขึ้นว่า "หมดชั่วคราว" ในมือถือลูกค้าทันที</p>
-        <% categories.forEach(category => {
-            const categoryItems = menuItems.filter(mi => mi.category_id === category.category_id).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
-            if (!categoryItems.length) return;
-        %>
+        <% for (const category of sections) { %>
         <section class="stock-category" aria-labelledby="stock-category-<%= category.category_id %>">
             <div class="stock-category-heading">
                 <h2 id="stock-category-<%= category.category_id %>"><%= category.category_name %></h2>
-                <span class="muted"><%= categoryItems.length %> รายการ</span>
+                <span class="muted"><%= category.items.length %> รายการ</span>
             </div>
             <div class="stock-grid">
-            <% categoryItems.forEach(mi => { const on = mi.availability === 1; %>
+            <% for (const mi of category.items) { const on = mi.availability === 1; %>
                 <div class="stock-row<%= on ? '' : ' off' %>" onclick="toggleStock('<%= mi.menu_item_id %>', '<%= on ? 0 : 1 %>')" style="cursor: pointer;">
                     <img src="<%= mi.image_url %>" alt="" onerror="this.style.visibility='hidden'">
                     <div>
@@ -72,13 +58,11 @@
                     <button class="switch" role="switch" aria-checked="<%= on %>" aria-label="<%= mi.item_name %>"
                             onclick="event.stopPropagation(); toggleStock('<%= mi.menu_item_id %>', '<%= on ? 0 : 1 %>')"></button>
                 </div>
-            <% }); %>
+            <% } %>
             </div>
         </section>
-        <% }); %>
+        <% } %>
     </div>
 </div>
-
-<script src="/js/kitchen/dashboard.js"></script>
-
+<script src="/js/kitchen.js?v=basic-1"></script>
 <%- include('../partials/footer') %>

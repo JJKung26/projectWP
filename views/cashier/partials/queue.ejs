@@ -2,27 +2,22 @@
 <div class="modal-overlay" id="queueModal">
     <div class="modal-content" style="max-width: 560px;">
         <div class="modal-head">
-            <div>
-                <h2>บัตรคิว</h2>
-                <p>รอ <span id="waitingCountDisplay">0</span> คิว</p>
-            </div>
+            <div> <h2>บัตรคิว</h2> <p>รอ <span id="waitingCountDisplay">0</span> คิว</p> </div>
             <button type="button" class="icon-btn" onclick="closeModal('queueModal')" aria-label="ปิด">✕</button>
         </div>
-
         <div class="queue-issue-box">
             <form id="issueQueueForm" onsubmit="submitIssueQueue(event)" style="display: flex; gap: 10px; align-items: flex-end;">
                 <div style="flex: 1;">
                     <label class="form-label" for="newQueueGuestCount">ออกคิวใหม่ · จำนวนลูกค้า</label>
                     <div class="stepper-input">
                         <button type="button" onclick="stepInput('newQueueGuestCount', -1)" aria-label="ลด">−</button>
-                        <input type="number" id="newQueueGuestCount" min="1" max="20" value="1" required>
+                        <input type="number" id="newQueueGuestCount" name="guest_count" min="1" max="20" value="1" required>
                         <button type="button" onclick="stepInput('newQueueGuestCount', 1)" aria-label="เพิ่ม">+</button>
                     </div>
                 </div>
                 <button type="submit" class="btn btn-primary" style="height: 44px;">ออกบัตรคิว</button>
             </form>
         </div>
-
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <h3 style="font-size: 1rem;">คิววันนี้ / ค้นหาคิวเดิม</h3>
             <button class="btn btn-ghost btn-sm" onclick="loadQueues()">รีเฟรช</button>
@@ -31,8 +26,6 @@
             <label>วันคิว <input id="queueDate" type="date" value="<%= queueDate %>" onchange="document.getElementById('queueHistory').checked=true;loadQueues()"></label>
             <label><input id="queueHistory" type="checkbox" onchange="loadQueues()"> ดูทุกสถานะเพื่อพิมพ์ซ้ำ</label>
         </div>
-        <div id="queueListContainer" style="display: flex; flex-direction: column; gap: 8px;">
-            <div class="empty" style="padding: 24px;">กำลังโหลด…</div>
-        </div>
+        <div id="queueListContainer" style="display: flex; flex-direction: column; gap: 8px;"> <div class="empty" style="padding: 24px;">กำลังโหลด…</div> </div>
     </div>
 </div>

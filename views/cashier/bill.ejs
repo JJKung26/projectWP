@@ -29,18 +29,10 @@
                 </div>
             </fieldset>
             <section class="promptpay-panel" id="promptpayDetails" hidden>
-                <div class="promptpay-head">
-                    <div class="promptpay-title">สแกนจ่ายด้วยพร้อมเพย์</div>
-                    <button type="button" class="btn btn-secondary" id="reloadPromptpay" onclick="loadPromptpay()">โหลด QR ใหม่</button>
-                </div>
+                <div class="promptpay-title">สแกนจ่ายด้วยพร้อมเพย์</div>
                 <strong class="promptpay-amount"><%= netAmount.toFixed(2) %> บาท</strong>
-                <img id="promptpayQr" class="promptpay-qr" alt="QR พร้อมเพย์สำหรับยอดชำระโต๊ะนี้" hidden>
-                <p class="promptpay-recipient" id="promptpayRecipient"></p>
-                <p id="promptpayStatus" role="status" aria-live="polite"></p>
-                <label class="promptpay-confirm">
-                    <input type="checkbox" id="promptpayVerified" onchange="updatePaymentButton()" disabled>
-                    <span><strong>ตรวจสอบเงินเข้าบัญชีครบยอดแล้ว</strong><small>เช็กยอดในบัญชีร้านก่อนกดยืนยันรับเงิน</small></span>
-                </label>
+                <img class="promptpay-qr" src="/images/promptpay.png" alt="QR พร้อมเพย์">
+                <p>กรอกยอดตามบิลในแอปธนาคาร และตรวจสอบเงินเข้าก่อนกดยืนยันรับเงิน</p>
             </section>
             <p id="cardNotice" hidden>บัตรเป็นการจำลอง พนักงานยืนยันรับเงินตามระบบเดิม</p>
             <div id="cashDetails">
@@ -56,6 +48,6 @@
     const NET = <%= netAmount %>;
     const SESSION_ID = '<%= session.session_id %>';
 </script>
-<script src="/js/payment.js?v=payment-options-2"></script>
+<script src="/js/payment.js?v=static-promptpay-1"></script>
 <% } %>
 <%- include('../partials/footer') %>

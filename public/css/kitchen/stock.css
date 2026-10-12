@@ -1,115 +1,101 @@
-/* ==========================================================================
-   Kitchen & serving tickets
-   ========================================================================== */
+/* รายการอาหารในครัว */
 .tabs {
-    display: flex;
-    gap: 4px;
-    border-bottom: 1px solid var(--line);
-    margin-bottom: 20px;
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 20px;
 }
-
 .tab {
-    border: none;
-    background: transparent;
-    padding: 10px 12px;
-    margin-bottom: -1px;
-    border-bottom: 3px solid transparent;
-    cursor: pointer;
-    font-weight: 500;
-    font-size: 0.98rem;
-    color: var(--ink-3);
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
+  border: none;
+  background: transparent;
+  padding: 10px 12px;
+  margin-bottom: -1px;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.98rem;
+  color: var(--ink-3);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
-
 .tab.active {
-    color: var(--ember);
-    border-bottom-color: var(--ember);
+  color: var(--ember);
+  border-bottom-color: var(--ember);
 }
-
 .stock-category {
-    margin-bottom: 24px;
+  margin-bottom: 24px;
 }
 .stock-category-heading {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-    margin-bottom: 12px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
 }
 .stock-category-heading h2 {
-    font-size: 1.1rem;
+  font-size: 1.1rem;
 }
 .stock-category-heading span {
-    font-size: 0.8rem;
+  font-size: 0.8rem;
 }
-
 .stock-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
 }
-
 .stock-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px;
-    border: 1px solid var(--line);
-    border-radius: var(--r-md);
-    background: var(--surface);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
 }
-
 .stock-row img {
-    width: 44px;
-    height: 44px;
-    border-radius: var(--r-sm);
-    object-fit: cover;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-sm);
+  object-fit: cover;
 }
-
 .stock-row.off img {
-    filter: grayscale(1);
-    opacity: 0.6;
+  filter: grayscale(1);
+  opacity: 0.6;
 }
-
 .stock-row .name {
-    font-weight: 500;
-    font-size: 0.92rem;
-    line-height: 1.3;
+  font-weight: 500;
+  font-size: 0.92rem;
+  line-height: 1.3;
 }
-
 .switch {
-    margin-left: auto;
-    position: relative;
-    width: 42px;
-    height: 24px;
-    border-radius: 999px;
-    border: none;
-    background: var(--line-strong);
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: background 0.15s;
+  margin-left: auto;
+  position: relative;
+  width: 42px;
+  height: 24px;
+  border-radius: 999px;
+  border: none;
+  background: var(--line-strong);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
 }
-
 .switch::after {
-    content: '';
-    position: absolute;
-    top: 3px;
-    left: 3px;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: #fff;
-    transition: transform 0.15s;
-    box-shadow: var(--shadow-sm);
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s;
+  box-shadow: var(--shadow-sm);
 }
-
 .switch[aria-checked='true'] {
-    background: var(--ok);
+  background: var(--ok);
 }
-
 .switch[aria-checked='true']::after {
-    transform: translateX(18px);
+  transform: translateX(18px);
 }

@@ -1,20 +1,11 @@
 <%- include('../partials/header') %>
-
 <div class="container">
     <div class="page-head">
-        <div>
-            <div class="eyebrow">เสิร์ฟ</div>
-            <h1>รอนำไปเสิร์ฟ</h1>
-            <p>ครัวทำเสร็จแล้ว ยกไปที่โต๊ะแล้วกดยืนยัน</p>
-        </div>
+        <div> <div class="eyebrow">เสิร์ฟ</div> <h1>รอนำไปเสิร์ฟ</h1> <p>ครัวทำเสร็จแล้ว ยกไปที่โต๊ะแล้วกดยืนยัน</p> </div>
         <div class="stat-strip">
-            <div class="stat">
-                <div class="stat-label"><span class="dot ok"></span>พร้อมเสิร์ฟ</div>
-                <div class="stat-value"><%= readyItems.length %></div>
-            </div>
+            <div class="stat"> <div class="stat-label"><span class="dot ok"></span>พร้อมเสิร์ฟ</div> <div class="stat-value"><%= readyItems.length %></div> </div>
         </div>
     </div>
-
     <% if (!readyRounds || readyRounds.length === 0) { %>
         <div class="card empty">
             <div class="empty-icon">
@@ -25,49 +16,11 @@
         </div>
     <% } else { %>
         <div class="round-card-list">
-            <% readyRounds.forEach(round => { 
-                const totalItemsCount = round.items.length;
-                const totalQty = round.items.reduce((acc, curr) => acc + curr.quantity, 0);
-            %>
-                <div class="round-card is-ready-card" id="round-card-<%= round.order_id %>">
-                    <div class="round-card-header">
-                        <div class="round-card-title-group">
-                            <span class="round-card-table">โต๊ะ <%= round.table_no %></span>
-                            <span class="round-card-time">สั่งเมื่อ <%= thaiTime(round.ordered_at) %> น.</span>
-                            <span class="round-card-summary font-sm muted">
-                                <%= totalItemsCount %> รายการ (<%= totalQty %> ชิ้น)
-                            </span>
-                        </div>
-                        <div class="round-card-header-actions">
-                            <button class="btn btn-success btn-sm" onclick="confirmServedRound('<%= round.order_id %>')">เสิร์ฟแล้ว</button>
-                            <button class="btn-dropdown-toggle" onclick="toggleOrderDropdown('<%= round.order_id %>')" id="toggle-btn-<%= round.order_id %>">
-                                <span class="toggle-text">ซ่อนรายการ</span>
-                                <svg class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="round-card-dropdown open" id="dropdown-<%= round.order_id %>">
-                        <div class="round-card-items">
-                            <% round.items.forEach(item => { %>
-                                <div class="round-item-row">
-                                    <img class="round-item-thumb" src="<%= item.image_url %>" alt="" onerror="this.style.visibility='hidden'">
-                                    <div class="round-item-details">
-                                        <div class="round-item-name"><%= item.item_name %></div>
-                                    </div>
-                                    <div class="round-item-qty">
-                                        <small>×</small><%= item.quantity %>
-                                    </div>
-                                </div>
-                            <% }); %>
-                        </div>
-                    </div>
-                </div>
-            <% }); %>
+            <% for (const round of readyRounds) { %>
+                <%- include('../partials/staff-order-card', { round, mode: 'serving' }) %>
+            <% } %>
         </div>
     <% } %>
 </div>
-
-<script src="/js/serving/dashboard.js"></script>
-
+<script src="/js/serving.js?v=basic-1"></script>
 <%- include('../partials/footer') %>

@@ -1,3 +1,4 @@
+/* โหลดสไตล์ตามลำดับ */
 /* Shared entry point. Keep this order: later files override earlier rules. */
 @import url('base/foundation.css');
 @import url('components/navigation.css');

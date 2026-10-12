@@ -1,56 +1,84 @@
 const db = require('../database/database');
-const { cookieNameFor, wantsHtml } = require('./auth.helpers');
+const ROLES = ['ADMIN', 'CASHIER', 'KITCHEN', 'SERVICE'];
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  signed: true,
+  sameSite: 'strict',
+  secure: process.env.COOKIE_SECURE === 'true',
+  maxAge: 12 * 60 * 60 * 1000 // 12 ชั่วโมง
+};
+const HOME_BY_ROLE = {
+  ADMIN: '/cashier/tables',
+  CASHIER: '/cashier/tables',
+  KITCHEN: '/kitchen',
+  SERVICE: '/serving'
+};
 
-// โหลดพนักงานจากฐานข้อมูลใหม่ทุกครั้ง ไม่เก็บ role ไว้ใน cookie
-// เพื่อให้การแก้บทบาทหรือลบพนักงานมีผลทันที
-// และไม่เอาข้อมูลจากฝั่ง client มาตัดสินสิทธิ์โดยตรง
-async function loadStaff(employeeId, expectedRole) {
-    if (!employeeId) return null;
-    const row = await db.get(
-        'SELECT employee_id, username, full_name, role FROM Employee WHERE employee_id = ?',
-        [employeeId]
-    );
-    if (!row || row.role !== expectedRole) return null;
-    return row;
+function cookieNameFor(role) {
+  return 'staff_' + role;
 }
 
-// หาพนักงานที่มีสิทธิ์เข้าถึง: cookie ของ role นั้นก่อน ถ้าไม่มีลอง cookie ของ ADMIN
+// เปิดหน้าเว็บให้ไปหน้า login ส่วน fetch ให้รับข้อความ JSON
+function wantsHtml(req) {
+  return (req.get('accept') || '').includes('text/html');
+}
+
+// รับเฉพาะ path ภายในเว็บ กันไม่ให้ ?next= พาผู้ใช้ออกไปเว็บอื่น
+function safeNextPath(next) {
+  if (
+    typeof next !== 'string' ||
+    !next.startsWith('/') ||
+    next.startsWith('//') ||
+    next.startsWith('/\\')
+  ) {
+    return null;
+  }
+  return next;
+}
+
+// ตรวจบัญชีของหน้านี้ก่อน แล้วจึงลองบัญชี ADMIN
 async function resolveStaff(req, role) {
-    const cookies = req.signedCookies || {};
-    const byRole = await loadStaff(cookies[cookieNameFor(role)], role);
-    if (byRole) return byRole;
-    if (role === 'ADMIN') return null; // กันไม่ให้ query ซ้ำด้วย cookie/role เดิมอีกครั้ง
-    return loadStaff(cookies[cookieNameFor('ADMIN')], 'ADMIN');
+  const cookies = req.signedCookies || {};
+  const roles = role === 'ADMIN' ? ['ADMIN'] : [role, 'ADMIN'];
+  for (const expectedRole of roles) {
+    const employeeId = cookies[cookieNameFor(expectedRole)];
+    if (!employeeId) {
+      continue;
+    }
+    const staff = await db.get(
+      'SELECT employee_id, username, full_name, role FROM Employee WHERE employee_id = ?',
+      [employeeId]
+    );
+    if (staff && staff.role === expectedRole) {
+      return staff;
+    }
+  }
+  return null;
 }
 
 function requireRole(role) {
-    return async function (req, res, next) {
-        let staff;
-        try {
-            staff = await resolveStaff(req, role);
-        } catch (err) {
-            console.error('requireRole: ตรวจสอบสิทธิ์ล้มเหลว:', err);
-            const message = 'เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์ กรุณาลองใหม่อีกครั้ง';
-            if (wantsHtml(req)) {
-                return res.status(500).render('error', { message });
-            }
-            return res.status(500).json({ success: false, message });
-        }
-
-        if (staff) {
-            req.staff = staff; // ให้ controller ใช้แทน employee_id ที่ hardcode
-            res.locals.staff = staff; // ให้ view ใช้แสดงชื่อบน navbar
-            return next();
-        }
-
-        if (wantsHtml(req)) {
-            return res.redirect('/login');
-        }
-        return res.status(Object.values(req.signedCookies || {}).some(Boolean) ? 403 : 401).json({
-            success: false,
-            message: 'กรุณาเข้าสู่ระบบอีกครั้ง'
-        });
-    };
+  return async function (req, res, next) {
+    const staff = await resolveStaff(req, role);
+    if (staff) {
+      req.staff = staff;
+      res.locals.staff = staff;
+      return next();
+    }
+    if (wantsHtml(req)) {
+      return res.redirect('/login');
+    }
+    return res
+      .status(Object.values(req.signedCookies || {}).some(Boolean) ? 403 : 401)
+      .json({ success: false, message: 'กรุณาเข้าสู่ระบบอีกครั้ง' });
+  };
 }
-
-module.exports = { requireRole, resolveStaff };
+module.exports = {
+  requireRole,
+  resolveStaff,
+  ROLES,
+  COOKIE_OPTIONS,
+  HOME_BY_ROLE,
+  cookieNameFor,
+  wantsHtml,
+  safeNextPath
+};

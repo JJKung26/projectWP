@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="th">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,10 +11,9 @@
     <script src="/js/print.js"></script>
     <script src="/js/ui.js"></script><script src="/js/live.js"></script>
 </head>
-
 <body class="staff">
     <header class="navbar no-print">
-        <a href="<%= typeof staff !== 'undefined' && staff ? ({ADMIN:'/cashier/tables',CASHIER:'/cashier/tables',KITCHEN:'/kitchen',SERVICE:'/serving'})[staff.role] : '/login' %>" class="brand">
+        <a href="<%= typeof staff !== 'undefined' && staff ? HOME_BY_ROLE[staff.role] : '/login' %>" class="brand">
             <svg class="brand-logo" viewBox="0 0 100 100" aria-hidden="true">
                 <circle cx="50" cy="50" r="50" fill="#c8401a" />
                 <path d="M24 60 Q50 20 76 60 Z" fill="#fff" />

@@ -1,43 +1,40 @@
+/* คิว */
 /* Queue */
 .queue-alert-banner {
-    background: var(--ember-soft);
-    border: 1px solid #f1c7b6;
-    color: var(--ink);
-    padding: 14px 18px;
-    border-radius: var(--r-md);
-    margin-bottom: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    flex-wrap: wrap;
+  background: var(--ember-soft);
+  border: 1px solid #f1c7b6;
+  color: var(--ink);
+  padding: 14px 18px;
+  border-radius: var(--r-md);
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
 }
-
 .queue-alert-banner strong {
-    color: var(--ember);
+  color: var(--ember);
 }
-
 .queue-issue-box {
-    background: var(--surface-2);
-    border: 1px solid var(--line);
-    border-radius: var(--r-md);
-    padding: 16px;
-    margin-bottom: 20px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 16px;
+  margin-bottom: 20px;
 }
-
 .queue-card-item {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--r-md);
-    padding: 12px 14px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
-
 .queue-card-item.called {
-    border-color: #efd6aa;
-    background: var(--warn-soft);
+  border-color: #efd6aa;
+  background: var(--warn-soft);
 }

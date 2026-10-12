@@ -1,0 +1,98 @@
+/* ใช้เฉพาะเอกสารในหน้าต่างพิมพ์ */
+@page {
+  margin: 3mm;
+}
+html,
+body {
+  width: var(--paper-width);
+  height: auto !important;
+  min-height: 0 !important;
+}
+body {
+  margin: 0;
+  background: white;
+  font:
+    12px Tahoma,
+    sans-serif;
+  print-color-adjust: exact;
+}
+body * {
+  visibility: visible !important;
+}
+.receipt-slip {
+  position: static !important;
+  width: var(--paper-width) !important;
+  max-width: 100% !important;
+  padding: 3mm !important;
+  margin: 0 auto !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+.slip-header h1 {
+  font-size: 20px;
+}
+.slip-header h2 {
+  font-size: 16px;
+}
+.slip-qr-img,
+.order-slip .slip-qr-img {
+  width: 40mm;
+  height: 40mm;
+}
+.slip-row {
+  flex-wrap: wrap;
+}
+.slip-row span,
+.slip-url,
+p {
+  overflow-wrap: anywhere;
+}
+tr,
+.slip-header {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+table {
+  width: 100%;
+  table-layout: fixed;
+}
+th,
+td {
+  padding: 6px 2px !important;
+  overflow-wrap: anywhere;
+}
+thead {
+  display: table-header-group;
+}
+.order-slip .order-slip-table,
+.order-slip .order-slip-time,
+.payment-receipt h2 {
+  font-size: 18px;
+}
+.order-slip .order-slip-meta,
+.receipt-meta,
+.receipt-footer {
+  font-size: 9px;
+}
+.payment-receipt {
+  padding: 0 !important;
+  font-size: 11px;
+}
+.payment-receipt h1 {
+  font-size: 14px;
+}
+.receipt-logo {
+  width: 52px;
+  height: 52px;
+  margin-bottom: 10px;
+}
+.receipt-dining p {
+  font-size: 13px;
+}
+.receipt-grand-total {
+  font-size: 15px;
+}
+.receipt-items th,
+.receipt-items td {
+  padding: 4px 0 !important;
+}

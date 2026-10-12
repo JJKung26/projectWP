@@ -1,76 +1,62 @@
-/* ==========================================================================
-   Cashier: table floor plan
-   ========================================================================== */
+/* ผังโต๊ะ */
 .grid-50-tables {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
-    gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 10px;
 }
-
 .table-card {
-    background: var(--surface);
-    border-radius: var(--r-md);
-    padding: 12px 14px;
-    border: 1px solid var(--line);
-    cursor: pointer;
-    position: relative;
-    transition:
-        border-color 0.15s,
-        background 0.15s;
-    min-height: 84px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    text-align: left;
+  background: var(--surface);
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  cursor: pointer;
+  position: relative;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+  min-height: 84px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: left;
 }
-
 .table-card:hover {
-    border-color: var(--ink-3);
+  border-color: var(--ink-3);
 }
-
 .table-card:focus-visible {
-    outline: 2px solid var(--ember);
-    outline-offset: 2px;
+  outline: 2px solid var(--ember);
+  outline-offset: 2px;
 }
-
 .table-card .table-number {
-    font-family: var(--font-head);
-    font-size: 1.5rem;
-    font-weight: 500;
-    line-height: 1;
-    font-variant-numeric: tabular-nums;
+  font-size: 1.5rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
-
 .table-card .table-label {
-    font-size: 0.72rem;
-    color: var(--ink-3);
-    letter-spacing: 0.04em;
+  font-size: 0.72rem;
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
 }
-
 .table-card .table-meta {
-    font-size: 0.8rem;
-    color: var(--ink-2);
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    white-space: nowrap;
-    margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--ink-2);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  margin-top: 8px;
 }
-
 .table-card.occupied {
-    background: var(--ember-soft);
-    border-color: #f0c3b1;
+  background: var(--ember-soft);
+  border-color: #f0c3b1;
 }
-
 .table-card.occupied .table-number {
-    color: var(--ember);
+  color: var(--ember);
 }
-
 .table-card.occupied .table-label,
 .table-card.occupied .table-meta {
-    color: #9a4a2e;
+  color: #9a4a2e;
 }
-
 .table-card.occupied:hover {
-    border-color: var(--ember);
+  border-color: var(--ember);
 }

@@ -1,44 +1,37 @@
-/* ==========================================================================
-   Print
-   ========================================================================== */
+/* การพิมพ์ */
 @media print {
-    body * {
-        visibility: hidden;
-    }
-
-    .print-target,
-    .print-target * {
-        visibility: visible;
-    }
-
-    .print-target {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100% !important;
-        max-width: 320px !important;
-        margin: 0 auto !important;
-        padding: 10px !important;
-        box-shadow: none !important;
-        border: none !important;
-    }
-
-    .no-print {
-        display: none !important;
-    }
+  body * {
+    visibility: hidden;
+  }
+  .print-target,
+  .print-target * {
+    visibility: visible;
+  }
+  .print-target {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    max-width: 320px !important;
+    margin: 0 auto !important;
+    padding: 10px !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+  .no-print {
+    display: none !important;
+  }
 }
-
 .receipt-slip p,
 .slip-url,
 .slip-row {
-    overflow-wrap: anywhere;
+  overflow-wrap: anywhere;
 }
-
 @media (max-width: 600px) {
-    .receipt-slip {
-        padding: 12px;
-    }
-    .nav-links {
-        flex-wrap: wrap;
-    }
+  .receipt-slip {
+    padding: 12px;
+  }
+  .nav-links {
+    flex-wrap: wrap;
+  }
 }

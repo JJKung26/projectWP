@@ -1,54 +1,31 @@
 <%- include('../partials/header') %>
-
     <div class="container">
         <div class="page-head">
             <% if (urlError) { %><p role="alert" class="configuration-error"><%= urlError %></p><% } %>
-            <div>
-                <div class="eyebrow">แคชเชียร์</div>
-                <h1>ผังโต๊ะ</h1>
-                <p>แตะโต๊ะว่างเพื่อเปิดโต๊ะและดู QR · แตะโต๊ะที่มีลูกค้าเพื่อเช็คบิล</p>
-            </div>
-
+            <div> <div class="eyebrow">แคชเชียร์</div> <h1>ผังโต๊ะ</h1> <p>แตะโต๊ะว่างเพื่อเปิดโต๊ะและดู QR · แตะโต๊ะที่มีลูกค้าเพื่อเช็คบิล</p> </div>
             <div style="display: flex; gap: 10px; align-items: stretch; flex-wrap: wrap;">
                 <div class="stat-strip">
-                    <div class="stat">
-                        <div class="stat-label"><span class="dot ok"></span>ว่าง</div>
-                        <div class="stat-value"><%= availableCount %></div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-label"><span class="dot busy"></span>มีลูกค้า</div>
-                        <div class="stat-value"><%= occupiedCount %></div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-label">คิวรอ</div>
-                        <div class="stat-value" id="queueBadge"><%= waitingQueues ? waitingQueues.length : 0 %></div>
-                    </div>
+                    <div class="stat"> <div class="stat-label"><span class="dot ok"></span>ว่าง</div> <div class="stat-value"><%= availableCount %></div> </div>
+                    <div class="stat"> <div class="stat-label"><span class="dot busy"></span>มีลูกค้า</div> <div class="stat-value"><%= occupiedCount %></div> </div>
+                    <div class="stat"> <div class="stat-label">คิวรอ</div> <div class="stat-value" id="queueBadge"><%= waitingQueues ? waitingQueues.length : 0 %></div> </div>
                 </div>
                 <a class="btn btn-secondary" href="/cashier/receipts">ใบเสร็จย้อนหลัง</a>
                 <button class="btn btn-dark" onclick="openQueueModal()">จัดการคิว</button>
             </div>
         </div>
-
         <div id="tableAlert">
         <% if (availableCount===0) { %>
             <div class="queue-alert-banner">
-                <div>
-                    <strong>โต๊ะเต็มทุกโต๊ะ</strong>
-                    <div style="font-size: 0.9rem; color: var(--ink-2);">ลูกค้าใหม่ให้ออกบัตรคิวรอไว้ก่อน</div>
-                </div>
+                <div> <strong>โต๊ะเต็มทุกโต๊ะ</strong> <div style="font-size: 0.9rem; color: var(--ink-2);">ลูกค้าใหม่ให้ออกบัตรคิวรอไว้ก่อน</div> </div>
                 <button class="btn btn-primary" onclick="openIssueQueueModal()">ออกบัตรคิว</button>
             </div>
         <% } %>
-
         </div>
         <div class="grid-50-tables">
-            <% tables.forEach(t=> { const busy = t.table_status === 'OCCUPIED'; %>
+            <% for (const t of tables) { const busy = t.table_status === 'OCCUPIED'; %>
                 <button type="button" class="table-card <%= t.table_status.toLowerCase() %>" id="table-card-<%= t.table_id %>"
                     onclick="handleTableClick('<%= t.table_id %>', '<%= t.table_no %>', '<%= t.table_status %>', '<%= t.session_id %>', '<%= t.qr_token %>')">
-                    <div>
-                        <div class="table-label">โต๊ะ</div>
-                        <div class="table-number"><%= t.table_no %></div>
-                    </div>
+                    <div> <div class="table-label">โต๊ะ</div> <div class="table-number"><%= t.table_no %></div> </div>
                     <div class="table-meta">
                         <% if (busy) { %>
                             <span><%= t.guest_count %> ท่าน</span>
@@ -58,25 +35,17 @@
                         <% } %>
                     </div>
                 </button>
-            <% }); %>
+            <% } %>
         </div>
     </div>
-
     <%- include('partials/open-table') %>
     <%- include('partials/occupied-table') %>
     <%- include('partials/table-slip') %>
     <%- include('partials/queue') %>
     <%- include('partials/queue-slip') %>
     <%- include('partials/seat-queue') %>
-
     <!-- Audio for Queue Calling chime -->
     <p id="queueNotice" role="status" class="container"></p>
-
     <script src="/js/queue-voice.js?v=female-1"></script>
-    <script src="/js/cashier/helpers.js"></script>
-    <script src="/js/cashier/tables.js"></script>
-    <script src="/js/cashier/slips.js"></script>
-    <script src="/js/cashier/queue.js"></script>
-    <script src="/js/cashier/page.js"></script>
-
+    <script src="/js/cashier.js?v=basic-1"></script>
     <%- include('../partials/footer') %>

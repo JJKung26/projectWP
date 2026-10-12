@@ -1,45 +1,31 @@
+<% const guestTypes = [
+    { type: 'Adult', field: 'adult_count', label: 'ผู้ใหญ่ / สูงเกิน 120 ซม.', name: 'ผู้ใหญ่', price: 279 },
+    { type: 'Child', field: 'child_count', label: 'เด็ก 90–120 ซม.', name: 'เด็ก 90–120 ซม.', price: 179 },
+    { type: 'FreeChild', field: 'free_child_count', label: 'เด็กต่ำกว่า 90 ซม.', name: 'เด็กทานฟรี', price: 'ทานฟรี' }
+]; %>
 <div class="guest-inputs" oninput="updateGuestTotal('<%= guestPrefix %>')">
+    <% for (const guest of guestTypes) {
+        const countId = guestPrefix + guest.type + 'Count';
+        const guestPriceId = guest.type === 'Adult' ? priceId : guestPrefix + guest.type + 'Price';
+    %>
     <div class="form-row">
         <div class="form-group">
-            <label class="form-label" for="<%= guestPrefix %>AdultCount">ผู้ใหญ่ / สูงเกิน 120 ซม.</label>
+            <label class="form-label" for="<%= countId %>"><%= guest.label %></label>
             <div class="stepper-input">
-                <button type="button" onclick="stepInput('<%= guestPrefix %>AdultCount', -1)" aria-label="ลดผู้ใหญ่">−</button>
-                <input type="number" id="<%= guestPrefix %>AdultCount" min="0" max="50" value="0" required>
-                <button type="button" onclick="stepInput('<%= guestPrefix %>AdultCount', 1)" aria-label="เพิ่มผู้ใหญ่">+</button>
+                <button type="button" onclick="stepInput('<%= countId %>', -1)" aria-label="ลด<%= guest.name %>">−</button>
+                <input type="number" id="<%= countId %>" name="<%= guest.field %>" min="0" max="50" value="0" required>
+                <button type="button" onclick="stepInput('<%= countId %>', 1)" aria-label="เพิ่ม<%= guest.name %>">+</button>
             </div>
         </div>
         <div class="form-group">
-            <label class="form-label" for="<%= priceId %>">ราคาผู้ใหญ่ (บาท)</label>
-            <input type="number" class="form-input" id="<%= priceId %>" value="279" min="0.01" max="10000" step="0.01" required>
+            <label class="form-label" for="<%= guestPriceId %>">ราคา<%= guest.type === 'Adult' ? 'ผู้ใหญ่' : 'เด็ก' %> (บาท)</label>
+            <% if (guest.type === 'FreeChild') { %>
+            <input type="text" class="form-input" id="<%= guestPriceId %>" value="<%= guest.price %>" readonly>
+            <% } else { %>
+            <input type="number" class="form-input" id="<%= guestPriceId %>" name="<%= guest.type === 'Adult' ? 'buffet_price' : 'child_price' %>" value="<%= guest.price %>" min="0.01" max="10000" step="0.01" required>
+            <% } %>
         </div>
     </div>
-    <div class="form-row">
-        <div class="form-group">
-            <label class="form-label" for="<%= guestPrefix %>ChildCount">เด็ก 90–120 ซม.</label>
-            <div class="stepper-input">
-                <button type="button" onclick="stepInput('<%= guestPrefix %>ChildCount', -1)" aria-label="ลดเด็ก 90–120 ซม.">−</button>
-                <input type="number" id="<%= guestPrefix %>ChildCount" min="0" max="50" value="0" required>
-                <button type="button" onclick="stepInput('<%= guestPrefix %>ChildCount', 1)" aria-label="เพิ่มเด็ก 90–120 ซม.">+</button>
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="form-label" for="<%= guestPrefix %>ChildPrice">ราคาเด็ก (บาท)</label>
-            <input type="number" class="form-input" id="<%= guestPrefix %>ChildPrice" value="179" min="0.01" max="10000" step="0.01" required>
-        </div>
-    </div>
-    <div class="form-row">
-        <div class="form-group">
-            <label class="form-label" for="<%= guestPrefix %>FreeChildCount">เด็กต่ำกว่า 90 ซม.</label>
-            <div class="stepper-input">
-                <button type="button" onclick="stepInput('<%= guestPrefix %>FreeChildCount', -1)" aria-label="ลดเด็กทานฟรี">−</button>
-                <input type="number" id="<%= guestPrefix %>FreeChildCount" min="0" max="50" value="0" required>
-                <button type="button" onclick="stepInput('<%= guestPrefix %>FreeChildCount', 1)" aria-label="เพิ่มเด็กทานฟรี">+</button>
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="form-label" for="<%= guestPrefix %>FreeChildPrice">ราคาเด็ก (บาท)</label>
-            <input type="text" class="form-input" id="<%= guestPrefix %>FreeChildPrice" value="ทานฟรี" readonly>
-        </div>
-    </div>
+    <% } %>
     <p class="form-hint">รวม <strong id="<%= guestPrefix %>GuestTotal">0</strong> ท่าน · ราคายังไม่รวม VAT 7%</p>
 </div>

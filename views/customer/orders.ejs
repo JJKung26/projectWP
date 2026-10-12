@@ -2,11 +2,12 @@
     const statusInfo = {
         PENDING:   { cls: 'badge-pending',   label: 'รอคิวครัว' },
         COOKING:   { cls: 'badge-cooking',   label: 'กำลังเตรียม' },
-        READY:     { cls: 'badge-ready',     label: 'กำลังนำไปเสิร์ฟ' },
-        SERVED:    { cls: 'badge-served',    label: 'เสิร์ฟแล้ว' },
-        CANCELLED: { cls: 'badge-cancelled', label: 'ยกเลิก' }
+        READY:     { cls: 'badge-ready',     label: 'กำลังนำไปเสิร์ฟ', roundLabel: 'กำลังนำมาเสิร์ฟ' },
+        SERVED:    { cls: 'badge-served',    label: 'เสิร์ฟแล้ว', roundLabel: 'เสิร์ฟครบแล้ว' },
+        CANCELLED: { cls: 'badge-cancelled', label: 'ยกเลิก', roundLabel: 'ยกเลิกทั้งรอบ' }
     };
-    const count = st => orders.filter(o => o.item_status === st).reduce((n, o) => n + o.quantity, 0);
+    const summary = { PENDING: 0, COOKING: 0, READY: 0, SERVED: 0, CANCELLED: 0 };
+    for (const item of orders) summary[item.item_status] += item.quantity;
 %>
 <!DOCTYPE html>
 <html lang="th">
@@ -19,7 +20,6 @@
     <script src="/socket.io/socket.io.js"></script><script src="/js/ui.js"></script><script src="/js/live.js"></script>
 </head>
 <body class="cust" style="background: var(--paper);">
-
     <header class="app-bar">
         <a class="icon-btn" href="/menu?token=<%= token %>" aria-label="กลับไปเมนู">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
@@ -27,7 +27,6 @@
         <h1>ออเดอร์ของโต๊ะ <%= session.table_no %></h1>
         <span class="muted" style="font-size: 0.85rem; padding-right: 8px;"><%= session.guest_count %> ท่าน</span>
     </header>
-
     <main class="cust-wrap cust-shell">
         <% if (orders.length === 0) { %>
             <div class="empty">
@@ -40,36 +39,25 @@
             </div>
         <% } else { %>
             <div class="status-summary">
-                <div><b><%= count('PENDING') %></b><small>รอคิว</small></div>
-                <div><b><%= count('COOKING') %></b><small>กำลังเตรียม</small></div>
-                <div><b><%= count('READY') %></b><small>กำลังมา</small></div>
-                <div><b><%= count('SERVED') %></b><small>เสิร์ฟแล้ว</small></div>
+                <div><b><%= summary.PENDING %></b><small>รอคิว</small></div>
+                <div><b><%= summary.COOKING %></b><small>กำลังเตรียม</small></div>
+                <div><b><%= summary.READY %></b><small>กำลังมา</small></div>
+                <div><b><%= summary.SERVED %></b><small>เสิร์ฟแล้ว</small></div>
             </div>
-
             <% 
-                // Display newest round first, but with correct chronological round number
-                const reversedGroups = groups.slice().reverse();
-                reversedGroups.forEach((g, idx) => { 
-                    const totalQty = g.items.reduce((sum, i) => sum + i.quantity, 0);
-                    const isLatest = idx === 0;
-                    
-                    // Determine round status
-                    const statuses = g.items.map(i => i.item_status);
-                    let roundBadgeCls = 'badge-pending';
-                    let roundBadgeLabel = 'รอคิวครัว';
-                    if (statuses.every(s => s === 'SERVED' || s === 'CANCELLED') && statuses.some(s => s === 'SERVED')) {
-                        roundBadgeCls = 'badge-served';
-                        roundBadgeLabel = 'เสิร์ฟครบแล้ว';
-                    } else if (statuses.some(s => s === 'READY')) {
-                        roundBadgeCls = 'badge-ready';
-                        roundBadgeLabel = 'กำลังนำมาเสิร์ฟ';
-                    } else if (statuses.some(s => s === 'COOKING')) {
-                        roundBadgeCls = 'badge-cooking';
-                        roundBadgeLabel = 'กำลังเตรียม';
-                    } else if (statuses.every(s => s === 'CANCELLED')) {
-                        roundBadgeCls = 'badge-cancelled';
-                        roundBadgeLabel = 'ยกเลิกทั้งรอบ';
-                    }
+                // แสดงรอบล่าสุดก่อน และนับสถานะแต่ละรอบครั้งเดียว
+                for (let idx = groups.length - 1; idx >= 0; idx--) {
+                    const g = groups[idx];
+                    const isLatest = idx === groups.length - 1;
+                    const counts = { PENDING: 0, COOKING: 0, READY: 0, SERVED: 0, CANCELLED: 0 };
+                    for (const item of g.items) counts[item.item_status]++;
+                    let state = 'PENDING';
+                    if (counts.SERVED > 0 && counts.SERVED + counts.CANCELLED === g.items.length) state = 'SERVED';
+                    else if (counts.READY > 0) state = 'READY';
+                    else if (counts.COOKING > 0) state = 'COOKING';
+                    else if (counts.CANCELLED === g.items.length) state = 'CANCELLED';
+                    const roundBadgeCls = statusInfo[state].cls;
+                    const roundBadgeLabel = statusInfo[state].roundLabel || statusInfo[state].label;
             %>
                 <div class="cust-round-card">
                     <div class="cust-round-header" onclick="toggleCustDropdown('<%= g.order_id %>')">
@@ -87,7 +75,7 @@
                     </div>
                     <div class="cust-round-dropdown<%= isLatest ? ' open' : '' %>" id="cust-dropdown-<%= g.order_id %>">
                         <div class="order-list">
-                            <% g.items.forEach(item => { const st = statusInfo[item.item_status] || statusInfo.PENDING; %>
+                            <% for (const item of g.items) { const st = statusInfo[item.item_status] || statusInfo.PENDING; %>
                                 <div class="order-line<%= item.item_status === 'CANCELLED' ? ' cancelled' : '' %>">
                                     <img src="<%= item.image_url %>" alt="" onerror="this.style.visibility='hidden'">
                                     <div class="nm">
@@ -96,19 +84,16 @@
                                     </div>
                                     <span class="badge <%= st.cls %>"><%= st.label %></span>
                                 </div>
-                            <% }); %>
+                            <% } %>
                         </div>
                     </div>
                 </div>
-            <% }); %>
-
+            <% } %>
             <a href="/menu?token=<%= token %>" class="btn btn-secondary btn-block" style="margin-top: 22px;">สั่งอาหารเพิ่ม</a>
         <% } %>
     </main>
-
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
     <script>const TOKEN = '<%= token %>';</script>
-    <script src="/js/customer/order-status.js"></script>
+    <script src="/js/customer-orders.js?v=basic-1"></script>
 </body>
 </html>

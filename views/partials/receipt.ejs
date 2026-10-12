@@ -2,12 +2,12 @@
    const adults = session.guest_count - children - freeChildren;
    const method = paid ? {CASH:'CASH · เงินสด',PROMPTPAY:'พร้อมเพย์',CREDIT_CARD:'บัตร (จำลอง)'}[payment.payment_method] : '';
    // แสดงเฉพาะรายการคิดเงินเพิ่ม และรวมรายการซ้ำที่สั่งด้วยราคาเดียวกัน
-   const itemGroups = new Map();
+   const itemGroups = [];
    for (const item of items) {
        if (item.charge_type !== 'ALACARTE' || item.quantity * item.unit_price_at_order <= 0) continue;
-       const key = JSON.stringify([item.menu_item_id, item.item_name, item.charge_type, item.unit_price_at_order]);
-       if (itemGroups.has(key)) itemGroups.get(key).quantity += item.quantity;
-       else itemGroups.set(key, { ...item });
+       const group = itemGroups.find(row => row.menu_item_id === item.menu_item_id && row.item_name === item.item_name && row.unit_price_at_order === item.unit_price_at_order);
+       if (group) group.quantity += item.quantity;
+       else itemGroups.push({ ...item });
    } %>
 <article class="receipt-slip payment-receipt" id="billPrintArea">
     <header class="receipt-heading">
@@ -24,10 +24,7 @@
         <p>เปิดโต๊ะ: <%= thaiDate(session.started_at) %></p>
         <% } %>
     </div>
-    <div class="receipt-dining">
-        <p>DINE IN | ลูกค้า: <%= session.guest_count %> ท่าน</p>
-        <h2>TABLE No. <%= session.table_no %></h2>
-    </div>
+    <div class="receipt-dining"> <p>DINE IN | ลูกค้า: <%= session.guest_count %> ท่าน</p> <h2>TABLE No. <%= session.table_no %></h2> </div>
     <table class="receipt-items" aria-label="รายการที่คิดเงิน">
         <colgroup><col><col class="receipt-quantity"><col class="receipt-amount"></colgroup>
         <thead><tr><th>รายการ</th><th class="r">จำนวน</th><th class="r">บาท</th></tr></thead>
@@ -35,9 +32,9 @@
             <% for (const [label, count, price] of [['บุฟเฟต์ ผู้ใหญ่',adults,session.buffet_price],['บุฟเฟต์ เด็ก 90–120 ซม.',children,session.child_price ?? 179]]) { if (count * price > 0) { %>
             <tr><td><%= label %><span class="buffet-rate"><%= price.toFixed(2) %> บาท/ท่าน</span></td><td class="r"><%= count %></td><td class="r"><%= (count*price).toFixed(2) %></td></tr>
             <% } } %>
-            <% itemGroups.forEach(i => { %>
+            <% for (const i of itemGroups) { %>
             <tr><td><%= i.item_name %><small style="display:block"><%= i.unit_price_at_order.toFixed(2) %> บาท/หน่วย</small></td><td class="r"><%= i.quantity %></td><td class="r"><%= (i.quantity*i.unit_price_at_order).toFixed(2) %></td></tr>
-            <% }); %>
+            <% } %>
         </tbody>
     </table>
     <div class="receipt-totals">

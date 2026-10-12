@@ -1,666 +1,554 @@
-/* ==========================================================================
-   Printed slips (open-table ticket & queue ticket)
-   ========================================================================== */
+/* ใบเสร็จ ใบ QR และการรับเงิน */
 .receipt-slip {
-    background: #fff;
-    padding: 22px 20px;
-    border: 1px solid var(--line);
-    border-radius: var(--r-sm);
-    max-width: 360px;
-    margin: 0 auto;
-    color: #111;
-    font-size: 0.9rem;
+  background: #fff;
+  padding: 22px 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  max-width: 360px;
+  margin: 0 auto;
+  color: #111;
+  font-size: 0.9rem;
 }
-
 .slip-header {
-    text-align: center;
-    border-bottom: 1px dashed #bbb;
-    padding-bottom: 14px;
-    margin-bottom: 14px;
+  text-align: center;
+  border-bottom: 1px dashed #bbb;
+  padding-bottom: 14px;
+  margin-bottom: 14px;
 }
-
 .slip-title {
-    font-family: var(--font-head);
-    font-size: 1.15rem;
-    font-weight: 500;
+  font-family: var(--font-head);
+  font-size: 1.15rem;
+  font-weight: 500;
 }
-
 .slip-subtitle {
-    font-size: 0.8rem;
-    color: #666;
+  font-size: 0.8rem;
+  color: #666;
 }
-
 .slip-table-badge {
-    display: inline-block;
-    font-family: var(--font-head);
-    font-size: 2.4rem;
-    font-weight: 500;
-    line-height: 1;
-    margin: 12px 0 2px;
+  display: inline-block;
+  font-size: 2.4rem;
+  line-height: 1;
+  margin: 12px 0 2px;
 }
-
 .slip-details {
-    margin-bottom: 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
-
 .slip-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
 }
-
 .slip-row > span:first-child {
-    color: #666;
+  color: #666;
 }
-
 .slip-row.total {
-    border-top: 1px dashed #bbb;
-    padding-top: 8px;
-    margin-top: 4px;
-    font-size: 1rem;
+  border-top: 1px dashed #bbb;
+  padding-top: 8px;
+  margin-top: 4px;
+  font-size: 1rem;
 }
-
 .slip-qr-box {
-    text-align: center;
-    padding: 6px 0 14px;
-    border-bottom: 1px dashed #bbb;
-    margin-bottom: 12px;
+  text-align: center;
+  padding: 6px 0 14px;
+  border-bottom: 1px dashed #bbb;
+  margin-bottom: 12px;
 }
-
 .slip-qr-img {
-    width: 200px;
-    height: 200px;
-    margin: 0 auto;
-    display: block;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto;
+  display: block;
 }
-
 .slip-qr-caption {
-    font-weight: 500;
-    margin-top: 6px;
+  font-weight: 500;
+  margin-top: 6px;
 }
-
 .slip-url {
-    font-size: 0.72rem;
-    color: #777;
-    word-break: break-all;
-    margin-top: 2px;
+  font-size: 0.72rem;
+  color: #777;
+  word-break: break-all;
+  margin-top: 2px;
 }
-
 .slip-footer {
-    text-align: center;
-    font-size: 0.78rem;
-    color: #666;
+  text-align: center;
+  font-size: 0.78rem;
+  color: #666;
 }
-
 .queue-no-badge {
-    font-family: var(--font-head);
-    font-size: 1.5rem;
-    font-weight: 500;
-    color: var(--ink);
-    font-variant-numeric: tabular-nums;
+  font-size: 1.5rem;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
 }
-
 /* ใบเสร็จรับเงิน */
 .payment-receipt {
-    width: 100%;
-    max-width: 350px;
-    padding: 22px 20px;
-    font:
-        13px/1.5 Tahoma,
-        sans-serif;
-    border-radius: 2px;
-    font-variant-numeric: tabular-nums;
+  width: 100%;
+  max-width: 350px;
+  padding: 22px 20px;
+  font:
+    13px/1.5 Tahoma,
+    sans-serif;
+  border-radius: 2px;
+  font-variant-numeric: tabular-nums;
 }
 .receipt-heading {
-    text-align: center;
+  text-align: center;
 }
 .receipt-logo {
-    display: block;
-    width: 70px;
-    height: 70px;
-    margin: 0 auto 14px;
-    filter: grayscale(1);
+  display: block;
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 14px;
+  filter: grayscale(1);
 }
 .payment-receipt h1 {
-    margin: 0;
-    font:
-        bold 17px/1.4 Tahoma,
-        sans-serif;
+  font:
+    bold 17px/1.4 Tahoma,
+    sans-serif;
 }
 .receipt-shop {
-    margin: 4px 0 12px;
-    font-weight: bold;
+  margin: 4px 0 12px;
+  font-weight: bold;
 }
 .receipt-meta {
-    font-size: 10px;
-    overflow-wrap: anywhere;
+  font-size: 10px;
+  overflow-wrap: anywhere;
 }
 .receipt-meta p {
-    margin: 0 0 4px;
+  margin: 0 0 4px;
 }
 .receipt-line {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
 }
 .receipt-line > :last-child {
-    text-align: right;
+  text-align: right;
 }
 .receipt-totals .receipt-line > :last-child,
 .receipt-payment .receipt-line > :last-child {
-    flex-shrink: 0;
+  flex-shrink: 0;
 }
 .receipt-dining {
-    text-align: center;
-    margin: 12px 0;
+  text-align: center;
+  margin: 12px 0;
 }
 .receipt-dining p {
-    margin: 0;
-    font-weight: bold;
-    font-size: 16px;
+  font-weight: bold;
+  font-size: 16px;
 }
 .payment-receipt h2 {
-    margin: 2px 0 0;
-    font:
-        bold 21px/1.4 Tahoma,
-        sans-serif;
+  margin: 2px 0 0;
+  font:
+    bold 21px/1.4 Tahoma,
+    sans-serif;
 }
 .receipt-items {
-    width: 100%;
-    table-layout: fixed;
-    border-collapse: collapse;
-    border-top: 1px dashed #555;
-    border-bottom: 1px dashed #555;
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  border-top: 1px dashed #555;
+  border-bottom: 1px dashed #555;
 }
 .receipt-quantity {
-    width: 12%;
+  width: 12%;
 }
 .receipt-amount {
-    width: 27%;
+  width: 27%;
 }
 .receipt-items th,
 .receipt-items td {
-    padding: 6px 0;
-    vertical-align: top;
-    overflow-wrap: anywhere;
+  padding: 6px 0;
+  vertical-align: top;
+  overflow-wrap: anywhere;
 }
 .receipt-items th {
-    font-size: 10px;
-    font-weight: normal;
+  font-size: 10px;
+  font-weight: normal;
 }
 .receipt-items .r {
-    text-align: right;
+  text-align: right;
 }
 .payment-receipt .buffet-rate {
-    color: #111;
-    font-size: 10px;
+  color: #111;
+  font-size: 10px;
 }
 .receipt-totals {
-    padding: 10px 0;
+  padding: 10px 0;
 }
 .receipt-grand-total {
-    font-size: 18px;
-    margin-top: 4px;
+  font-size: 18px;
+  margin-top: 4px;
 }
 .receipt-payment {
-    border-top: 1px dashed #555;
-    padding-top: 8px;
+  border-top: 1px dashed #555;
+  padding-top: 8px;
 }
 .receipt-footer {
-    text-align: center;
-    font-size: 10px;
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px dashed #555;
+  text-align: center;
+  font-size: 10px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed #555;
 }
 .receipt-footer p {
-    margin: 3px 0;
+  margin: 3px 0;
 }
 .receipt-actions {
-    justify-content: center;
-    align-items: end;
+  justify-content: center;
+  align-items: end;
 }
 .check-bill-actions {
-    max-width: 350px;
-    margin-left: auto;
-    margin-right: auto;
+  max-width: 350px;
+  margin-left: auto;
+  margin-right: auto;
 }
 .check-bill-actions p {
-    margin: 0;
-    font-size: 12px;
-    color: var(--ink-2);
-    text-align: center;
+  font-size: 12px;
+  color: var(--ink-2);
+  text-align: center;
 }
-
 #paymentModal .modal-head {
-    margin-bottom: 12px;
+  margin-bottom: 12px;
 }
-.payment-methods {
-    border: 0;
-    min-width: 0;
+.payment-methods,
+.seat-table-picker {
+  border: 0;
+  min-width: 0;
 }
 .payment-options {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
 }
-.payment-options label {
-    position: relative;
-    min-width: 0;
-    cursor: pointer;
+.payment-options label,
+.seat-table-options label {
+  position: relative;
+  min-width: 0;
+  cursor: pointer;
 }
-.payment-options input {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    opacity: 0;
+.payment-options input,
+.seat-table-options input,
+.paper-choice input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
 }
 .payment-options span {
-    display: block;
-    padding: 10px 4px;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    background: var(--surface);
-    text-align: center;
-    font-weight: 500;
-    transition:
-        background 0.18s ease,
-        border-color 0.18s ease;
+  display: block;
+  padding: 10px 4px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  text-align: center;
+  font-weight: 500;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease;
 }
 .payment-options small {
-    display: block;
-    margin-top: 2px;
-    font-size: 11px;
-    font-weight: 400;
-    color: var(--ink-3);
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--ink-3);
 }
-.payment-options input:checked + span {
-    border-color: var(--ember);
-    color: var(--ember);
-    background: var(--ember-soft);
+.payment-options input:checked + span,
+.seat-table-options input:checked + span {
+  border-color: var(--ember);
+  color: var(--ember);
+  background: var(--ember-soft);
 }
-.payment-options input:checked + span small {
-    color: var(--ember);
+.payment-options input:checked + span small,
+.seat-table-options input:checked + span small {
+  color: var(--ember);
 }
 .payment-options input:focus-visible + span {
-    outline: 2px solid var(--ember);
-    outline-offset: 2px;
+  outline: 2px solid var(--ember);
+  outline-offset: 2px;
 }
 .payment-options input:disabled + span {
-    opacity: 0.6;
-    cursor: wait;
-}
-.seat-table-picker {
-    border: 0;
-    min-width: 0;
+  opacity: 0.6;
+  cursor: wait;
 }
 .seat-table-picker legend {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
 }
 .seat-table-picker legend small {
-    font-size: 11px;
-    font-weight: 400;
-    color: var(--ink-3);
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--ink-3);
 }
 .seat-table-options {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 8px;
-    max-height: 186px;
-    overflow-y: auto;
-    padding: 3px;
-    background: var(--surface-2);
-    border-radius: 10px;
-}
-.seat-table-options label {
-    position: relative;
-    min-width: 0;
-    cursor: pointer;
-}
-.seat-table-options input {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    opacity: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  max-height: 186px;
+  overflow-y: auto;
+  padding: 3px;
+  background: var(--surface-2);
+  border-radius: 10px;
 }
 .seat-table-options span {
-    display: block;
-    padding: 8px 4px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    background: var(--surface);
-    text-align: center;
-    transition:
-        background 0.18s ease,
-        border-color 0.18s ease;
+  display: block;
+  padding: 8px 4px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  text-align: center;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease;
 }
 .seat-table-options strong {
-    display: block;
-    font-size: 14px;
-    font-weight: 500;
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
 }
 .seat-table-options small {
-    display: block;
-    font-size: 11px;
-    color: var(--ink-3);
-}
-.seat-table-options input:checked + span {
-    background: var(--ember-soft);
-    border-color: var(--ember);
-    color: var(--ember);
-}
-.seat-table-options input:checked + span small {
-    color: var(--ember);
+  display: block;
+  font-size: 11px;
+  color: var(--ink-3);
 }
 .seat-table-options input:focus-visible + span {
-    outline: 2px solid var(--ember);
-    outline-offset: 1px;
+  outline: 2px solid var(--ember);
+  outline-offset: 1px;
 }
 .seat-table-empty {
-    grid-column: 1 / -1;
-    padding: 12px;
-    color: var(--ink-2);
-    text-align: center;
+  grid-column: 1 / -1;
+  padding: 12px;
+  color: var(--ink-2);
+  text-align: center;
 }
 @media (max-width: 380px) {
-    .seat-table-options {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
+  .seat-table-options {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
-@media (prefers-reduced-motion: reduce) {
-    .seat-table-options span,
-    .payment-options span {
-        transition: none;
-    }
-}
+
 #paymentModal .modal-actions {
-    position: sticky;
-    bottom: -16px;
-    padding: 12px 0 4px;
-    background: var(--surface);
-    border-top: 1px solid var(--line);
+  position: sticky;
+  bottom: -16px;
+  padding: 12px 0 4px;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
 }
 .promptpay-panel {
-    margin-top: 12px;
-    padding: 16px;
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    text-align: center;
-    background: var(--surface-2);
+  margin-top: 12px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  text-align: center;
+  background: var(--surface-2);
 }
-.promptpay-qr[hidden],
 .promptpay-panel[hidden] {
-    display: none;
-}
-.promptpay-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    text-align: left;
+  display: none;
 }
 .promptpay-title {
-    font-weight: 600;
+  font-weight: 600;
 }
 .promptpay-amount {
-    display: block;
-    margin: 4px 0 10px;
-    font-size: 28px;
-    color: var(--ember);
-    font-variant-numeric: tabular-nums;
+  display: block;
+  margin: 4px 0 10px;
+  font-size: 28px;
+  color: var(--ember);
+  font-variant-numeric: tabular-nums;
 }
 .promptpay-qr {
-    display: block;
-    width: 196px;
-    max-width: 100%;
-    height: auto;
-    margin: 0 auto;
-    border-radius: 8px;
+  display: block;
+  width: 196px;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+  border-radius: 8px;
 }
 .promptpay-panel p {
-    margin: 0;
-    font-size: 12px;
-    color: var(--ink-2);
-    overflow-wrap: anywhere;
+  margin: 12px 0 0;
+  font-size: 12px;
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
 }
-.promptpay-panel .promptpay-recipient {
-    margin-top: 12px;
-}
-.promptpay-panel #promptpayStatus {
-    margin-top: 8px;
-}
-#reloadPromptpay {
-    padding: 5px 10px;
-    font-size: 12px;
-    flex-shrink: 0;
-}
-.promptpay-confirm {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    margin-top: 14px;
-    padding: 12px;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    background: var(--surface);
-    text-align: left;
-    cursor: pointer;
-}
-.promptpay-confirm input {
-    width: 18px;
-    height: 18px;
-    margin-top: 2px;
-    accent-color: var(--ember);
-    flex-shrink: 0;
-}
-.promptpay-confirm strong {
-    display: block;
-    font-size: 14px;
-    font-weight: 500;
-}
-.promptpay-confirm small {
-    display: block;
-    margin-top: 3px;
-    font-size: 12px;
-    color: var(--ink-2);
-}
-
 /* ใบ QR สั่งอาหาร: ขาวดำสำหรับกระดาษใบเสร็จ */
 .order-slip {
-    max-width: 300px;
-    padding: 18px 16px;
-    font-family: Tahoma, sans-serif;
-    font-size: 12px;
-    line-height: 1.5;
+  max-width: 300px;
+  padding: 18px 16px;
+  font-family: Tahoma, sans-serif;
+  font-size: 12px;
+  line-height: 1.5;
 }
 .order-slip .slip-header {
-    border: 0;
-    margin: 0;
-    padding-bottom: 8px;
+  border: 0;
+  margin: 0;
+  padding-bottom: 8px;
 }
 .order-slip-logo {
-    display: block;
-    width: 66px;
-    height: 66px;
-    margin: 0 auto 6px;
-    border-radius: 50%;
+  display: block;
+  width: 66px;
+  height: 66px;
+  margin: 0 auto 6px;
+  border-radius: 50%;
 }
 .order-slip .slip-title {
-    font-family: inherit;
-    font-size: 16px;
-    font-weight: 700;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
 }
 .order-slip .slip-subtitle {
-    font-size: 11px;
-    color: #111;
+  font-size: 11px;
+  color: #111;
 }
 .order-slip .order-slip-table {
-    margin: 12px 0 0;
-    font-family: inherit;
-    font-size: 23px;
-    font-weight: 700;
-    line-height: 1.3;
-    outline: none;
+  margin: 12px 0 0;
+  font-family: inherit;
+  font-size: 23px;
+  font-weight: 700;
+  line-height: 1.3;
+  outline: none;
 }
 .order-slip-meta {
-    font-size: 10px;
-    border-bottom: 1px dashed #777;
-    padding: 0 0 7px;
-    margin-bottom: 9px;
+  font-size: 10px;
+  border-bottom: 1px dashed #777;
+  padding: 0 0 7px;
+  margin-bottom: 9px;
 }
 .order-slip .slip-row {
-    gap: 6px;
+  gap: 6px;
 }
 .order-slip .slip-row > span:first-child {
-    color: #111;
+  color: #111;
 }
 .order-slip-time {
-    border: 1px solid #111;
-    border-radius: 5px;
-    text-align: center;
-    padding: 5px 3px;
-    font-size: 21px;
-    font-weight: 700;
-    line-height: 1.3;
-    font-variant-numeric: tabular-nums;
+  border: 1px solid #111;
+  border-radius: 5px;
+  text-align: center;
+  padding: 5px 3px;
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
 }
 .order-slip .slip-qr-box {
-    padding: 12px 0;
-    border: 0;
-    margin: 0;
+  padding: 12px 0;
+  border: 0;
+  margin: 0;
 }
 .order-slip .slip-qr-img {
-    width: 170px;
-    height: 170px;
+  width: 170px;
+  height: 170px;
 }
 .order-slip .slip-qr-caption {
-    font-size: 12px;
-    color: #111;
-    margin-top: 4px;
+  font-size: 12px;
+  color: #111;
+  margin-top: 4px;
 }
 .order-slip .slip-url {
-    font-size: 9px;
-    line-height: 1.4;
-    color: #111;
-    margin-top: 6px;
+  font-size: 9px;
+  line-height: 1.4;
+  color: #111;
+  margin-top: 6px;
 }
 .order-slip-end-date {
-    text-align: center;
-    font-size: 10px;
+  text-align: center;
+  font-size: 10px;
 }
 .order-slip .slip-details {
-    margin: 12px 0 10px;
-    gap: 4px;
+  margin: 12px 0 10px;
+  gap: 4px;
 }
 .order-slip .slip-row.total {
-    font-size: 14px;
-    padding-top: 6px;
+  font-size: 14px;
+  padding-top: 6px;
 }
 .order-slip .slip-footer {
-    border-top: 1px dashed #777;
-    padding-top: 8px;
-    color: #111;
-    font-size: 10px;
+  border-top: 1px dashed #777;
+  padding-top: 8px;
+  color: #111;
+  font-size: 10px;
 }
 .order-slip-note {
-    margin-top: 6px;
+  margin-top: 6px;
 }
 #slipModal .modal-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    align-items: end;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: end;
 }
 #slipModal .modal-actions .btn {
-    padding: 10px 8px;
+  padding: 10px 8px;
 }
 #slipModal .modal-actions .paper-picker {
-    grid-column: 1 / -1;
-    order: -1;
+  grid-column: 1 / -1;
+  order: -1;
 }
 #slipModal .modal-actions .grow {
-    grid-column: 1 / -1;
+  grid-column: 1 / -1;
 }
-
 .paper-picker {
-    border: 0;
-    padding: 0;
-    margin: 0;
-    min-width: 0;
+  border: 0;
+  min-width: 0;
 }
 .paper-picker legend {
-    padding: 0;
-    margin-bottom: 7px;
-    color: var(--ink-2);
-    font-size: 12px;
+  margin-bottom: 7px;
+  color: var(--ink-2);
+  font-size: 12px;
 }
 .paper-options {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
 }
 .paper-choice {
-    position: relative;
-    cursor: pointer;
-}
-.paper-choice input {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    opacity: 0;
+  position: relative;
+  cursor: pointer;
 }
 .paper-tile {
-    display: grid;
-    text-align: center;
-    gap: 2px;
-    padding: 9px 12px;
-    border: 1px solid var(--line-strong);
-    border-radius: 10px;
-    background: #fff;
-    transition:
-        background 0.18s ease,
-        border-color 0.18s ease,
-        transform 0.18s ease;
+  display: grid;
+  text-align: center;
+  gap: 2px;
+  padding: 9px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: #fff;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
 }
 .paper-tile strong {
-    font-size: 13px;
-    white-space: nowrap;
+  font-size: 13px;
+  white-space: nowrap;
 }
 .paper-tile small {
-    color: var(--ink-3);
-    font-size: 10px;
-    white-space: nowrap;
+  color: var(--ink-3);
+  font-size: 10px;
+  white-space: nowrap;
 }
 .paper-choice:hover .paper-tile {
-    border-color: var(--ember);
-    transform: translateY(-1px);
+  border-color: var(--ember);
+  transform: translateY(-1px);
 }
 .paper-choice:active .paper-tile {
-    transform: translateY(0);
+  transform: translateY(0);
 }
 .paper-choice input:checked + .paper-tile {
-    background: var(--ember-soft);
-    border-color: var(--ember);
-    color: var(--ember);
+  background: var(--ember-soft);
+  border-color: var(--ember);
+  color: var(--ember);
 }
 .paper-choice input:focus-visible + .paper-tile {
-    outline: 2px solid var(--ember);
-    outline-offset: 3px;
+  outline: 2px solid var(--ember);
+  outline-offset: 3px;
 }
 @media (prefers-reduced-motion: reduce) {
-    .modal-overlay,
-    .modal-content,
-    .paper-tile {
-        transition: none !important;
-    }
-    .paper-choice:hover .paper-tile {
-        transform: none;
-    }
+  .paper-choice:hover .paper-tile {
+    transform: none;
+  }
 }
