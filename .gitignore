@@ -1,33 +1,18 @@
-# Dependencies — install with `npm install`
+# แพ็กเกจที่ติดตั้งด้วย npm
 node_modules/
 
-# Local SQLite database — created and seeded from database/schema.sql + seed.sql on startup
-data/*.db
-data/*.db-journal
-data/*.db-wal
-data/*.db-shm
+# ข้อมูลใช้งาน ไฟล์สำรอง และบันทึกข้อผิดพลาด
+data/
+backups/
+*.log
 
-# ไฟล์ชั่วคราวของกระบวนการพัฒนา (ledger, review package)
-.superpowers/
-
-# การตั้งค่าเครื่องมือ Claude Code ส่วนตัว ไม่ควรแชร์เข้า repo
-.claude/
-
-# เอกสารวางแผนภายใน ไม่ต้องการให้อยู่ใน repo ที่ใช้งานร่วมกัน
-docs/superpowers/
-
-# Environment and OS files
+# ค่าตั้งส่วนตัวและกุญแจล็อกอิน
 .env
 session-secret.key
-.DS_Store
-npm-debug.log*
 
-backups/
-
-# Local runtime files and generated artifacts
-data/
-*.log
-restaurant-promptpay*.zip
+# โปรแกรมที่ตัวเปิดเว็บดาวน์โหลดให้
 tools/cloudflared.exe
-*-preview.png
-*-preview.jpg
+tools/cloudflared.exe.download
+
+# ไฟล์ระบบของ macOS
+.DS_Store
