@@ -1,15 +1,12 @@
 /* คิว */
 /* Queue */
+/* จัดแถบแจ้งเตือนจำนวนคิวที่รอ */
 .queue-alert-banner {
   background: var(--ember-soft);
   border: 1px solid #f1c7b6;
-  color: var(--ink);
   padding: 14px 18px;
   border-radius: var(--r-md);
   margin-bottom: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   gap: 16px;
   flex-wrap: wrap;
 }
@@ -23,18 +20,21 @@
   padding: 16px;
   margin-bottom: 20px;
 }
+/* จัดกล่องข้อมูลของแต่ละคิว */
 .queue-card-item {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
   padding: 12px 14px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   gap: 12px;
   flex-wrap: wrap;
 }
 .queue-card-item.called {
   border-color: #efd6aa;
   background: var(--warn-soft);
+}
+
+/* จัดช่องเลือกวันและตัวกรองประวัติคิว */
+.queue-filters {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
 }

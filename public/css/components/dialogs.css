@@ -1,10 +1,33 @@
+/* ใช้หน้าต่างของเบราว์เซอร์ โดยคงรูปแบบเดิม */
+/* ล้างหน้าตาเริ่มต้นของหน้าต่างเบราว์เซอร์ */
+dialog {
+  border: 0;
+  color: inherit;
+  max-width: none;
+  max-height: none;
+  overflow: visible;
+}
+dialog.modal-overlay {
+  visibility: hidden;
+  width: 100%;
+  height: 100%;
+}
+dialog.sheet {
+  top: auto;
+  width: 100%;
+}
+dialog:not([open]) {
+  display: none;
+}
+dialog::backdrop {
+  background: transparent;
+}
 /* หน้าต่างและฟอร์ม */
+/* สร้างพื้นหลังทึบและจัดหน้าต่างกลางจอ */
 .modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(24, 20, 17, 0.55);
-  display: flex;
-  align-items: center;
   justify-content: center;
   z-index: 2000;
   opacity: 0;
@@ -15,12 +38,14 @@
   padding: 16px;
 }
 .modal-overlay.active {
+  visibility: visible;
   opacity: 1;
   pointer-events: auto;
   transition:
     opacity 0.22s ease,
     visibility 0s;
 }
+/* กำหนดขนาดและพื้นที่เลื่อนของหน้าต่าง */
 .modal-content {
   background: var(--surface);
   border-radius: var(--r-lg);
@@ -54,12 +79,8 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  border: none;
   background: var(--muted-soft);
   color: var(--ink-2);
-  cursor: pointer;
-  display: grid;
-  place-items: center;
   flex-shrink: 0;
 }
 .icon-btn:hover {
@@ -75,19 +96,13 @@
   flex: 1;
 }
 .action-list {
-  display: flex;
-  flex-direction: column;
   gap: 8px;
 }
+/* จัดแถวปุ่มเลือกคำสั่งภายในหน้าต่าง */
 .action-row {
-  display: flex;
-  align-items: center;
   gap: 14px;
   width: 100%;
   padding: 14px 16px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
-  background: var(--surface);
   text-align: left;
   cursor: pointer;
   text-decoration: none;
@@ -105,8 +120,6 @@
   height: 36px;
   border-radius: var(--r-sm);
   background: var(--muted-soft);
-  display: grid;
-  place-items: center;
   color: var(--ink-2);
   flex-shrink: 0;
 }
@@ -125,16 +138,20 @@
 .action-row.danger {
   color: var(--danger);
 }
+/* เว้นระยะระหว่างช่องกรอก */
 .form-group {
   margin-bottom: 16px;
 }
-.form-label {
+label.form-label {
   display: block;
+}
+.form-label {
   font-weight: 500;
   margin-bottom: 6px;
   font-size: 0.88rem;
   color: var(--ink-2);
 }
+/* จัดหน้าตาช่องกรอกข้อมูล */
 .form-input {
   width: 100%;
   padding: 10px 12px;
@@ -150,6 +167,7 @@
   border-color: var(--ember);
   box-shadow: 0 0 0 3px var(--ember-soft);
 }
+/* จัดช่องตัวเลขพร้อมปุ่มเพิ่มและลด */
 .stepper-input {
   display: flex;
   border: 1px solid var(--line-strong);
@@ -158,10 +176,8 @@
 }
 .stepper-input button {
   width: 44px;
-  border: none;
   background: var(--surface-2);
   font-size: 1.2rem;
-  cursor: pointer;
   color: var(--ink-2);
 }
 .stepper-input button:hover {
@@ -183,6 +199,7 @@
 .stepper-input input:focus {
   outline: none;
 }
+/* จัดช่องกรอกสองช่องให้อยู่แถวเดียวกัน */
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -193,14 +210,6 @@
 }
 .guest-inputs .form-label {
   font-size: 0.82rem;
-}
-.buffet-rate {
-  display: block;
-  font-size: 0.85em;
-  color: var(--ink-2);
-}
-.slip-row[hidden] {
-  display: none;
 }
 .form-hint {
   font-size: 0.82rem;

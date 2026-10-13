@@ -1,14 +1,12 @@
+// ออกบัตรคิว เรียกคิว จัดโต๊ะ และพิมพ์บัตรเดิม
 const db = require('../database/database');
 const { randomUUID } = require('crypto');
 const { check, id, integer, today } = require('../utils/validation');
-const emit = require('../utils/events');
 const cashier = require('./cashier.controller');
 
 // จำนวนคิวที่ยังรออยู่ก่อนบัตรนี้ ใช้ทั้งตอนออกบัตรและพิมพ์ซ้ำ
 async function countAhead(ticket) {
-  if (!['WAITING', 'CALLED'].includes(ticket.queue_status)) {
-    return 0;
-  }
+  if (!['WAITING', 'CALLED'].includes(ticket.queue_status)) return 0;
   const row = await db.get(
     `SELECT COUNT(*) n FROM QueueTicket WHERE queue_date = ? AND queue_status IN ('WAITING','CALLED')
      AND CAST(SUBSTR(queue_no,2) AS INTEGER) < ?`,
@@ -17,7 +15,8 @@ async function countAhead(ticket) {
   return row.n;
 }
 
-exports.issueQueue = async function (req, res) {
+// รับจำนวนลูกค้า สร้างเลขคิวของวันนี้ แล้วบันทึกบัตร
+async function issueQueue(req, res) {
   const count = integer(req.body.guest_count, 50, 'จำนวนลูกค้า');
   const date = today();
   const ticket = await db.transaction(async (tx) => {
@@ -26,30 +25,25 @@ exports.issueQueue = async function (req, res) {
       [date]
     );
     const seq = (last.seq || 0) + 1;
-    const id = randomUUID(),
-      no = 'Q' + String(seq).padStart(3, '0');
+    const ticketId = randomUUID();
+    const queueNo = 'Q' + String(seq).padStart(3, '0');
     await tx.run(
       `INSERT INTO QueueTicket(queue_ticket_id,queue_no,queue_date,guest_count,created_at) VALUES(?,?,?,?,CURRENT_TIMESTAMP)`,
-      [id, no, date, count]
+      [ticketId, queueNo, date, count]
     );
-    return tx.get('SELECT * FROM QueueTicket WHERE queue_ticket_id = ?', [id]);
+    return tx.get('SELECT * FROM QueueTicket WHERE queue_ticket_id = ?', [ticketId]);
   });
   const ahead = await countAhead(ticket);
-  emit(req, 'queue-updated');
   res.json({ success: true, ticket: { ...ticket, count_ahead: ahead } });
-};
+}
 
-exports.getQueues = async function (req, res) {
+// อ่านคิวตามวันที่และตัวกรอง แล้วส่งรายการให้หน้าแคชเชียร์
+async function getQueues(req, res) {
   const day = today();
   const date = req.query.date || day;
-  check(
-    typeof date === 'string' &&
-      /^\d{4}-\d{2}-\d{2}$/.test(date) &&
-      Number.isFinite(Date.parse(date)) &&
-      new Date(date).toISOString().slice(0, 10) === date,
-    400,
-    'วันคิวไม่ถูกต้อง'
-  );
+  const validDate = typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date);
+  check(validDate && Number.isFinite(Date.parse(date)), 400, 'วันคิวไม่ถูกต้อง');
+  check(new Date(date).toISOString().slice(0, 10) === date, 400, 'วันคิวไม่ถูกต้อง');
   const sql =
     'SELECT * FROM QueueTicket WHERE queue_date = ? ORDER BY CAST(SUBSTR(queue_no,2) AS INTEGER)';
   const tickets = await db.query(sql, [day]);
@@ -61,9 +55,13 @@ exports.getQueues = async function (req, res) {
       queues = await db.query(sql, [date]);
     }
   }
-  res.json({ success: true, queues, today: day, totalWaiting: waiting.length });
-};
+  const data = { queues, today: day, totalWaiting: waiting.length };
+  if (req.get('accept')?.includes('text/html'))
+    return res.render('cashier/partials/queue-list', data);
+  res.json({ success: true, ...data });
+}
 
+// ตรวจบัตรคิวก่อนเปลี่ยนสถานะในฐานข้อมูล
 async function change(req, status) {
   id(req.body.queue_ticket_id, 'รหัสคิว');
   return db.transaction(async (tx) => {
@@ -84,24 +82,26 @@ async function change(req, status) {
   });
 }
 
-exports.callQueue = async function (req, res) {
+// เปลี่ยนคิวเป็นเรียกแล้ว และส่งเลขคิวกลับให้เล่นเสียง
+async function callQueue(req, res) {
   const ticket = await change(req, 'CALLED');
-  emit(req, 'queue-called', ticket);
-  emit(req, 'queue-updated');
   res.json({ success: true, queue_no: ticket.queue_no });
-};
+}
 
-exports.cancelQueue = async function (req, res) {
+// เปลี่ยนบัตรคิวเป็นยกเลิก
+async function cancelQueue(req, res) {
   await change(req, 'CANCELLED');
-  emit(req, 'queue-updated');
   res.json({ success: true });
-};
-exports.seatQueue = cashier.openTable;
+}
+const seatQueue = cashier.openTable;
 
-exports.getTicket = async function (req, res) {
+// อ่านบัตรเดิมพร้อมจำนวนคิวข้างหน้าเพื่อพิมพ์ซ้ำ
+async function getTicket(req, res) {
   const ticket = await db.get('SELECT * FROM QueueTicket WHERE queue_ticket_id = ?', [
     req.params.id
   ]);
   check(ticket, 404, 'ไม่พบคิว');
   res.json({ success: true, ticket: { ...ticket, count_ahead: await countAhead(ticket) } });
-};
+}
+
+module.exports = { issueQueue, getQueues, callQueue, cancelQueue, getTicket, seatQueue };

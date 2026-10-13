@@ -1,0 +1,25 @@
+<%# แสดงแต่ละคิวพร้อมปุ่มเรียก จัดโต๊ะ พิมพ์ซ้ำ และยกเลิก %>
+<template data-waiting="<%= totalWaiting %>"></template>
+<% const labels = { WAITING: 'รอเรียก', CALLED: 'เรียกแล้ว รอลูกค้ามา', SEATED: 'นั่งแล้ว', CANCELLED: 'ยกเลิกแล้ว' }; %>
+<% if (!queues.length) { %>
+  <div class="empty" style="padding: 28px;">ยังไม่มีคิวรอ</div>
+<% } %>
+<% for (const ticket of queues) { %>
+  <div class="queue-card-item<%= ticket.queue_status === 'CALLED' ? ' called' : '' %> row box between">
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <div class="queue-no-badge number digits"><%= ticket.queue_no %></div>
+      <div>
+        <div style="font-weight: 500;"><%= ticket.guest_count %> ท่าน</div>
+        <div style="font-size: 0.8rem; color: var(--ink-3);"><%= labels[ticket.queue_status] %></div>
+      </div>
+    </div>
+    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+      <button class="btn btn-secondary btn-sm inline-row" onclick="reprintQueue('<%= ticket.queue_ticket_id %>')">พิมพ์ซ้ำ</button>
+      <% if (ticket.queue_date === today && ['WAITING', 'CALLED'].includes(ticket.queue_status)) { %>
+        <button class="btn btn-secondary btn-sm inline-row" onclick="callQueue('<%= ticket.queue_ticket_id %>')">เรียกคิว</button>
+        <button class="btn btn-dark btn-sm inline-row" onclick="openSeatModal('<%= ticket.queue_ticket_id %>', '<%= ticket.queue_no %>', <%= ticket.guest_count %>)">จัดโต๊ะ</button>
+        <button class="btn btn-ghost btn-sm inline-row" style="color: var(--danger);" onclick="cancelQueue('<%= ticket.queue_ticket_id %>')">ยกเลิก</button>
+      <% } %>
+    </div>
+  </div>
+<% } %>

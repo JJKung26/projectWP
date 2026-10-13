@@ -1,3 +1,4 @@
+// ตรวจบัญชีและสิทธิ์พนักงานก่อนเข้าหน้าเว็บ
 const db = require('../database/database');
 const ROLES = ['ADMIN', 'CASHIER', 'KITCHEN', 'SERVICE'];
 const COOKIE_OPTIONS = {
@@ -14,6 +15,7 @@ const HOME_BY_ROLE = {
   SERVICE: '/serving'
 };
 
+// สร้างชื่อ cookie แยกตามหน้าที่ของพนักงาน
 function cookieNameFor(role) {
   return 'staff_' + role;
 }
@@ -25,14 +27,8 @@ function wantsHtml(req) {
 
 // รับเฉพาะ path ภายในเว็บ กันไม่ให้ ?next= พาผู้ใช้ออกไปเว็บอื่น
 function safeNextPath(next) {
-  if (
-    typeof next !== 'string' ||
-    !next.startsWith('/') ||
-    next.startsWith('//') ||
-    next.startsWith('/\\')
-  ) {
-    return null;
-  }
+  if (typeof next !== 'string' || !next.startsWith('/')) return null;
+  if (next.startsWith('//') || next.startsWith('/\\')) return null;
   return next;
 }
 
@@ -42,20 +38,17 @@ async function resolveStaff(req, role) {
   const roles = role === 'ADMIN' ? ['ADMIN'] : [role, 'ADMIN'];
   for (const expectedRole of roles) {
     const employeeId = cookies[cookieNameFor(expectedRole)];
-    if (!employeeId) {
-      continue;
-    }
+    if (!employeeId) continue;
     const staff = await db.get(
       'SELECT employee_id, username, full_name, role FROM Employee WHERE employee_id = ?',
       [employeeId]
     );
-    if (staff && staff.role === expectedRole) {
-      return staff;
-    }
+    if (staff && staff.role === expectedRole) return staff;
   }
   return null;
 }
 
+// อนุญาตบัญชีที่มีสิทธิ์ หรือให้กลับไปเข้าสู่ระบบ
 function requireRole(role) {
   return async function (req, res, next) {
     const staff = await resolveStaff(req, role);
@@ -64,11 +57,13 @@ function requireRole(role) {
       res.locals.staff = staff;
       return next();
     }
-    if (wantsHtml(req)) {
-      return res.redirect('/login');
+    if (wantsHtml(req)) return res.redirect('/login');
+    let loggedIn = false;
+    for (const name in req.signedCookies) {
+      if (req.signedCookies[name]) loggedIn = true;
     }
     return res
-      .status(Object.values(req.signedCookies || {}).some(Boolean) ? 403 : 401)
+      .status(loggedIn ? 403 : 401)
       .json({ success: false, message: 'กรุณาเข้าสู่ระบบอีกครั้ง' });
   };
 }

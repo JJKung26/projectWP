@@ -1,3 +1,4 @@
+<%# แสดงข้อมูลร้านและฟอร์มส่งชื่อผู้ใช้กับรหัสผ่าน %>
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -9,14 +10,14 @@
 </head>
 <body class="login-page">
     <div class="login-split">
-        <aside class="login-hero" aria-hidden="true">
+        <aside class="login-hero row" aria-hidden="true">
             <div class="login-hero-dots"></div>
             <span class="login-hero-ring login-hero-ring-a"></span>
             <span class="login-hero-ring login-hero-ring-b"></span>
             <div class="login-hero-content">
                 <h1 class="login-hero-title">ร้านหมูกระทะ บุฟเฟต์</h1>
                 <span class="login-hero-rule"></span>
-                <div class="login-hero-logo">
+                <div class="login-hero-logo center">
                     <svg viewBox="0 0 100 100">
                         <path d="M24 60 Q50 20 76 60 Z" fill="#fff"/>
                         <path d="M18 60h64" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
@@ -28,9 +29,10 @@
                 <div class="login-hero-roles"> <span class="role-chip">แคชเชียร์</span> <span class="role-chip">ครัว</span> <span class="role-chip">เสิร์ฟ</span> </div>
             </div>
         </aside>
-        <main class="login-form-panel">
+        <%# จัดส่วนฟอร์มเข้าสู่ระบบ %>
+        <main class="login-form-panel row">
             <div class="login-form-wrap">
-                <div class="login-brand">
+                <div class="login-brand row">
                     <svg class="login-brand-logo" viewBox="0 0 100 100" aria-hidden="true">
                         <circle cx="50" cy="50" r="50" fill="#c8401a"/>
                         <path d="M24 60 Q50 20 76 60 Z" fill="#fff"/>
@@ -44,11 +46,12 @@
                 <% if (error) { %>
                     <p class="login-error"><%= error %></p>
                 <% } %>
+                <%# ส่งข้อมูลบัญชีไปตรวจที่ /login %>
                 <form method="POST" action="/login" class="login-form">
                     <input type="hidden" name="next" value="<%= next %>">
                     <div class="form-group">
                         <label class="form-label" for="username">ชื่อผู้ใช้</label>
-                        <div class="input-icon-wrap">
+                        <div class="input-icon-wrap row">
                             <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <circle cx="12" cy="8" r="4"/>
                                 <path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/>
@@ -60,7 +63,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="password">รหัสผ่าน</label>
-                        <div class="input-icon-wrap">
+                        <div class="input-icon-wrap row">
                             <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <rect x="5" y="11" width="14" height="9" rx="2"/>
                                 <path d="M8 11V8a4 4 0 0 1 8 0v3"/>
@@ -70,7 +73,7 @@
                                    required autocomplete="current-password">
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-block btn-lg">เข้าสู่ระบบ</button>
+                    <button type="submit" class="btn btn-primary btn-block btn-lg inline-row">เข้าสู่ระบบ</button>
                 </form>
             </div>
         </main>

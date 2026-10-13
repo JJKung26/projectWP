@@ -1,6 +1,10 @@
+// กำหนด URL แล้วส่งคำขอไปยัง controller
 const router = require('express').Router();
-const authController = require('../controllers/auth.controller');
-router.get('/login', authController.showLogin);
-router.post('/login', authController.login);
-router.post('/logout', authController.logout);
+const auth = require('../controllers/auth.controller');
+// เปิดหน้าเข้าสู่ระบบ (GET)
+router.get('/login', auth.showLogin);
+// รับชื่อผู้ใช้และรหัสผ่านเพื่อตรวจบัญชี (POST)
+router.post('/login', auth.login);
+// รับคำสั่งออกจากระบบ (POST)
+router.post('/logout', auth.logout);
 module.exports = router;

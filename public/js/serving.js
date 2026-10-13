@@ -1,12 +1,8 @@
+// อัปเดตรายการพร้อมเสิร์ฟและส่งคำสั่งยืนยันเสิร์ฟ
 // จุดเสิร์ฟ
-const socket = io({ auth: { role: 'SERVICE' } });
-const refreshLive = liveRegion(
-  socket,
-  ['.container'],
-  ['new-order', 'order-status-changed', 'stock-updated', 'session-closed'],
-  null
-);
+const refreshLive = liveRegion(['.container']);
 
+// ส่งรหัสออเดอร์เพื่อยืนยันว่าเสิร์ฟทั้งรอบแล้ว
 function confirmServedRound(order_id) {
   return sendStaffAction('/serving/confirm-served', { order_id }, refreshLive);
 }

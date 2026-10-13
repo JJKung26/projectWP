@@ -1,7 +1,11 @@
+// แปลงเวลาที่บันทึกไว้ให้แสดงตามเวลาไทย
 const TIME_ZONE = 'Asia/Bangkok';
 // SQLite CURRENT_TIMESTAMP เก็บเวลา UTC โดยไม่มีเครื่องหมายเขตเวลา
-const utcDate = (value) => new Date(String(value).replace(' ', 'T') + 'Z');
+function utcDate(value) {
+  return new Date(String(value).replace(' ', 'T') + 'Z');
+}
 
+// แสดงเฉพาะชั่วโมงและนาทีตามเวลาไทย
 function thaiTime(value) {
   return utcDate(value).toLocaleTimeString('th-TH', {
     hour: '2-digit',
@@ -10,9 +14,9 @@ function thaiTime(value) {
   });
 }
 
+// แสดงวันและเวลาตามเวลาไทย
 function thaiDate(value) {
-  return value
-    ? utcDate(value).toLocaleString('th-TH', { timeZone: TIME_ZONE })
-    : 'ไม่พบเวลาที่บันทึก';
+  if (!value) return 'ไม่พบเวลาที่บันทึก';
+  return utcDate(value).toLocaleString('th-TH', { timeZone: TIME_ZONE });
 }
 module.exports = { thaiDate, thaiTime };

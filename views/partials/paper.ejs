@@ -1,11 +1,12 @@
+<%# สร้างตัวเลือกกระดาษพิมพ์ขนาด 58 และ 80 มม. %>
 <% const selectedPaper = typeof defaultPaper === 'undefined' ? '80' : defaultPaper; %>
 <fieldset class="paper-picker">
     <legend>ขนาดกระดาษ</legend>
     <div class="paper-options">
-        <% for (const [value, label, detail] of [['80','80 มม.','ใบเสร็จ'],['58','58 มม.','ใบเสร็จ']]) { %>
+        <% for (const value of ['80', '58']) { %>
         <label class="paper-choice">
             <input type="radio" class="paper-size" name="<%= paperId %>" value="<%= value %>" <%= selectedPaper === value ? 'checked' : '' %>>
-            <span class="paper-tile"><strong><%= label %></strong><small><%= detail %></small></span>
+            <span class="paper-tile"><strong><%= value %> มม.</strong><small>ใบเสร็จ</small></span>
         </label>
         <% } %>
     </div>

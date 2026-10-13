@@ -1,4 +1,5 @@
 /* รายการอาหารในครัว */
+/* จัดแท็บสลับรายการอาหารกับสต็อก */
 .tabs {
   display: flex;
   gap: 4px;
@@ -6,17 +7,13 @@
   margin-bottom: 20px;
 }
 .tab {
-  border: none;
   background: transparent;
   padding: 10px 12px;
   margin-bottom: -1px;
   border-bottom: 3px solid transparent;
-  cursor: pointer;
   font-weight: 500;
   font-size: 0.98rem;
   color: var(--ink-3);
-  display: inline-flex;
-  align-items: center;
   gap: 8px;
 }
 .tab.active {
@@ -45,14 +42,10 @@
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 10px;
 }
+/* จัดรูป ชื่อเมนู และสวิตช์สถานะของหมด */
 .stock-row {
-  display: flex;
-  align-items: center;
   gap: 12px;
   padding: 10px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
-  background: var(--surface);
 }
 .stock-row img {
   width: 44px;
@@ -69,15 +62,14 @@
   font-size: 0.92rem;
   line-height: 1.3;
 }
+/* จัดสวิตช์มีของและของหมด */
 .switch {
   margin-left: auto;
   position: relative;
   width: 42px;
   height: 24px;
   border-radius: 999px;
-  border: none;
   background: var(--line-strong);
-  cursor: pointer;
   flex-shrink: 0;
   transition: background 0.15s;
 }

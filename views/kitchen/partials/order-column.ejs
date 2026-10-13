@@ -1,14 +1,15 @@
+<%# แสดงคอลัมน์ออเดอร์รอทำหรือกำลังทำ %>
 <%
     const heading = isCooking ? 'กำลังทำ' : 'รอคิว';
     const badgeClass = isCooking ? 'badge-pill-preparing' : 'badge-pill-waiting';
     const badgeLabel = isCooking ? 'PREPARING' : 'WAITING';
 %>
 <div class="kitchen-col-card">
-    <div class="kitchen-col-header"> <h2><%= heading %></h2> <span class="<%= badgeClass %>"><%= badgeLabel %> (<%= rounds.length %>)</span> </div>
+    <div class="kitchen-col-header row between"> <h2><%= heading %></h2> <span class="<%= badgeClass %>"><%= badgeLabel %> (<%= rounds.length %>)</span> </div>
     <% if (rounds.length === 0) { %>
         <div class="empty" style="padding: 40px 10px;"> <p class="muted">ไม่มีรายการ<%= heading %></p> </div>
     <% } else { %>
-        <div class="round-card-list">
+        <div class="round-card-list column">
             <% for (const round of rounds) { %>
                 <%- include('../../partials/staff-order-card', { round, mode: isCooking ? 'cooking' : 'waiting' }) %>
             <% } %>

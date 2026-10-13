@@ -1,4 +1,5 @@
-// เปลี่ยนข้อมูลบนหน้า แล้วคืนสถานะรายการที่ผู้ใช้เปิดไว้
+// ดึงข้อมูลใหม่เป็นระยะโดยคงหน้าต่างและรายการที่เปิดไว้
+// เปลี่ยนรายการ โดยเก็บรายการที่เปิดอยู่และโฟกัสเดิม
 function replaceLiveContent(page, selectors) {
   const focusedId = document.activeElement.id;
   const expanded = {};
@@ -10,114 +11,56 @@ function replaceLiveContent(page, selectors) {
   for (const selector of selectors) {
     const current = document.querySelector(selector);
     const replacement = page.querySelector(selector);
-    if (current && replacement) {
+    if (current && replacement && current.innerHTML !== replacement.innerHTML) {
       current.innerHTML = replacement.innerHTML;
     }
   }
-  for (const id of Object.keys(expanded)) {
-    setOrderDropdown(id, expanded[id]);
-  }
-  if (focusedId) {
-    document.getElementById(focusedId)?.focus();
-  }
+  for (const id in expanded) setOrderDropdown(id, expanded[id]);
+  if (focusedId) document.getElementById(focusedId)?.focus();
 }
 
-// รวมเหตุการณ์ที่มาติดกัน และรอจนผู้ใช้ทำรายการเสร็จก่อนอัปเดต
-function liveRegion(socket, selectors, events, afterRefresh) {
-  let timer,
-    loading = false,
-    pending = false,
-    retryDelay = 350;
-  function busy() {
-    if (window.printingDocument || window.orderSending || window.staffSending) {
-      return true;
-    }
-    if (document.querySelector('.modal-overlay.active,.sheet.open')) {
-      return true;
-    }
-    for (const selector of selectors) {
-      const current = document.querySelector(selector);
-      const focused = document.activeElement;
-      if (current && current.contains(focused) && focused.matches('input,select,textarea')) {
-        return true;
-      }
-    }
-    return false;
-  }
+// ตรวจว่ากำลังกรอกข้อมูล ส่งคำสั่ง หรือพิมพ์อยู่หรือไม่
+function liveBusy() {
+  if (window.printingDocument || window.orderSending || window.staffSending) return true;
+  if (document.querySelector('.modal-overlay.active,.sheet.open')) return true;
+  return document.activeElement.matches('input,select,textarea');
+}
+
+// ดึงข้อมูลทุก 5 วินาที; เว้นไว้ขณะกรอกฟอร์มหรือทำรายการ
+function liveRegion(selectors, afterRefresh) {
+  let loading = false;
   async function refresh() {
-    if (document.getElementById('diningEnded')) {
-      return;
-    }
-    if (loading) {
-      return;
-    }
-    if (busy()) {
-      return schedule(1500);
-    }
+    if (document.getElementById('diningEnded')) return clearInterval(timer);
+    if (loading || liveBusy()) return;
     loading = true;
-    pending = false;
     try {
       const response = await requestFetch(location.pathname + location.search, {
         headers: { Accept: 'text/html' }
       });
-      if (response.status === 400 && socket.auth?.token) {
-        return diningEnded();
-      }
-      if (!response.ok || response.redirected) {
-        throw new Error('กรุณาตรวจการเชื่อมต่อหรือเข้าสู่ระบบอีกครั้ง');
-      }
+      if (response.status === 400) return diningEnded();
+      if (!response.ok || response.redirected) throw Error('โหลดข้อมูลไม่สำเร็จ');
       const next = new DOMParser().parseFromString(await response.text(), 'text/html');
-      if (busy()) {
-        pending = true;
-        return;
-      }
+      if (liveBusy()) return;
       replaceLiveContent(next, selectors);
-      if (afterRefresh) {
-        afterRefresh();
-      }
-      retryDelay = 350;
-      document.getElementById('liveError')?.remove();
-    } catch (err) {
-      pending = true;
-      retryDelay = Math.min(Math.max(2000, retryDelay * 2), 10000);
-      if (!document.getElementById('liveError')) {
-        const p = document.createElement('p');
-        p.id = 'liveError';
-        p.textContent = ['TimeoutError', 'TypeError'].includes(err.name)
-          ? 'อัปเดตข้อมูลไม่ได้ กำลังลองเชื่อมต่อใหม่'
-          : err.message;
-        p.setAttribute('role', 'status');
-        document.body.appendChild(p);
-      }
+      if (afterRefresh) afterRefresh();
+    } catch (error) {
+      console.warn('อัปเดตข้อมูลไม่ได้:', error.message);
     } finally {
       loading = false;
-      if (pending) {
-        schedule();
-      }
     }
   }
-  // ใช้ตัวตั้งเวลาเดียว รอเมื่อเปิดฟอร์ม และลองใหม่เมื่อเชื่อมต่อไม่ได้
-  function schedule(delay = retryDelay) {
-    pending = true;
-    clearTimeout(timer);
-    timer = setTimeout(refresh, delay);
-  }
-  for (const event of events) {
-    socket.on(event, () => schedule());
-  }
-  socket.on('connect', () => {
-    retryDelay = 350;
-    schedule();
-  });
-  socket.on('connect_error', () => schedule());
-  return () => schedule();
+  const timer = setInterval(refresh, 5000);
+  return refresh;
 }
 
+// ปิดหน้าต่าง ปิดปุ่มใช้งาน และแจ้งว่ารอบบริการจบแล้ว
 function diningEnded() {
-  if (document.getElementById('diningEnded')) {
-    return;
+  if (document.getElementById('diningEnded')) return;
+  for (const dialog of document.querySelectorAll('dialog[open]')) {
+    dialog.close();
+    dialog.classList.remove('open', 'active');
   }
-  document.querySelectorAll('button,input').forEach((el) => (el.disabled = true));
+  for (const control of document.querySelectorAll('button,input')) control.disabled = true;
   const box = document.createElement('div');
   box.id = 'diningEnded';
   box.className = 'card';

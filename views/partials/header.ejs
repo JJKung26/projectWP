@@ -1,3 +1,4 @@
+<%# สร้างส่วนหัวเว็บ เมนูตามสิทธิ์ และปุ่มออกจากระบบ %>
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -7,13 +8,13 @@
         <%= typeof title !=='undefined' ? title : 'ระบบสั่งอาหารร้านหมูกระทะ' %>
     </title>
     <%- include('styles') %>
-    <script src="/socket.io/socket.io.js"></script>
+    
     <script src="/js/print.js"></script>
     <script src="/js/ui.js"></script><script src="/js/live.js"></script>
 </head>
 <body class="staff">
     <header class="navbar no-print">
-        <a href="<%= typeof staff !== 'undefined' && staff ? HOME_BY_ROLE[staff.role] : '/login' %>" class="brand">
+        <a href="<%= typeof staff !== 'undefined' && staff ? HOME_BY_ROLE[staff.role] : '/login' %>" class="brand row">
             <svg class="brand-logo" viewBox="0 0 100 100" aria-hidden="true">
                 <circle cx="50" cy="50" r="50" fill="#c8401a" />
                 <path d="M24 60 Q50 20 76 60 Z" fill="#fff" />
@@ -24,27 +25,30 @@
             <span class="brand-name">ร้านหมูกระทะ บุฟเฟต์</span>
             <span class="brand-sub">หลังร้าน</span>
         </a>
+        <%# แสดงลิงก์หน้าที่บัญชีนี้มีสิทธิ์เข้า %>
         <nav class="nav-links">
             <% if (staff && ['ADMIN','CASHIER'].includes(staff.role)) { %>
-            <a href="/cashier/tables" class="nav-link" data-match="/cashier">แคชเชียร์</a>
+            <a href="/cashier/tables" class="nav-link row" data-match="/cashier">แคชเชียร์</a>
             <% } %>
             <% if (staff && ['ADMIN','KITCHEN'].includes(staff.role)) { %>
-            <a href="/kitchen" class="nav-link" data-match="/kitchen">ครัว</a>
+            <a href="/kitchen" class="nav-link row" data-match="/kitchen">ครัว</a>
             <% } %>
             <% if (staff && ['ADMIN','SERVICE'].includes(staff.role)) { %>
-            <a href="/serving" class="nav-link" data-match="/serving">เสิร์ฟ</a>
+            <a href="/serving" class="nav-link row" data-match="/serving">เสิร์ฟ</a>
             <% } %>
             <% if (typeof staff !=='undefined' && staff) { %>
-                <div class="nav-user">
+                <div class="nav-user row">
                     <span class="nav-user-name"><%= staff.full_name %></span>
+                    <%# ส่งคำสั่งออกจากระบบ %>
                     <form method="POST" action="/logout">
                         <input type="hidden" name="role" value="<%= staff.role %>">
-                        <button type="submit" class="btn btn-secondary btn-sm">ออกจากระบบ</button>
+                        <button type="submit" class="btn btn-secondary btn-sm inline-row">ออกจากระบบ</button>
                     </form>
                 </div>
                 <% } %>
         </nav>
     </header>
+    <%# ทำเครื่องหมายเมนูให้ตรงกับหน้าที่กำลังเปิด %>
     <script>
         document.querySelectorAll('.nav-link').forEach(a => {
             if (location.pathname.startsWith(a.dataset.match)) a.classList.add('active');

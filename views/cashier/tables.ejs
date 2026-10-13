@@ -1,3 +1,4 @@
+<%# แสดงจำนวนโต๊ะ ผังโต๊ะ และหน้าต่างจัดการโต๊ะกับคิว %>
 <%- include('../partials/header') %>
     <div class="container">
         <div class="page-head">
@@ -5,28 +6,29 @@
             <div> <div class="eyebrow">แคชเชียร์</div> <h1>ผังโต๊ะ</h1> <p>แตะโต๊ะว่างเพื่อเปิดโต๊ะและดู QR · แตะโต๊ะที่มีลูกค้าเพื่อเช็คบิล</p> </div>
             <div style="display: flex; gap: 10px; align-items: stretch; flex-wrap: wrap;">
                 <div class="stat-strip">
-                    <div class="stat"> <div class="stat-label"><span class="dot ok"></span>ว่าง</div> <div class="stat-value"><%= availableCount %></div> </div>
-                    <div class="stat"> <div class="stat-label"><span class="dot busy"></span>มีลูกค้า</div> <div class="stat-value"><%= occupiedCount %></div> </div>
-                    <div class="stat"> <div class="stat-label">คิวรอ</div> <div class="stat-value" id="queueBadge"><%= waitingQueues ? waitingQueues.length : 0 %></div> </div>
+                    <div class="stat"> <div class="stat-label row"><span class="dot ok"></span>ว่าง</div> <div class="stat-value number digits"><%= availableCount %></div> </div>
+                    <div class="stat"> <div class="stat-label row"><span class="dot busy"></span>มีลูกค้า</div> <div class="stat-value number digits"><%= occupiedCount %></div> </div>
+                    <div class="stat"> <div class="stat-label row">คิวรอ</div> <div class="stat-value number digits" id="queueBadge"><%= waitingQueues ? waitingQueues.length : 0 %></div> </div>
                 </div>
-                <a class="btn btn-secondary" href="/cashier/receipts">ใบเสร็จย้อนหลัง</a>
-                <button class="btn btn-dark" onclick="openQueueModal()">จัดการคิว</button>
+                <a class="btn btn-secondary inline-row" href="/cashier/receipts">ใบเสร็จย้อนหลัง</a>
+                <button class="btn btn-dark inline-row" onclick="openQueueModal()">จัดการคิว</button>
             </div>
         </div>
         <div id="tableAlert">
         <% if (availableCount===0) { %>
-            <div class="queue-alert-banner">
+            <div class="queue-alert-banner row between">
                 <div> <strong>โต๊ะเต็มทุกโต๊ะ</strong> <div style="font-size: 0.9rem; color: var(--ink-2);">ลูกค้าใหม่ให้ออกบัตรคิวรอไว้ก่อน</div> </div>
-                <button class="btn btn-primary" onclick="openIssueQueueModal()">ออกบัตรคิว</button>
+                <button class="btn btn-primary inline-row" onclick="openIssueQueueModal()">ออกบัตรคิว</button>
             </div>
         <% } %>
         </div>
+        <%# วนแสดงปุ่มโต๊ะพร้อมสถานะและข้อมูลลูกค้า %>
         <div class="grid-50-tables">
             <% for (const t of tables) { const busy = t.table_status === 'OCCUPIED'; %>
-                <button type="button" class="table-card <%= t.table_status.toLowerCase() %>" id="table-card-<%= t.table_id %>"
+                <button type="button" class="table-card <%= t.table_status.toLowerCase() %> column box" id="table-card-<%= t.table_id %>"
                     onclick="handleTableClick('<%= t.table_id %>', '<%= t.table_no %>', '<%= t.table_status %>', '<%= t.session_id %>', '<%= t.qr_token %>')">
-                    <div> <div class="table-label">โต๊ะ</div> <div class="table-number"><%= t.table_no %></div> </div>
-                    <div class="table-meta">
+                    <div> <div class="table-label">โต๊ะ</div> <div class="table-number number digits"><%= t.table_no %></div> </div>
+                    <div class="table-meta row">
                         <% if (busy) { %>
                             <span><%= t.guest_count %> ท่าน</span>
                             <% if (t.started_at) { %>· <span class="elapsed" data-started="<%= t.started_at %>"></span><% } %>
@@ -38,6 +40,7 @@
             <% } %>
         </div>
     </div>
+    <%# นำหน้าต่างโต๊ะและคิวที่แยกไฟล์ไว้มาใช้งาน %>
     <%- include('partials/open-table') %>
     <%- include('partials/occupied-table') %>
     <%- include('partials/table-slip') %>

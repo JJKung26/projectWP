@@ -1,5 +1,6 @@
 /* สี ฟอนต์ และรูปแบบพื้นฐาน */
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=Mitr:wght@400;500;600&display=swap');
+/* กำหนดสี ฟอนต์ และค่าที่ทุกหน้าใช้ร่วมกัน */
 :root {
   --paper: #f5f1ea;
   --surface: #ffffff;
@@ -31,6 +32,7 @@
   --font-body: 'IBM Plex Sans Thai', Tahoma, system-ui, sans-serif;
   --font-head: 'Mitr', 'IBM Plex Sans Thai', Tahoma, system-ui, sans-serif;
 }
+/* ล้างระยะเริ่มต้นและนับขนาดกล่องรวมขอบ */
 *,
 *::before,
 *::after {
@@ -44,13 +46,11 @@ html {
 /* ซ่อนแถบเลื่อน แต่ยังเลื่อนด้วยเมาส์ สัมผัส และคีย์บอร์ดได้ */
 * {
   scrollbar-width: none;
-  -ms-overflow-style: none;
 }
 *::-webkit-scrollbar {
   display: none;
-  width: 0;
-  height: 0;
 }
+/* ตั้งพื้นหลัง สีข้อความ และฟอนต์หลัก */
 body {
   font-family: var(--font-body);
   background: var(--paper);
@@ -59,6 +59,7 @@ body {
   font-size: 15px;
   -webkit-font-smoothing: antialiased;
 }
+/* กำหนดหน้าตาของหัวข้อ */
 h1,
 h2,
 h3,

@@ -1,3 +1,4 @@
+<%# สร้างช่องจำนวนผู้ใหญ่ เด็ก เด็กฟรี และราคาบุฟเฟ่ %>
 <% const guestTypes = [
     { type: 'Adult', field: 'adult_count', label: 'ผู้ใหญ่ / สูงเกิน 120 ซม.', name: 'ผู้ใหญ่', price: 279 },
     { type: 'Child', field: 'child_count', label: 'เด็ก 90–120 ซม.', name: 'เด็ก 90–120 ซม.', price: 179 },
@@ -12,9 +13,9 @@
         <div class="form-group">
             <label class="form-label" for="<%= countId %>"><%= guest.label %></label>
             <div class="stepper-input">
-                <button type="button" onclick="stepInput('<%= countId %>', -1)" aria-label="ลด<%= guest.name %>">−</button>
-                <input type="number" id="<%= countId %>" name="<%= guest.field %>" min="0" max="50" value="0" required>
-                <button type="button" onclick="stepInput('<%= countId %>', 1)" aria-label="เพิ่ม<%= guest.name %>">+</button>
+                <button class="plain-button" type="button" onclick="stepInput('<%= countId %>', -1)" aria-label="ลด<%= guest.name %>">−</button>
+                <input class="number" type="number" id="<%= countId %>" name="<%= guest.field %>" min="0" max="50" value="0" required>
+                <button class="plain-button" type="button" onclick="stepInput('<%= countId %>', 1)" aria-label="เพิ่ม<%= guest.name %>">+</button>
             </div>
         </div>
         <div class="form-group">

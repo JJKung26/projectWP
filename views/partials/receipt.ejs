@@ -1,15 +1,22 @@
-<% const children = session.child_count || 0, freeChildren = session.free_child_count || 0;
-   const adults = session.guest_count - children - freeChildren;
+<%# แสดงใบตรวจบิลหรือใบเสร็จ โดยแสดงเฉพาะรายการคิดเงิน %>
+<% const children = session.child_count || 0;
+   const adults = session.guest_count - children - (session.free_child_count || 0);
+   const buffetRows = [
+       { name: 'บุฟเฟต์ ผู้ใหญ่', count: adults, price: session.buffet_price },
+       { name: 'บุฟเฟต์ เด็ก 90–120 ซม.', count: children, price: session.child_price ?? 179 }
+   ];
    const method = paid ? {CASH:'CASH · เงินสด',PROMPTPAY:'พร้อมเพย์',CREDIT_CARD:'บัตร (จำลอง)'}[payment.payment_method] : '';
    // แสดงเฉพาะรายการคิดเงินเพิ่ม และรวมรายการซ้ำที่สั่งด้วยราคาเดียวกัน
    const itemGroups = [];
    for (const item of items) {
        if (item.charge_type !== 'ALACARTE' || item.quantity * item.unit_price_at_order <= 0) continue;
-       const group = itemGroups.find(row => row.menu_item_id === item.menu_item_id && row.item_name === item.item_name && row.unit_price_at_order === item.unit_price_at_order);
+       const group = itemGroups.find(row =>
+           row.menu_item_id === item.menu_item_id && row.item_name === item.item_name &&
+           row.unit_price_at_order === item.unit_price_at_order);
        if (group) group.quantity += item.quantity;
        else itemGroups.push({ ...item });
    } %>
-<article class="receipt-slip payment-receipt" id="billPrintArea">
+<article class="receipt-slip payment-receipt digits" id="billPrintArea">
     <header class="receipt-heading">
         <%- include('shop-logo', {logoClass:'receipt-logo'}) %>
         <h1><%= paid ? 'ใบเสร็จรับเงิน / RECEIPT' : 'ใบตรวจสอบยอด / CHECK BILL' %></h1>
@@ -25,18 +32,21 @@
         <% } %>
     </div>
     <div class="receipt-dining"> <p>DINE IN | ลูกค้า: <%= session.guest_count %> ท่าน</p> <h2>TABLE No. <%= session.table_no %></h2> </div>
+    <%# แสดงค่าบุฟเฟ่และอาหารที่คิดเงินเพิ่ม %>
     <table class="receipt-items" aria-label="รายการที่คิดเงิน">
         <colgroup><col><col class="receipt-quantity"><col class="receipt-amount"></colgroup>
         <thead><tr><th>รายการ</th><th class="r">จำนวน</th><th class="r">บาท</th></tr></thead>
         <tbody>
-            <% for (const [label, count, price] of [['บุฟเฟต์ ผู้ใหญ่',adults,session.buffet_price],['บุฟเฟต์ เด็ก 90–120 ซม.',children,session.child_price ?? 179]]) { if (count * price > 0) { %>
-            <tr><td><%= label %><span class="buffet-rate"><%= price.toFixed(2) %> บาท/ท่าน</span></td><td class="r"><%= count %></td><td class="r"><%= (count*price).toFixed(2) %></td></tr>
-            <% } } %>
+            <% for (const row of buffetRows) { %>
+            <% if (row.count * row.price <= 0) continue; %>
+            <tr><td><%= row.name %><span class="buffet-rate"><%= row.price.toFixed(2) %> บาท/ท่าน</span></td><td class="r"><%= row.count %></td><td class="r"><%= (row.count * row.price).toFixed(2) %></td></tr>
+            <% } %>
             <% for (const i of itemGroups) { %>
             <tr><td><%= i.item_name %><small style="display:block"><%= i.unit_price_at_order.toFixed(2) %> บาท/หน่วย</small></td><td class="r"><%= i.quantity %></td><td class="r"><%= (i.quantity*i.unit_price_at_order).toFixed(2) %></td></tr>
             <% } %>
         </tbody>
     </table>
+    <%# แสดงยอดก่อนภาษี VAT และยอดสุทธิ %>
     <div class="receipt-totals">
         <div class="receipt-line"><span>Subtotal · ก่อน VAT</span><span><%= subtotal.toFixed(2) %></span></div>
         <div class="receipt-line"><span>VAT 7%</span><span><%= taxAmount.toFixed(2) %></span></div>
@@ -45,6 +55,7 @@
         <div class="receipt-line receipt-grand-total"><strong>Grand Total</strong><strong><%= netAmount.toFixed(2) %></strong></div>
     </div>
     <% if (paid) { %>
+    <%# แสดงเงินรับและเงินทอนเฉพาะบิลที่ชำระแล้ว %>
     <div class="receipt-payment">
         <div class="receipt-line"><span><%= method %></span><span><%= payment.amount_received.toFixed(2) %></span></div>
         <div class="receipt-line"><span>CHANGE · เงินทอน</span><span><%= payment.change_amount.toFixed(2) %></span></div>

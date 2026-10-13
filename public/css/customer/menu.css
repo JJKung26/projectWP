@@ -25,6 +25,7 @@
   margin: 0 auto;
 }
 /* Banner */
+/* แสดงรูปปกและปุ่มบนรูป */
 .hero {
   position: relative;
   height: 200px;
@@ -41,14 +42,9 @@
   top: 14px;
   left: 14px;
   right: 14px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   z-index: 1;
 }
 .table-pill {
-  display: inline-flex;
-  align-items: center;
   gap: 10px;
   background: var(--surface);
   border-radius: 10px;
@@ -67,13 +63,11 @@
   height: 44px;
   border-radius: 50%;
   background: var(--surface);
-  display: grid;
-  place-items: center;
-  color: var(--ink);
   box-shadow: var(--shadow-md);
   text-decoration: none;
   position: relative;
 }
+/* จัดโลโก้และข้อมูลร้าน */
 .shop-head {
   text-align: center;
   padding: 0 16px 14px;
@@ -99,6 +93,7 @@
   margin-top: 2px;
 }
 /* Sticky category bar */
+/* จัดแถบหมวดอาหารให้เลื่อนด้านข้างได้ */
 .cat-bar {
   position: sticky;
   top: var(--safe-top);
@@ -111,12 +106,7 @@
 .cat-tool {
   flex-shrink: 0;
   width: 46px;
-  border: none;
   background: none;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  color: var(--ink);
 }
 .cat-tool:first-child {
   margin-left: 6px;
@@ -144,6 +134,7 @@
   border-bottom-color: var(--ember);
 }
 /* Menu list */
+/* เว้นระยะและจัดหัวข้อแต่ละหมวด */
 .menu-section {
   scroll-margin-top: calc(56px + var(--safe-top));
   padding: 18px 16px 0;
@@ -152,6 +143,7 @@
   font-size: 1.3rem;
   margin-bottom: 4px;
 }
+/* จัดรูป ชื่อ ราคา และปุ่มอาหารแต่ละรายการ */
 .menu-row {
   display: flex;
   gap: 16px;
@@ -180,6 +172,7 @@
   filter: grayscale(1);
   opacity: 0.5;
 }
+/* แสดงป้ายเมนูที่หมดชั่วคราว */
 .sold-tag {
   position: absolute;
   left: 0;
@@ -194,8 +187,6 @@
 .menu-info {
   flex: 1;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
 }
 .menu-name {
   font-weight: 600;
@@ -211,9 +202,6 @@
 .menu-foot {
   margin-top: auto;
   padding-top: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   min-height: 44px;
 }
 .price {
@@ -227,6 +215,7 @@
 .menu-row.sold-out .menu-name {
   color: var(--ink-3);
 }
+/* จัดปุ่มเพิ่มอาหารลงตะกร้า */
 .add-btn {
   width: 36px;
   height: 36px;
@@ -235,16 +224,13 @@
   background: var(--surface);
   color: var(--ember);
   cursor: pointer;
-  display: grid;
-  place-items: center;
   flex-shrink: 0;
 }
 .add-btn:hover {
   background: var(--ember-soft);
 }
+/* จัดปุ่มลด จำนวน และปุ่มเพิ่มอาหาร */
 .qty {
-  display: flex;
-  align-items: center;
   background: var(--ember);
   border-radius: 999px;
   color: #fff;
@@ -253,19 +239,13 @@
 .qty button {
   width: 34px;
   height: 36px;
-  border: none;
   background: transparent;
-  color: #fff;
-  cursor: pointer;
   font-size: 1.15rem;
-  display: grid;
-  place-items: center;
 }
 .qty span {
   min-width: 18px;
   text-align: center;
   font-weight: 600;
-  font-variant-numeric: tabular-nums;
 }
 .no-result {
   display: none;

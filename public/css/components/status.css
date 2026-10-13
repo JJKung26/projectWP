@@ -1,7 +1,6 @@
 /* สถานะและจำนวน */
+/* จัดป้ายสถานะให้ขนาดและมุมโค้งเหมือนกัน */
 .badge {
-  display: inline-flex;
-  align-items: center;
   gap: 6px;
   padding: 3px 10px;
   border-radius: 999px;
@@ -22,6 +21,7 @@
 .badge.plain::before {
   display: none;
 }
+/* แยกสีป้ายตามสถานะอาหาร */
 .badge-pending {
   background: var(--warn-soft);
   color: var(--warn);
@@ -51,8 +51,8 @@
   color: #fff;
   font-size: 0.78rem;
   font-weight: 600;
-  font-variant-numeric: tabular-nums;
 }
+/* จัดกล่องสรุปจำนวนข้อมูลของแต่ละหน้า */
 .stat-strip {
   display: flex;
   gap: 0;
@@ -73,13 +73,10 @@
   font-size: 0.75rem;
   white-space: nowrap;
   color: var(--ink-3);
-  display: flex;
-  align-items: center;
   gap: 6px;
 }
 .stat-value {
   font-size: 1.35rem;
-  font-variant-numeric: tabular-nums;
 }
 .dot {
   width: 8px;

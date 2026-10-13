@@ -1,15 +1,17 @@
+<%# ฟอร์มเลือกลูกค้าจากคิวเข้าโต๊ะว่าง %>
 <!-- Seat a queue ticket at a free table -->
-<div class="modal-overlay" id="seatQueueModal">
+<dialog class="modal-overlay row" id="seatQueueModal" aria-labelledby="seatQueueModalTitle">
     <div class="modal-content" style="max-width: 420px;">
         <div class="modal-head">
-            <div> <h2>จัดโต๊ะให้คิว <span id="seatQueueNo"></span></h2> <p>ลูกค้า <strong id="seatQueueGuests">-</strong> ท่าน</p> </div>
-            <button type="button" class="icon-btn" onclick="closeModal('seatQueueModal')" aria-label="ปิด">✕</button>
+            <div> <h2 id="seatQueueModalTitle">จัดโต๊ะให้คิว <span id="seatQueueNo"></span></h2> <p>ลูกค้า <strong id="seatQueueGuests">-</strong> ท่าน</p> </div>
+            <button type="button" class="icon-btn plain-button center" onclick="closeModal('seatQueueModal')" aria-label="ปิด">✕</button>
         </div>
-        <form onsubmit="submitSeatQueue(event)">
+        <form onsubmit="submitTable(event, 'seat')">
             <input type="hidden" id="seatQueueTicketId" name="queue_ticket_id">
             <% const availTables=tables.filter(t=> t.table_status === 'AVAILABLE'); %>
+            <%# แสดงโต๊ะว่างให้เลือกก่อนยืนยันจัดโต๊ะ %>
             <fieldset class="form-group seat-table-picker">
-                <legend class="form-label">โต๊ะว่าง <% if (availTables.length > 8) { %><small>เลื่อนดูโต๊ะเพิ่มเติม</small><% } %></legend>
+                <legend class="form-label row">โต๊ะว่าง <% if (availTables.length > 8) { %><small>เลื่อนดูโต๊ะเพิ่มเติม</small><% } %></legend>
                 <div class="seat-table-options" id="seatTableSelect">
                     <% if (availTables.length===0) { %>
                         <p class="seat-table-empty">ไม่มีโต๊ะว่างตอนนี้</p>
@@ -25,9 +27,9 @@
             </fieldset>
             <%- include('../../partials/guest-inputs', { guestPrefix: 'seat', priceId: 'seatBuffetPrice' }) %>
             <div class="modal-actions">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('seatQueueModal')">ยกเลิก</button>
-                <button type="submit" class="btn btn-primary grow" <%= availTables.length === 0 ? 'disabled' : '' %>>เปิดโต๊ะให้คิวนี้</button>
+                <button type="button" class="btn btn-secondary inline-row" onclick="closeModal('seatQueueModal')">ยกเลิก</button>
+                <button type="submit" class="btn btn-primary grow inline-row" <%= availTables.length === 0 ? 'disabled' : '' %>>เปิดโต๊ะให้คิวนี้</button>
             </div>
         </form>
     </div>
-</div>
+</dialog>

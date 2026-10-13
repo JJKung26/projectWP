@@ -1,68 +1,45 @@
+// รับคำขอจากลูกค้าเพื่อเปิดเมนู สั่งอาหาร และดูสถานะ
 const db = require('../database/database');
 const { randomUUID, createHash } = require('crypto');
 const { check, integer, money } = require('../utils/validation');
-const emit = require('../utils/events');
 const { menuContent } = require('../utils/menu');
 const { groupOrderItems } = require('../utils/order-rounds');
 
 // ตรวจ QR แล้วเปิดหน้าเมนู
-exports.landingQr = async function (req, res) {
+async function landingQr(req, res) {
   const { token } = req.params;
   const session = await db.get(
     "SELECT session_id FROM DiningSession WHERE qr_token = ? AND session_status = 'ACTIVE'",
     [token]
   );
   if (!session) {
-    return res
-      .status(400)
-      .render('error', {
-        message: 'QR Code นี้ไม่ถูกต้องหรือรอบการใช้บริการปิดไปแล้ว กรุณาติดต่อพนักงาน'
-      });
+    return res.status(400).render('error', {
+      message: 'QR Code นี้ไม่ถูกต้องหรือรอบการใช้บริการปิดไปแล้ว กรุณาติดต่อพนักงาน'
+    });
   }
   res.cookie('qr_token', token, { maxAge: 4 * 60 * 60 * 1000 });
   res.redirect(`/menu?token=${token}`);
-};
+}
 
-// Customer Menu Page
-exports.getMenu = async function (req, res) {
+// แสดงเมนู
+async function getMenu(req, res) {
   const session = req.diningSession;
-  res.render('customer/menu', {
-    session,
-    ...(await menuContent()),
-    token: req.qrToken,
-    title: `เมนูอาหาร - โต๊ะ ${session.table_no}`
-  });
-};
+  const data = await menuContent();
+  data.session = session;
+  data.token = req.qrToken;
+  data.title = 'เมนูอาหาร - โต๊ะ ' + session.table_no;
+  res.render('customer/menu', data);
+}
 
-// Place Order (Cart Submission)
-exports.placeOrder = async function (req, res) {
+// ตรวจรายการ แล้วบันทึกออเดอร์ทั้งชุด
+async function placeOrder(req, res) {
   const { items, request_key } = req.body;
-  check(
-    Array.isArray(items) && items.length > 0 && items.length <= 100,
-    400,
-    'ต้องมีอาหาร 1–100 รายการ'
-  );
-  check(
-    typeof request_key === 'string' && /^[a-zA-Z0-9-]{16,100}$/.test(request_key),
-    400,
-    'กรุณาระบุรหัสคำขอ'
-  );
-  const quantities = [];
-  for (const item of items) {
-    check(item && typeof item.menu_item_id === 'string', 400, 'รายการอาหารไม่ถูกต้องหรือซ้ำ');
-    check(
-      !quantities.some((row) => row[0] === item.menu_item_id),
-      400,
-      'รายการอาหารไม่ถูกต้องหรือซ้ำ'
-    );
-    const quantity = integer(item.quantity, 20, 'จำนวนอาหาร');
-    quantities.push([item.menu_item_id, quantity]);
-  }
-  // เรียงรายการก่อนสร้างรหัส เพื่อให้ตรวจคำขอเดิมได้แม้ส่งคนละลำดับ
-  const sorted = [...quantities].sort((a, b) => a[0].localeCompare(b[0]));
+  const quantities = checkOrder(items, request_key);
+  const sorted = quantities.slice().sort((first, second) => first[0].localeCompare(second[0]));
   const hash = createHash('sha256').update(JSON.stringify(sorted)).digest('hex');
-  const result = await db.transaction(async (tx) => {
-    const sessionId = req.diningSession.session_id;
+  const sessionId = req.diningSession.session_id;
+  const result = await db.transaction(async function (tx) {
+    // คำขอซ้ำคืนออเดอร์เดิม
     const old = await tx.get('SELECT * FROM FoodOrder WHERE session_id = ? AND request_key = ?', [
       sessionId,
       request_key
@@ -77,37 +54,57 @@ exports.placeOrder = async function (req, res) {
       'SELECT COALESCE(MAX(round_no),0) n FROM FoodOrder WHERE session_id = ?',
       [sessionId]
     );
-    const id = randomUUID();
-    await tx.run(
-      'INSERT INTO FoodOrder(order_id,session_id,request_key,request_hash,round_no) VALUES(?,?,?,?,?)',
-      [id, sessionId, request_key, hash, last.n + 1]
-    );
-    // หากรายการใดไม่ผ่าน transaction จะยกเลิกทั้งออเดอร์
+    const orderId = randomUUID();
+    await tx.insert('FoodOrder', {
+      order_id: orderId,
+      session_id: sessionId,
+      request_key,
+      request_hash: hash,
+      round_no: last.n + 1
+    });
+    // บันทึกอาหารทีละรายการ; หากผิดพลาดจะยกเลิกทั้งออเดอร์
     for (const [menuId, quantity] of quantities) {
       const menu = await tx.get('SELECT * FROM MenuItem WHERE menu_item_id = ?', [menuId]);
       check(menu && menu.is_active === 1, 404, 'ไม่พบเมนู');
       check(menu.availability === 1, 409, 'เมนู ' + menu.item_name + ' หมดชั่วคราว');
       money(menu.unit_price);
-      await tx.run(
-        `INSERT INTO OrderItem(order_item_id,order_id,menu_item_id,quantity,unit_price_at_order,item_name_at_order,charge_type_at_order)
-                VALUES(?,?,?,?,?,?,?)`,
-        [randomUUID(), id, menuId, quantity, menu.unit_price, menu.item_name, menu.charge_type]
-      );
+      await tx.insert('OrderItem', {
+        order_item_id: randomUUID(),
+        order_id: orderId,
+        menu_item_id: menuId,
+        quantity,
+        unit_price_at_order: menu.unit_price,
+        item_name_at_order: menu.item_name,
+        charge_type_at_order: menu.charge_type
+      });
     }
-    return { order_id: id };
+    return { order_id: orderId };
   });
-  if (!result.replay) {
-    emit(req, 'new-order', {
-      order_id: result.order_id,
-      session_id: req.diningSession.session_id,
-      table_no: req.diningSession.table_no
-    });
-  }
   res.json({ success: true, ...result });
-};
+}
 
-// Customer Order Status Page
-exports.getOrderStatus = async function (req, res) {
+// ตรวจอาหารและจำนวนก่อนเริ่มบันทึก
+function checkOrder(items, requestKey) {
+  const validItems = Array.isArray(items) && items.length > 0 && items.length <= 100;
+  check(validItems, 400, 'ต้องมีอาหาร 1–100 รายการ');
+  check(
+    typeof requestKey === 'string' && /^[a-zA-Z0-9-]{16,100}$/.test(requestKey),
+    400,
+    'กรุณาระบุรหัสคำขอ'
+  );
+  const quantities = [];
+  const menuIds = [];
+  for (const item of items) {
+    const validItem = item && typeof item.menu_item_id === 'string';
+    check(validItem && !menuIds.includes(item.menu_item_id), 400, 'รายการอาหารไม่ถูกต้องหรือซ้ำ');
+    menuIds.push(item.menu_item_id);
+    quantities.push([item.menu_item_id, integer(item.quantity, 20, 'จำนวนอาหาร')]);
+  }
+  return quantities;
+}
+
+// แสดงสถานะ แยกตามรอบที่สั่ง
+async function getOrderStatus(req, res) {
   const session = req.diningSession;
   const orders = await db.query(
     `SELECT oi.*, oi.item_name_at_order AS item_name, mi.image_url, fo.ordered_at, fo.round_no
@@ -127,11 +124,19 @@ exports.getOrderStatus = async function (req, res) {
     token: req.qrToken,
     title: `สถานะออเดอร์ - โต๊ะ ${session.table_no}`
   });
-};
+}
 
-exports.getMenuData = async function (req, res) {
+// ส่งสถานะของหมดและออเดอร์ล่าสุดให้หน้าเมนู
+async function getMenuData(req, res) {
+  const latest = await db.get(
+    'SELECT order_id FROM FoodOrder WHERE session_id = ? ORDER BY round_no DESC LIMIT 1',
+    [req.diningSession.session_id]
+  );
   res.json({
     success: true,
+    latestOrder: latest?.order_id || null,
     menuItems: await db.query('SELECT menu_item_id,availability FROM MenuItem WHERE is_active = 1')
   });
-};
+}
+
+module.exports = { landingQr, getMenu, placeOrder, getOrderStatus, getMenuData };

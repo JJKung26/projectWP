@@ -1,0 +1,53 @@
+<%# เนื้อหาใบ QR เช่น เลขโต๊ะ เวลา จำนวนลูกค้า และยอดบุฟเฟ่ %>
+<%
+  let start, end;
+  if (slip) {
+    start = new Date(slip.started_at.replace(' ', 'T') + 'Z');
+    end = new Date(start.getTime() + 120 * 60000);
+  }
+  function date(value) {
+    return value.toLocaleDateString('th-TH', { timeZone: 'Asia/Bangkok' });
+  }
+  function time(value) {
+    return value.toLocaleTimeString('th-TH', {
+      timeZone: 'Asia/Bangkok', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+    });
+  }
+  function amount(value) {
+    return Number(value).toLocaleString('th-TH', {
+      minimumFractionDigits: 2, maximumFractionDigits: 2
+    });
+  }
+%>
+            <div class="slip-header">
+                <%- include('../../partials/shop-logo', { logoClass: 'order-slip-logo' }) %>
+                <div class="slip-title">ร้านหมูกระทะ บุฟเฟต์</div>
+                <div class="slip-subtitle">ใบ QR สำหรับสั่งอาหาร</div>
+                <h2 class="order-slip-table" tabindex="-1" data-dialog-focus autofocus>หมายเลขโต๊ะ: <span id="slipTableNo"><%= slip ? slip.table_no : '-' %></span></h2>
+            </div>
+            <div class="order-slip-meta">
+                <div class="slip-row"><span>จำนวนลูกค้า: <span id="slipGuestCount"><%= slip ? slip.guest_count : '-' %></span> ท่าน</span><span id="slipStartedAt"><%= slip ? date(start) : '-' %></span></div>
+                <div class="slip-row"><span>ระยะเวลา: 2 ชั่วโมง</span><span>รอบ: <span id="slipSessionId"><%= slip ? slip.session_id.slice(0, 8).toUpperCase() : '-' %></span></span></div>
+            </div>
+            <div class="order-slip-time digits">เริ่มเวลา: <strong id="slipStartTime"><%= slip ? time(start) : '--:--' %></strong></div>
+            <div class="slip-qr-box">
+                <img id="slipQrImg" class="slip-qr-img" src="<%= slip ? slip.qr_image : '' %>" alt="QR Code สั่งอาหาร">
+                <div class="slip-qr-caption">สแกน QR Code เพื่อสั่งอาหาร</div>
+                <div class="slip-url" id="slipUrlText"><%= slip ? slip.customer_url : '-' %></div>
+            </div>
+            <div class="order-slip-time digits">หมดเวลา: <strong id="slipEndTime"><%= slip ? time(end) : '--:--' %></strong></div>
+            <div class="order-slip-end-date" id="slipEndDate"><%= slip && date(start) !== date(end) ? 'หมดเวลาในวันที่ ' + date(end) : '' %></div>
+            <div class="slip-details column">
+                <div class="slip-row"><span>ผู้ใหญ่ <span id="slipAdultCount"><%= slip ? slip.guest_count - (slip.child_count || 0) - (slip.free_child_count || 0) : '-' %></span> ท่าน</span><strong><span id="slipBuffetPrice"><%= slip ? slip.buffet_price : 279 %></span> บาท/ท่าน</strong></div>
+                <div class="slip-row" id="slipChildRow"<% if (slip && !slip.child_count) { %> hidden<% } %>><span>เด็ก 90–120 ซม. <span id="slipChildCount"><%= slip ? slip.child_count || 0 : 0 %></span> ท่าน</span><strong><span id="slipChildPrice"><%= slip ? slip.child_price ?? 179 : 179 %></span> บาท/ท่าน</strong></div>
+                <div class="slip-row" id="slipFreeChildRow"<% if (slip && !slip.free_child_count) { %> hidden<% } %>><span>เด็กต่ำกว่า 90 ซม. <span id="slipFreeChildCount"><%= slip ? slip.free_child_count || 0 : 0 %></span> ท่าน</span><strong>ทานฟรี</strong></div>
+                <div class="slip-row"><span>ยอดบุฟเฟต์ (Subtotal)</span><strong><span id="slipEstTotal"><%= slip ? amount(slip.buffet_totals.subtotal) : '-' %></span> บาท</strong></div>
+                <div class="slip-row"><span>VAT 7%</span><strong><span id="slipVat"><%= slip ? amount(slip.buffet_totals.taxAmount) : '-' %></span> บาท</strong></div>
+                <div class="slip-row"><span>ปัดเศษลง</span><span><span id="slipRounding"><%= slip ? amount(slip.buffet_totals.roundingAmount) : '-' %></span> บาท</span></div>
+                <div class="slip-row total"><span>ยอดรวม (รวม VAT)</span><strong><span id="slipGrandTotal"><%= slip ? amount(slip.buffet_totals.netAmount) : '-' %></span> บาท</strong></div>
+            </div>
+            <div class="slip-footer">
+                <div>ยอดนี้รวม VAT 7% แล้ว ไม่รวมรายการที่คิดเพิ่ม</div>
+                <div>กรุณานำใบนี้ไปชำระเงินที่แคชเชียร์</div>
+                <div class="order-slip-note">ใบนี้ไม่ใช่หลักฐานการชำระเงิน</div>
+            </div>

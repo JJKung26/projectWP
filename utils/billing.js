@@ -1,6 +1,8 @@
+// คำนวณค่าบุฟเฟ่ อาหารเพิ่ม ภาษี และยอดสุทธิ
 const db = require('../database/database');
 const { money } = require('./validation');
 
+// รวมราคา คิด VAT 7% และปัดยอดสุทธิลงเป็นบาท
 function totals(session, items) {
   const children = session.child_count || 0;
   const adults = session.guest_count - children - (session.free_child_count || 0);
@@ -8,9 +10,8 @@ function totals(session, items) {
     adults * money(session.buffet_price) + children * money(session.child_price ?? 179);
   let extra = 0;
   for (const item of items) {
-    if (item.charge_type === 'ALACARTE') {
-      extra += item.quantity * money(item.unit_price_at_order);
-    }
+    if (item.charge_type !== 'ALACARTE') continue;
+    extra += item.quantity * money(item.unit_price_at_order);
   }
   const subtotal = buffet + extra;
   const tax = Math.round((subtotal * 7) / 100);
@@ -27,6 +28,7 @@ function totals(session, items) {
   };
 }
 
+// อ่านอาหารของรอบบริการ โดยไม่รวมรายการยกเลิก
 function itemsFor(sessionId, connection = db) {
   return connection.query(
     `SELECT oi.*, oi.item_name_at_order AS item_name,

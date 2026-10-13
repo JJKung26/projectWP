@@ -1,3 +1,5 @@
+// หา URL ที่มือถือใช้เปิด QR สั่งอาหารได้
+// สร้างข้อความผิดพลาดเมื่อ URL ใช้งานไม่ได้
 function urlError(message) {
   const error = new Error(message);
   error.status = 503;
@@ -5,6 +7,7 @@ function urlError(message) {
   throw error;
 }
 
+// เลือก URL จากค่าที่ตั้งไว้ หรือจากที่อยู่ที่ใช้เปิดเว็บ
 function getPublicUrl(req) {
   if (process.env.PUBLIC_URL) {
     let url;
@@ -21,15 +24,9 @@ function getPublicUrl(req) {
     }
     return url.origin;
   }
-  if (req) {
-    const host = req.hostname;
-    if (!['localhost', '127.0.0.1', '::1'].includes(host)) {
-      return req.protocol + '://' + req.get('host');
-    }
-    urlError(
-      'กรุณาเปิด Cloudflare ด้วย npm start หรือตั้ง PUBLIC_URL เป็น IP บน Wi-Fi ก่อนเปิดโต๊ะ'
-    );
+  if (!['localhost', '127.0.0.1', '::1'].includes(req.hostname)) {
+    return req.protocol + '://' + req.get('host');
   }
-  return `http://localhost:${process.env.PORT || 3000}`;
+  urlError('กรุณาเปิด Cloudflare ด้วย npm start หรือตั้ง PUBLIC_URL เป็น IP บน Wi-Fi ก่อนเปิดโต๊ะ');
 }
 module.exports = { getPublicUrl };

@@ -1,16 +1,14 @@
+// ควบคุมหน้าครัวและปุ่มปรับสถานะของหมด
 // ครัวและสต็อก
-const socket = io({ auth: { role: 'KITCHEN' } });
+function restoreStockTab() {
+  if (location.hash === '#stock') showTab('stockTab');
+}
 const refreshLive = liveRegion(
-  socket,
   ['#ordersTab', '#stockTab', '.stat-strip', '.tabs'],
-  ['new-order', 'order-status-changed', 'stock-updated', 'session-closed'],
-  () => {
-    if (location.hash === '#stock') {
-      showTab('stockTab');
-    }
-  }
+  restoreStockTab
 );
 
+// สลับหน้ารายการอาหารกับหน้าสต็อก
 function showTab(tabId) {
   byId('ordersTab').style.display = tabId === 'ordersTab' ? 'block' : 'none';
   byId('stockTab').style.display = tabId === 'stockTab' ? 'block' : 'none';
@@ -18,29 +16,26 @@ function showTab(tabId) {
   byId('btnStockTab').classList.toggle('active', tabId === 'stockTab');
   location.hash = tabId === 'stockTab' ? 'stock' : '';
 }
-// Stay on the stock tab after a toggle reloads the page
-if (location.hash === '#stock') {
-  showTab('stockTab');
-}
+if (location.hash === '#stock') showTab('stockTab');
 
+// ส่งคำสั่งเปลี่ยนสถานะอาหารทั้งรอบ
 function updateRoundStatus(order_id, status) {
   return sendStaffAction('/kitchen/update-status', { order_id, status }, refreshLive);
 }
 
+// ส่งคำสั่งเปลี่ยนสถานะอาหารหนึ่งรายการ
 function updateStatus(order_item_id, status) {
   return sendStaffAction('/kitchen/update-status', { order_item_id, status }, refreshLive);
 }
 
+// ยืนยันยกเลิกอาหารโดยไม่เปลี่ยนสถานะของหมด
 function cancelGeneral(id) {
-  if (confirm('ยกเลิกรายการนี้หรือไม่?')) {
-    updateStatus(id, 'CANCELLED');
-  }
+  if (confirm('ยกเลิกรายการนี้หรือไม่?')) updateStatus(id, 'CANCELLED');
 }
 
+// ยกเลิกอาหารและแจ้งเมนูนี้ว่าของหมด
 function cancelItem(order_item_id) {
-  if (!confirm('ยืนยันแจ้งวัตถุดิบหมดและยกเลิกรายการนี้หรือไม่?')) {
-    return;
-  }
+  if (!confirm('ยืนยันแจ้งวัตถุดิบหมดและยกเลิกรายการนี้หรือไม่?')) return;
   return sendStaffAction(
     '/kitchen/update-status',
     { order_item_id, status: 'CANCELLED', cancel_reason: 'วัตถุดิบหมด', out_of_stock: true },
@@ -48,6 +43,7 @@ function cancelItem(order_item_id) {
   );
 }
 
+// ส่งสถานะมีของหรือของหมดของเมนูที่เลือก
 function toggleStock(menu_item_id, availability) {
   return sendStaffAction(
     '/kitchen/toggle-stock',

@@ -1,9 +1,56 @@
+/* จัดแถว คอลัมน์ และกึ่งกลาง ใช้ร่วมกันทุกหน้า */
+/* จัดองค์ประกอบเป็นแถวและกึ่งกลางแนวตั้ง */
+.row {
+  display: flex;
+  align-items: center;
+}
+/* จัดเป็นแถวโดยใช้พื้นที่เท่าที่จำเป็น */
+.inline-row {
+  display: inline-flex;
+  align-items: center;
+}
+/* จัดองค์ประกอบเรียงลงมา */
+.column {
+  display: flex;
+  flex-direction: column;
+}
+/* ดันองค์ประกอบไปคนละขอบ */
+.between {
+  justify-content: space-between;
+}
+/* จัดกึ่งกลางทั้งแนวนอนและแนวตั้ง */
+.center {
+  display: grid;
+  place-items: center;
+}
+/* เอาขอบปุ่มเริ่มต้นออกและใช้เคอร์เซอร์รูปมือ */
+.plain-button {
+  border: none;
+  cursor: pointer;
+}
+/* สร้างกล่องพื้นขาว ขอบบาง และมุมโค้ง */
+.box,
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+}
+/* กำหนดฟอนต์และความหนาของตัวเลข */
+.number {
+  font-family: var(--font-body);
+  font-weight: 600;
+}
+/* ให้ตัวเลขแต่ละหลักมีความกว้างเท่ากัน */
+.digits {
+  font-variant-numeric: tabular-nums;
+}
 /* การจัดหน้า */
 .container {
   max-width: 1200px;
   margin: 28px auto;
   padding: 0 20px;
 }
+/* จัดหัวข้อหน้าและกลุ่มปุ่มให้เรียงและตัดบรรทัดได้ */
 .page-head {
   display: flex;
   justify-content: space-between;
@@ -28,12 +75,10 @@
   margin-bottom: 4px;
 }
 .card {
-  background: var(--surface);
-  border-radius: var(--r-md);
   padding: 20px;
-  border: 1px solid var(--line);
   margin-bottom: 20px;
 }
+/* จัดข้อความเมื่อยังไม่มีรายการ */
 .empty {
   text-align: center;
   padding: 56px 20px;
@@ -50,7 +95,5 @@
   margin: 0 auto 14px;
   border-radius: 50%;
   background: var(--muted-soft);
-  display: grid;
-  place-items: center;
   color: var(--ink-3);
 }

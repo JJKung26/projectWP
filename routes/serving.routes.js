@@ -1,5 +1,8 @@
+// กำหนด URL แล้วส่งคำขอไปยัง controller
 const router = require('express').Router();
-const servingController = require('../controllers/serving.controller');
-router.get('/serving', servingController.getDashboard);
-router.post('/serving/confirm-served', servingController.confirmServed);
+const serving = require('../controllers/serving.controller');
+// แสดงอาหารที่พร้อมเสิร์ฟ (GET)
+router.get('/serving', serving.getDashboard);
+// รับการยืนยันเสิร์ฟอาหาร (POST)
+router.post('/serving/confirm-served', serving.confirmServed);
 module.exports = router;

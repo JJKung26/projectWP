@@ -1,16 +1,9 @@
 /* รอบอาหารลูกค้า */
 .cust-round-card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
   margin-top: 14px;
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
 }
+/* จัดหัวรอบออเดอร์และปุ่มเปิดรายการ */
 .cust-round-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   padding: 12px 14px;
   background: var(--surface-2);
   border-bottom: 1px solid var(--line);
@@ -18,12 +11,10 @@
   user-select: none;
 }
 .cust-round-title {
-  display: flex;
-  align-items: center;
   gap: 10px;
 }
+/* จัดป้ายหมายเลขรอบที่สั่ง */
 .cust-round-badge {
-  font-family: var(--font-body);
   font-weight: 600;
   font-size: 0.85rem;
   background: var(--ember);
@@ -34,33 +25,15 @@
 .cust-round-time {
   font-size: 0.82rem;
   color: var(--ink-3);
-  font-variant-numeric: tabular-nums;
 }
 .cust-round-meta {
-  display: flex;
-  align-items: center;
   gap: 8px;
 }
+/* จัดปุ่มเปิดและซ่อนอาหารในรอบ */
 .cust-dropdown-btn {
   background: transparent;
-  border: none;
   padding: 4px;
-  display: flex;
-  align-items: center;
   color: var(--ink-3);
-  cursor: pointer;
   font-size: 0.85rem;
   gap: 4px;
-}
-.cust-dropdown-btn .chevron-icon {
-  transition: transform 0.2s ease;
-}
-.cust-dropdown-btn.collapsed .chevron-icon {
-  transform: rotate(-90deg);
-}
-.cust-round-dropdown {
-  display: none;
-}
-.cust-round-dropdown.open {
-  display: block;
 }

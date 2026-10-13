@@ -1,3 +1,4 @@
+<%# แสดงจำนวนอาหารแต่ละสถานะและรายการแยกตามรอบที่สั่ง %>
 <%
     const statusInfo = {
         PENDING:   { cls: 'badge-pending',   label: 'รอคิวครัว' },
@@ -17,79 +18,82 @@
     <meta name="theme-color" content="#ffffff">
     <title>ออเดอร์ · โต๊ะ <%= session.table_no %></title>
     <%- include('../partials/styles') %>
-    <script src="/socket.io/socket.io.js"></script><script src="/js/ui.js"></script><script src="/js/live.js"></script>
+    <script src="/js/ui.js"></script><script src="/js/live.js"></script>
 </head>
 <body class="cust" style="background: var(--paper);">
-    <header class="app-bar">
-        <a class="icon-btn" href="/menu?token=<%= token %>" aria-label="กลับไปเมนู">
+    <header class="app-bar row">
+        <a class="icon-btn plain-button center" href="/menu?token=<%= token %>" aria-label="กลับไปเมนู">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
         </a>
         <h1>ออเดอร์ของโต๊ะ <%= session.table_no %></h1>
         <span class="muted" style="font-size: 0.85rem; padding-right: 8px;"><%= session.guest_count %> ท่าน</span>
     </header>
+    <%# แสดงข้อความเมื่อยังไม่มีออเดอร์ หรือแสดงรายการที่สั่ง %>
     <main class="cust-wrap cust-shell">
         <% if (orders.length === 0) { %>
             <div class="empty">
-                <div class="empty-icon">
+                <div class="empty-icon center">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2"/></svg>
                 </div>
                 <h3>ยังไม่ได้สั่งอะไรเลย</h3>
                 <p>เลือกเมนูแล้วกดส่งเข้าครัว สถานะจะอัปเดตที่หน้านี้เอง</p>
-                <a href="/menu?token=<%= token %>" class="btn btn-primary" style="margin-top: 18px;">ไปเลือกเมนู</a>
+                <a href="/menu?token=<%= token %>" class="btn btn-primary inline-row" style="margin-top: 18px;">ไปเลือกเมนู</a>
             </div>
         <% } else { %>
+            <%# แสดงจำนวนอาหารรอทำ กำลังทำ พร้อมเสิร์ฟ และเสิร์ฟแล้ว %>
             <div class="status-summary">
-                <div><b><%= summary.PENDING %></b><small>รอคิว</small></div>
-                <div><b><%= summary.COOKING %></b><small>กำลังเตรียม</small></div>
-                <div><b><%= summary.READY %></b><small>กำลังมา</small></div>
-                <div><b><%= summary.SERVED %></b><small>เสิร์ฟแล้ว</small></div>
+                <div class="box"><b class="number digits"><%= summary.PENDING %></b><small>รอคิว</small></div>
+                <div class="box"><b class="number digits"><%= summary.COOKING %></b><small>กำลังเตรียม</small></div>
+                <div class="box"><b class="number digits"><%= summary.READY %></b><small>กำลังมา</small></div>
+                <div class="box"><b class="number digits"><%= summary.SERVED %></b><small>เสิร์ฟแล้ว</small></div>
             </div>
             <% 
-                // แสดงรอบล่าสุดก่อน และนับสถานะแต่ละรอบครั้งเดียว
+                // แสดงรอบล่าสุดก่อน แล้วดูสถานะอาหารที่ยังไม่ถูกยกเลิก
                 for (let idx = groups.length - 1; idx >= 0; idx--) {
                     const g = groups[idx];
                     const isLatest = idx === groups.length - 1;
-                    const counts = { PENDING: 0, COOKING: 0, READY: 0, SERVED: 0, CANCELLED: 0 };
-                    for (const item of g.items) counts[item.item_status]++;
+                    const states = g.items.filter(item => item.item_status !== 'CANCELLED')
+                        .map(item => item.item_status);
                     let state = 'PENDING';
-                    if (counts.SERVED > 0 && counts.SERVED + counts.CANCELLED === g.items.length) state = 'SERVED';
-                    else if (counts.READY > 0) state = 'READY';
-                    else if (counts.COOKING > 0) state = 'COOKING';
-                    else if (counts.CANCELLED === g.items.length) state = 'CANCELLED';
+                    if (states.length === 0) state = 'CANCELLED';
+                    else if (states.every(status => status === 'SERVED')) state = 'SERVED';
+                    else if (states.includes('READY')) state = 'READY';
+                    else if (states.includes('COOKING')) state = 'COOKING';
                     const roundBadgeCls = statusInfo[state].cls;
                     const roundBadgeLabel = statusInfo[state].roundLabel || statusInfo[state].label;
             %>
-                <div class="cust-round-card">
-                    <div class="cust-round-header" onclick="toggleCustDropdown('<%= g.order_id %>')">
-                        <div class="cust-round-title">
+                <%# แสดงอาหารและสถานะในแต่ละรอบ %>
+                <div class="cust-round-card box">
+                    <div class="cust-round-header row between" onclick="toggleCustDropdown('<%= g.order_id %>')">
+                        <div class="cust-round-title row">
                             <span class="cust-round-badge">รอบที่ <%= g.roundNum %></span>
-                            <span class="cust-round-time">สั่งเมื่อ <%= thaiTime(g.ordered_at) %> น.</span>
+                            <span class="cust-round-time digits">สั่งเมื่อ <%= thaiTime(g.ordered_at) %> น.</span>
                         </div>
-                        <div class="cust-round-meta">
-                            <span class="badge <%= roundBadgeCls %>"><%= roundBadgeLabel %></span>
-                            <button class="cust-dropdown-btn<%= isLatest ? '' : ' collapsed' %>" id="cust-btn-<%= g.order_id %>" type="button" aria-label="แสดง/ซ่อนรายการ">
+                        <div class="cust-round-meta row">
+                            <span class="badge <%= roundBadgeCls %> inline-row"><%= roundBadgeLabel %></span>
+                            <button class="cust-dropdown-btn<%= isLatest ? '' : ' collapsed' %> row plain-button" id="cust-btn-<%= g.order_id %>" type="button" aria-label="แสดง/ซ่อนรายการ">
                                 <span class="muted" style="font-size: 0.8rem;"><%= g.items.length %> รายการ</span>
                                 <svg class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
                             </button>
                         </div>
                     </div>
                     <div class="cust-round-dropdown<%= isLatest ? ' open' : '' %>" id="cust-dropdown-<%= g.order_id %>">
-                        <div class="order-list">
+                        <div class="order-list box">
                             <% for (const item of g.items) { const st = statusInfo[item.item_status] || statusInfo.PENDING; %>
-                                <div class="order-line<%= item.item_status === 'CANCELLED' ? ' cancelled' : '' %>">
+                                <div class="order-line<%= item.item_status === 'CANCELLED' ? ' cancelled' : '' %> row">
                                     <img src="<%= item.image_url %>" alt="" onerror="this.style.visibility='hidden'">
                                     <div class="nm">
                                         <%= item.item_name %>
                                         <small>× <%= item.quantity %><% if (item.item_status === 'CANCELLED') { %> · <%= item.cancel_reason || 'วัตถุดิบหมด' %><% } %></small>
                                     </div>
-                                    <span class="badge <%= st.cls %>"><%= st.label %></span>
+                                    <span class="badge <%= st.cls %> inline-row"><%= st.label %></span>
                                 </div>
                             <% } %>
                         </div>
                     </div>
                 </div>
             <% } %>
-            <a href="/menu?token=<%= token %>" class="btn btn-secondary btn-block" style="margin-top: 22px;">สั่งอาหารเพิ่ม</a>
+            <a href="/menu?token=<%= token %>" class="btn btn-secondary btn-block inline-row" style="margin-top: 22px;">สั่งอาหารเพิ่ม</a>
         <% } %>
     </main>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>

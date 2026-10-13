@@ -1,14 +1,15 @@
+<%# ใบพิมพ์เลขคิว เวลา จำนวนลูกค้า และจำนวนคิวข้างหน้า %>
 <!-- Queue ticket slip -->
-<div class="modal-overlay" id="queueSlipModal">
+<dialog class="modal-overlay row" id="queueSlipModal" aria-label="บัตรคิว">
     <div class="modal-content" style="max-width: 380px;">
         <div class="receipt-slip print-target" id="queueSlipPrintArea">
             <div class="slip-header">
                 <%- include('../../partials/shop-logo', { logoClass: 'order-slip-logo' }) %>
                 <div class="slip-title">หมูกระทะ บุฟเฟต์</div>
                 <div class="slip-subtitle">บัตรคิว</div>
-                <div class="slip-table-badge" id="qsQueueNo" style="font-size: 3rem;">-</div>
+                <div class="slip-table-badge number" id="qsQueueNo" style="font-size: 3rem;">-</div>
             </div>
-            <div class="slip-details">
+            <div class="slip-details column">
                 <div class="slip-row"><span>วันที่</span><strong id="qsDate">-</strong></div>
                 <div class="slip-row"><span>เวลาออกคิว</span><strong id="qsTime">-</strong></div>
                 <div class="slip-row"><span>จำนวนลูกค้า</span><strong><span id="qsGuests">-</span> ท่าน</strong></div>
@@ -18,8 +19,8 @@
         </div>
         <div class="no-print modal-actions">
             <%- include('../../partials/paper', { paperId: 'queue-paper', defaultPaper: '80' }) %>
-            <button class="btn btn-secondary" onclick="printSlip()">พิมพ์</button>
-            <button class="btn btn-dark grow" onclick="closeModal('queueSlipModal')">เสร็จ</button>
+            <button class="btn btn-secondary inline-row" onclick="printSlip()">พิมพ์</button>
+            <button class="btn btn-dark grow inline-row" onclick="closeModal('queueSlipModal')">เสร็จ</button>
         </div>
     </div>
-</div>
+</dialog>

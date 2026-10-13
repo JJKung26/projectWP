@@ -1,33 +1,29 @@
+// ตั้งค่าเว็บ เชื่อมฐานข้อมูล และเปิดเซิร์ฟเวอร์
 const express = require('express');
 const http = require('http');
 const path = require('path');
 const cookieParser = require('cookie-parser');
-const { Server } = require('socket.io');
 const { getSessionSecret } = require('./utils/session-secret');
 const { thaiDate, thaiTime } = require('./utils/datetime');
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
-// Store io in app context
-app.set('socketio', io);
-Object.assign(app.locals, { thaiDate, thaiTime });
-// View engine setup
+// ตั้งค่าเว็บ
+app.locals.thaiDate = thaiDate;
+app.locals.thaiTime = thaiTime;
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 const SESSION_SECRET = getSessionSecret();
-// Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use((req, res, next) => {
-  req.body ??= {};
+  if (!req.body) req.body = {};
   next();
 });
 app.use(cookieParser(SESSION_SECRET));
 app.use(express.static(path.join(__dirname, 'public')));
-// Initialize Database connection & tables
 const db = require('./database/database');
-// Import Routes
-const { requireRole, resolveStaff, ROLES, HOME_BY_ROLE } = require('./middlewares/auth.middleware');
+// เส้นทางและสิทธิ์เข้าใช้งาน
+const { requireRole, HOME_BY_ROLE } = require('./middlewares/auth.middleware');
 const { requireDiningSession } = require('./middlewares/customer.middleware');
 const { notFound, errorHandler } = require('./middlewares/error.middleware');
 const PORT = process.env.PORT || 3000;
@@ -46,46 +42,6 @@ app.get('/', (req, res) => res.redirect('/login'));
 // ต้องอยู่ท้ายสุดหลัง route ทั้งหมด
 app.use(notFound);
 app.use(errorHandler);
-// ยืนยันสิทธิ์ก่อนให้ Socket เข้าห้องบทบาทหรือโต๊ะ
-io.use(async (socket, next) => {
-  try {
-    const req = socket.request;
-    cookieParser(SESSION_SECRET)(req, {}, () => {});
-    const { role, token } = socket.handshake.auth;
-    if (token !== undefined && typeof token !== 'string') {
-      return next(new Error('QR ไม่ถูกต้อง'));
-    }
-    if (role) {
-      if (!ROLES.includes(role)) {
-        return next(new Error('ไม่มีสิทธิ์'));
-      }
-      const staff = await resolveStaff(req, role);
-      if (!staff) {
-        return next(new Error('กรุณาเข้าสู่ระบบ'));
-      }
-      socket.data.room = 'staff:' + role;
-    } else {
-      const session = await db.get(
-        "SELECT session_id FROM DiningSession WHERE qr_token = ? AND session_status = 'ACTIVE'",
-        [token || '']
-      );
-      if (!session) {
-        return next(new Error('รอบบริการปิดแล้วหรือ QR ไม่ถูกต้อง'));
-      }
-      socket.data.room = 'session:' + session.session_id;
-      socket.data.customer = true;
-    }
-    next();
-  } catch (err) {
-    next(err);
-  }
-});
-io.on('connection', (socket) => {
-  socket.join(socket.data.room);
-  if (socket.data.customer) {
-    socket.join('customers');
-  }
-});
 server.on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
     console.error(
@@ -97,6 +53,7 @@ server.on('error', (err) => {
   }
 });
 
+// รอฐานข้อมูลพร้อม แล้วเปิดเว็บและแสดงลิงก์เข้าใช้งาน
 async function start(port = PORT) {
   await db.ready;
   return server.listen(port, '0.0.0.0', () => {
@@ -123,4 +80,4 @@ if (require.main === module) {
     db.db.close();
   });
 }
-module.exports = { app, server, io, start };
+module.exports = { app, server, start };

@@ -1,7 +1,9 @@
+-- สร้างตารางและกำหนดความสัมพันธ์ของข้อมูล
 -- Foreign Key Enforcement for SQLite
 PRAGMA foreign_keys = ON;
 
 -- 1. Employee
+-- เก็บบัญชีพนักงาน รหัสผ่านที่เข้ารหัส และหน้าที่
 CREATE TABLE IF NOT EXISTS Employee (
     employee_id   TEXT PRIMARY KEY,
     username      TEXT UNIQUE NOT NULL,
@@ -11,6 +13,7 @@ CREATE TABLE IF NOT EXISTS Employee (
 );
 
 -- 2. DiningTable (50 tables)
+-- เก็บหมายเลขโต๊ะ ความจุ และสถานะว่างหรือมีลูกค้า
 CREATE TABLE IF NOT EXISTS DiningTable (
     table_id TEXT PRIMARY KEY,
     table_no TEXT UNIQUE NOT NULL,
@@ -19,6 +22,7 @@ CREATE TABLE IF NOT EXISTS DiningTable (
 );
 
 -- 3. QueueTicket
+-- เก็บบัตรคิว วันที่ จำนวนลูกค้า และสถานะคิว
 CREATE TABLE IF NOT EXISTS QueueTicket (
     queue_ticket_id TEXT PRIMARY KEY,
     queue_no TEXT NOT NULL,
@@ -28,6 +32,7 @@ CREATE TABLE IF NOT EXISTS QueueTicket (
 );
 
 -- 4. DiningSession
+-- เก็บรอบบริการของโต๊ะ จำนวนลูกค้า ราคา และรหัส QR
 CREATE TABLE IF NOT EXISTS DiningSession (
     session_id TEXT PRIMARY KEY,
     table_id TEXT NOT NULL REFERENCES DiningTable(table_id),
@@ -45,6 +50,7 @@ CREATE TABLE IF NOT EXISTS DiningSession (
 );
 
 -- 5. Category
+-- เก็บชื่อหมวดอาหารและลำดับแสดงผล
 CREATE TABLE IF NOT EXISTS Category (
     category_id TEXT PRIMARY KEY,
     category_name TEXT UNIQUE NOT NULL,
@@ -52,6 +58,7 @@ CREATE TABLE IF NOT EXISTS Category (
 );
 
 -- 6. MenuItem
+-- เก็บชื่ออาหาร ราคา รูปภาพ และสถานะของหมด
 CREATE TABLE IF NOT EXISTS MenuItem (
     menu_item_id TEXT PRIMARY KEY,
     category_id TEXT NOT NULL REFERENCES Category(category_id),
@@ -66,6 +73,7 @@ CREATE TABLE IF NOT EXISTS MenuItem (
 );
 
 -- 7. FoodOrder
+-- เก็บออเดอร์ที่ลูกค้าส่งในแต่ละรอบ
 CREATE TABLE IF NOT EXISTS FoodOrder (
     order_id TEXT PRIMARY KEY,
     session_id TEXT NOT NULL REFERENCES DiningSession(session_id),
@@ -73,6 +81,7 @@ CREATE TABLE IF NOT EXISTS FoodOrder (
 );
 
 -- 8. OrderItem
+-- เก็บอาหารในออเดอร์ จำนวน ราคา ณ ตอนสั่ง และสถานะ
 CREATE TABLE IF NOT EXISTS OrderItem (
     order_item_id TEXT PRIMARY KEY,
     order_id TEXT NOT NULL REFERENCES FoodOrder(order_id) ON DELETE CASCADE,
@@ -86,6 +95,7 @@ CREATE TABLE IF NOT EXISTS OrderItem (
 );
 
 -- 9. Bill
+-- เก็บยอดบิลและเลขใบเสร็จของรอบบริการ
 CREATE TABLE IF NOT EXISTS Bill (
     bill_id TEXT PRIMARY KEY,
     session_id TEXT UNIQUE NOT NULL REFERENCES DiningSession(session_id),
@@ -96,6 +106,7 @@ CREATE TABLE IF NOT EXISTS Bill (
 );
 
 -- 10. Payment
+-- เก็บช่องทางชำระ ยอดรับ และพนักงานผู้รับเงิน
 CREATE TABLE IF NOT EXISTS Payment (
     payment_id TEXT PRIMARY KEY,
     bill_id TEXT NOT NULL REFERENCES Bill(bill_id),

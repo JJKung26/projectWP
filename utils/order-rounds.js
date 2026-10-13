@@ -1,5 +1,7 @@
+// อ่านอาหารและรวมรายการตามรอบที่สั่ง
 const db = require('../database/database');
 
+// อ่านอาหารตามสถานะของโต๊ะที่ยังเปิดอยู่
 function activeOrderItems(statuses) {
   const placeholders = statuses.map(() => '?').join(', ');
   return db.query(
@@ -18,14 +20,13 @@ function activeOrderItems(statuses) {
 function groupOrderItems(items) {
   const rounds = [];
   for (const item of items) {
-    const { order_id, table_no, session_id, ordered_at } = item;
-    let round = rounds.find((round) => round.order_id === order_id);
+    let round = rounds.find((entry) => entry.order_id === item.order_id);
     if (!round) {
       round = {
-        order_id,
-        table_no,
-        session_id,
-        ordered_at,
+        order_id: item.order_id,
+        table_no: item.table_no,
+        session_id: item.session_id,
+        ordered_at: item.ordered_at,
         items: [],
         pending_count: 0,
         cooking_count: 0
@@ -33,12 +34,8 @@ function groupOrderItems(items) {
       rounds.push(round);
     }
     round.items.push(item);
-    if (item.item_status === 'PENDING') {
-      round.pending_count++;
-    }
-    if (item.item_status === 'COOKING') {
-      round.cooking_count++;
-    }
+    if (item.item_status === 'PENDING') round.pending_count++;
+    if (item.item_status === 'COOKING') round.cooking_count++;
   }
   return rounds;
 }

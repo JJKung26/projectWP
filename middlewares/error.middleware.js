@@ -1,27 +1,27 @@
+// ส่งข้อความเมื่อข้อมูลผิด หรือเกิดข้อผิดพลาด
 const { wantsHtml } = require('./auth.middleware');
+
+// ส่งหน้าแจ้งเตือนหรือ JSON ตามชนิดคำขอ
+function sendError(req, res, status, message) {
+  res.status(status);
+  if (wantsHtml(req)) return res.render('error', { message });
+  return res.json({ success: false, message });
+}
 
 // URL ที่ไม่ตรงกับ route ไหนเลย
 function notFound(req, res) {
-  const message = 'ไม่พบหน้าที่คุณต้องการ';
-  if (wantsHtml(req)) {
-    return res.status(404).render('error', { message });
-  }
-  res.status(404).json({ success: false, message });
+  return sendError(req, res, 404, 'ไม่พบหน้าที่คุณต้องการ');
 }
 
-// Express 5 ส่ง error จาก async controller มาที่นี่ให้อัตโนมัติ
-// (Express 4 ทำไม่ได้ ต้องเขียน try/catch เองทุกที่)
-// ต้องรับครบ 4 พารามิเตอร์ Express ถึงจะรู้ว่านี่คือ error handler
+// Express ส่งข้อผิดพลาดมาที่ฟังก์ชันที่รับ 4 พารามิเตอร์นี้
 function errorHandler(err, req, res, _next) {
-  const status = err.status || (err.type === 'entity.parse.failed' ? 400 : 500);
+  let status = err.status || 500;
+  if (!err.status && err.type === 'entity.parse.failed') status = 400;
   if (status >= 500) {
     console.error('Server error:', err.message);
   }
-  const message =
-    status < 500 || err.expose ? err.message : 'เกิดข้อผิดพลาดภายในระบบ กรุณาลองใหม่อีกครั้ง';
-  if (wantsHtml(req)) {
-    return res.status(status).render('error', { message });
-  }
-  res.status(status).json({ success: false, message });
+  let message = 'เกิดข้อผิดพลาดภายในระบบ กรุณาลองใหม่อีกครั้ง';
+  if (status < 500 || err.expose) message = err.message;
+  return sendError(req, res, status, message);
 }
-module.exports = { notFound, errorHandler };
+module.exports = { notFound, errorHandler, sendError };

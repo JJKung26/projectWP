@@ -1,3 +1,4 @@
+-- เพิ่มหมวดและเมนูเริ่มต้นให้ฐานข้อมูล
 -- Initial Seed Data for Moo Krata System
 
 -- 1. Seed Employees → ย้ายไป seed-accounts.sql (สร้างด้วย npm run seed:accounts)
@@ -6,6 +7,7 @@
 
 -- 3. Seed Food Categories
 -- Upsert so renames and ordering changes reach existing databases
+-- เพิ่มหรือปรับชื่อหมวดและลำดับแสดง
 INSERT INTO Category (category_id, category_name, sort_order) VALUES
 ('CAT-MEAT', 'เนื้อสัตว์', 1),
 ('CAT-SEAFOOD', 'อาหารทะเล', 2),
@@ -21,6 +23,7 @@ ON CONFLICT(category_id) DO UPDATE SET
 
 -- 4. Seed Menu Items (56 รายการ)
 -- Upsert keeps availability untouched so the kitchen's stock switches survive a restart
+-- เพิ่มหรือปรับข้อมูลเมนู โดยเก็บสถานะของหมดที่ครัวตั้งไว้
 INSERT INTO MenuItem (menu_item_id, category_id, item_name, description, sort_order, charge_type, unit_price, availability, image_url) VALUES
 -- เนื้อสัตว์
 ('ITEM-101', 'CAT-MEAT', 'หมูสามชั้นสไลด์', '', 1, 'BUFFET', 0.0, 1, '/images/pork_belly.png'),
@@ -103,4 +106,5 @@ ON CONFLICT(menu_item_id) DO UPDATE SET
     image_url = excluded.image_url;
 
 -- น้ำอัดลมรวมอยู่ในน้ำรีฟิลแล้ว เก็บแถวเดิมไว้สำหรับประวัติออเดอร์
+-- ปิดเมนูเก่าที่เลิกใช้ โดยเก็บประวัติอาหารที่เคยสั่ง
 UPDATE MenuItem SET is_active = 0, availability = 0, image_url = '/images/drink_refill.png' WHERE menu_item_id = 'ITEM-406';

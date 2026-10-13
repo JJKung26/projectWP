@@ -1,24 +1,27 @@
+<%# แสดงบิล ใบเสร็จ และฟอร์มรับชำระเงิน %>
 <%- include('../partials/header') %>
 <div class="container" style="max-width:760px">
     <div class="no-print page-head">
-        <a class="btn btn-secondary" href="/cashier/tables">กลับผังโต๊ะ</a>
-        <a class="btn btn-secondary" href="/cashier/receipts">ใบเสร็จย้อนหลัง</a>
+        <a class="btn btn-secondary inline-row" href="/cashier/tables">กลับผังโต๊ะ</a>
+        <a class="btn btn-secondary inline-row" href="/cashier/receipts">ใบเสร็จย้อนหลัง</a>
     </div>
+    <%# แสดงรายการคิดเงินและยอดบิล %>
     <%- include('../partials/receipt') %>
     <div class="no-print receipt-actions <%= paid ? '' : 'check-bill-actions' %>" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
         <% if (paid) { %>
             <%- include('../partials/paper', { paperId: 'receipt-paper' }) %>
-            <button class="btn btn-primary" onclick="printDocument('billPrintArea', true)">พิมพ์ใบเสร็จ</button>
+            <button class="btn btn-primary inline-row" onclick="printDocument('billPrintArea', true)">พิมพ์ใบเสร็จ</button>
         <% } else { %>
             <p>ต้องเสิร์ฟหรือยกเลิกรายการค้างก่อนรับเงิน · ปัดเศษลงหลัง VAT ทุกช่องทาง</p>
-            <button class="btn btn-primary btn-block" onclick="openPayment()">รับชำระ <%= netAmount.toFixed(2) %> บาท</button>
+            <button class="btn btn-primary btn-block inline-row" onclick="openPayment()">รับชำระ <%= netAmount.toFixed(2) %> บาท</button>
         <% } %>
     </div>
 </div>
 <% if (!paid) { %>
-<div class="modal-overlay" id="paymentModal">
+<%# แสดงวิธีชำระและรับข้อมูลยืนยันการจ่าย %>
+<dialog class="modal-overlay row" id="paymentModal" aria-labelledby="paymentModalTitle">
     <div class="modal-content">
-        <div class="modal-head"><h2>รับชำระเงิน</h2><button class="icon-btn" onclick="closeModal()" aria-label="ปิด">✕</button></div>
+        <div class="modal-head"><h2 id="paymentModalTitle">รับชำระเงิน</h2><button class="icon-btn plain-button center" onclick="closeModal()" aria-label="ปิด">✕</button></div>
         <form onsubmit="submitPayment(event)">
             <fieldset class="payment-methods" id="payMethod" onchange="togglePayDetails()">
                 <legend class="form-label">ช่องทางชำระเงิน</legend>
@@ -30,7 +33,7 @@
             </fieldset>
             <section class="promptpay-panel" id="promptpayDetails" hidden>
                 <div class="promptpay-title">สแกนจ่ายด้วยพร้อมเพย์</div>
-                <strong class="promptpay-amount"><%= netAmount.toFixed(2) %> บาท</strong>
+                <strong class="promptpay-amount digits"><%= netAmount.toFixed(2) %> บาท</strong>
                 <img class="promptpay-qr" src="/images/promptpay.png" alt="QR พร้อมเพย์">
                 <p>กรอกยอดตามบิลในแอปธนาคาร และตรวจสอบเงินเข้าก่อนกดยืนยันรับเงิน</p>
             </section>
@@ -40,10 +43,11 @@
                 <input class="form-input" id="amountReceived" type="number" min="<%= netAmount %>" max="1000000" step="0.01" value="<%= netAmount %>" oninput="calcChange()" required>
                 <p>เงินทอน <strong id="changeAmount">0.00</strong> บาท</p>
             </div>
-            <div class="modal-actions"><button type="button" class="btn btn-secondary" onclick="closeModal()">ยกเลิก</button><button type="submit" id="confirmPayment" class="btn btn-success grow">ยืนยันรับเงิน</button></div>
+            <div class="modal-actions"><button type="button" class="btn btn-secondary inline-row" onclick="closeModal()">ยกเลิก</button><button type="submit" id="confirmPayment" class="btn btn-success grow inline-row">ยืนยันรับเงิน</button></div>
         </form>
     </div>
-</div>
+</dialog>
+<%# ส่งยอดสุทธิและรหัสรอบบริการให้ JavaScript ใช้รับเงิน %>
 <script>
     const NET = <%= netAmount %>;
     const SESSION_ID = '<%= session.session_id %>';

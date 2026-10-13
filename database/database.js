@@ -1,3 +1,4 @@
+// เปิด SQLite และเตรียมตาราง เมนู บัญชี และโต๊ะเริ่มต้น
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
@@ -6,24 +7,28 @@ fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 const db = new sqlite3.Database(dbPath);
 db.configure('busyTimeout', 10000);
 
+// ส่งคำสั่ง SQL แล้วคืนผลเป็น Promise
 function raw(method, sql, params = []) {
   return new Promise((resolve, reject) => {
     db[method](sql, params, function (err, rows) {
-      if (err) {
-        return reject(err);
-      }
-      if (method === 'run') {
-        return resolve({ changes: this.changes });
-      }
+      if (err) return reject(err);
+      if (method === 'run') return resolve({ changes: this.changes });
       resolve(rows);
     });
   });
 }
-const exec = (sql) =>
-  new Promise((resolve, reject) => db.exec(sql, (err) => (err ? reject(err) : resolve())));
-async function initialize() {
-  await exec('PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL;');
-  await exec(fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8'));
+// รันชุดคำสั่ง SQL เช่น สร้างตารางหรือเพิ่มข้อมูลเริ่มต้น
+function exec(sql) {
+  return new Promise(function (resolve, reject) {
+    db.exec(sql, function (error) {
+      if (error) reject(error);
+      else resolve();
+    });
+  });
+}
+
+// เพิ่มคอลัมน์และปรับข้อมูลจากฐานข้อมูลรุ่นเก่า
+async function updateOldDatabase() {
   const columns = {
     Employee: { password_hash: 'TEXT' },
     Category: { sort_order: 'INTEGER NOT NULL DEFAULT 0' },
@@ -51,8 +56,10 @@ async function initialize() {
   // ตรวจคอลัมน์ครั้งเดียวต่อตาราง แล้วเพิ่มเฉพาะช่องที่ยังไม่มี
   for (const table in columns) {
     const info = await raw('all', 'PRAGMA table_info(' + table + ')');
+    const names = [];
+    for (const column of info) names.push(column.name);
     for (const name in columns[table]) {
-      if (!info.some((c) => c.name === name)) {
+      if (!names.includes(name)) {
         await exec('ALTER TABLE ' + table + ' ADD COLUMN ' + name + ' ' + columns[table][name]);
       }
     }
@@ -70,16 +77,19 @@ async function initialize() {
   await exec(`UPDATE DiningTable SET table_status = CASE
         WHEN EXISTS (SELECT 1 FROM DiningSession s WHERE s.table_id = DiningTable.table_id AND s.session_status = 'ACTIVE')
         THEN 'OCCUPIED' ELSE 'AVAILABLE' END WHERE table_status = 'CLEANING'`);
+}
+
+// เตรียมฐานข้อมูลก่อนให้เว็บรับคำขอ
+async function initialize() {
+  await exec('PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL;');
+  await exec(fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8'));
+  await updateOldDatabase();
   // สร้างเฉพาะโต๊ะที่ยังไม่มี จึงไม่เปลี่ยนโต๊ะหรือรอบบริการเดิม
   for (let number = 1; number <= 50; number++) {
     let capacity = 4;
-    if (number === 50) {
-      capacity = 10;
-    } else if (number % 10 === 0) {
-      capacity = 8;
-    } else if (number % 5 === 0) {
-      capacity = 6;
-    }
+    if (number % 5 === 0) capacity = 6;
+    if (number % 10 === 0) capacity = 8;
+    if (number === 50) capacity = 10;
     const tableId = 'TBL-' + String(number).padStart(2, '0');
     await raw(
       'run',
@@ -99,17 +109,37 @@ const ready = initialize();
 // ทุกคำสั่งใช้คิวเดียวกัน จึงไม่มี request อื่นแทรกใน Transaction ของ connection นี้
 let tail = Promise.resolve();
 
+// เรียงงานฐานข้อมูลให้ทำทีละงาน
 function exclusive(work) {
-  const result = tail.then(() => ready).then(work);
+  const result = tail.then(async function () {
+    await ready;
+    return work();
+  });
   tail = result.catch(() => {});
   return result;
 }
+// ใช้ภายใน transaction จึงไม่ต้องเข้าคิวซ้ำ
+function insert(table, values) {
+  const columns = Object.keys(values);
+  const params = Object.values(values);
+  const placeholders = columns.map(() => '?');
+  const sql = `INSERT INTO ${table} (${columns.join(',')}) VALUES (${placeholders.join(',')})`;
+  return raw('run', sql, params);
+}
 const queries = {
-  query: (sql, params) => raw('all', sql, params),
-  get: (sql, params) => raw('get', sql, params),
-  run: (sql, params) => raw('run', sql, params)
+  query(sql, params) {
+    return raw('all', sql, params);
+  },
+  get(sql, params) {
+    return raw('get', sql, params);
+  },
+  run(sql, params) {
+    return raw('run', sql, params);
+  },
+  insert
 };
 
+// บันทึกงานทั้งชุด หากผิดพลาดให้ย้อนข้อมูลทั้งชุด
 function transaction(work) {
   return exclusive(async () => {
     await raw('run', 'BEGIN IMMEDIATE');

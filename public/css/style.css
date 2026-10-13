@@ -1,8 +1,7 @@
-/* โหลดสไตล์ตามลำดับ */
-/* Shared entry point. Keep this order: later files override earlier rules. */
+/* รูปแบบพื้นฐาน ตามด้วยรูปแบบของแต่ละหน้า */
 @import url('base/foundation.css');
-@import url('components/navigation.css');
 @import url('components/layout.css');
+@import url('components/navigation.css');
 @import url('components/buttons.css');
 @import url('components/status.css');
 @import url('cashier/tables.css');
@@ -17,4 +16,3 @@
 @import url('kitchen/board.css');
 @import url('customer/order-cards.css');
 @import url('base/print.css');
-@import url('base/overrides.css');

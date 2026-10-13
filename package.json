@@ -7,7 +7,6 @@
     "start": "node scripts/start-cloudflare.js",
     "start:local": "node server.js",
     "start:cloudflare": "node scripts/start-cloudflare.js",
-    "test:cloudflare-load": "node scripts/test-cloudflare-load.js",
     "seed:accounts": "node scripts/generate-accounts.js",
     "backup": "node scripts/backup-database.js"
   },
@@ -21,11 +20,7 @@
     "ejs": "^6.0.1",
     "express": "^5.2.1",
     "qrcode": "^1.5.4",
-    "socket.io": "^4.8.3",
     "sqlite3": "^6.0.1"
-  },
-  "devDependencies": {
-    "socket.io-client": "^4.8.4"
   },
   "engines": {
     "node": ">=24 <25"

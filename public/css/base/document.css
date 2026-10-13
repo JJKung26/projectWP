@@ -1,32 +1,23 @@
 /* ใช้เฉพาะเอกสารในหน้าต่างพิมพ์ */
+/* กำหนดขอบกระดาษสำหรับเอกสารพิมพ์ */
 @page {
   margin: 3mm;
 }
 html,
 body {
   width: var(--paper-width);
-  height: auto !important;
-  min-height: 0 !important;
 }
 body {
-  margin: 0;
   background: white;
-  font:
-    12px Tahoma,
-    sans-serif;
+  font: 12px Tahoma, sans-serif;
   print-color-adjust: exact;
 }
-body * {
-  visibility: visible !important;
-}
+/* ปรับความกว้างเอกสารให้ตรงขนาดกระดาษ */
 .receipt-slip {
-  position: static !important;
-  width: var(--paper-width) !important;
-  max-width: 100% !important;
-  padding: 3mm !important;
-  margin: 0 auto !important;
-  border: 0 !important;
-  box-shadow: none !important;
+  width: var(--paper-width);
+  max-width: 100%;
+  padding: 3mm;
+  border: 0;
 }
 .slip-header h1 {
   font-size: 20px;
@@ -58,7 +49,6 @@ table {
 }
 th,
 td {
-  padding: 6px 2px !important;
   overflow-wrap: anywhere;
 }
 thead {
@@ -75,7 +65,7 @@ thead {
   font-size: 9px;
 }
 .payment-receipt {
-  padding: 0 !important;
+  padding: 0;
   font-size: 11px;
 }
 .payment-receipt h1 {
@@ -92,7 +82,8 @@ thead {
 .receipt-grand-total {
   font-size: 15px;
 }
+/* จัดช่องตารางให้พิมพ์อ่านง่าย */
 .receipt-items th,
 .receipt-items td {
-  padding: 4px 0 !important;
+  padding: 4px 0;
 }
