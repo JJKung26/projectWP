@@ -14,6 +14,6 @@ async function menuContent() {
     const items = menuItems.filter((item) => item.category_id === category.category_id);
     if (items.length) sections.push({ ...category, items });
   }
-  return { categories, menuItems, sections };
+  return { menuItems, sections };
 }
 module.exports = { menuContent };

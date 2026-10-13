@@ -31,13 +31,13 @@ async function openSession(body, employeeId) {
     }
     const children = integer(child_count, table.capacity, 'จำนวนเด็ก', 0);
     const freeChildren = integer(free_child_count, table.capacity, 'จำนวนเด็กทานฟรี', 0);
-    let count = ticket ? ticket.guest_count : body.guest_count;
+    let count = body.guest_count;
+    if (ticket) count = ticket.guest_count;
     if (body.adult_count !== undefined) {
       const adults = integer(body.adult_count, table.capacity, 'จำนวนผู้ใหญ่', 0);
       count = adults + children + freeChildren;
     }
-    const label = body.adult_count === undefined ? 'จำนวนลูกค้า' : 'จำนวนลูกค้ารวม';
-    count = integer(count, table.capacity, label);
+    count = integer(count, table.capacity, 'จำนวนลูกค้ารวม');
     check(children + freeChildren <= count, 400, 'จำนวนเด็กต้องไม่เกินจำนวนลูกค้ารวม');
     check(!ticket || count === ticket.guest_count, 400, 'จำนวนลูกค้ารวมต้องตรงกับบัตรคิว');
     const price = money(body.buffet_price, 10000) / 100;
@@ -64,11 +64,10 @@ async function openSession(body, employeeId) {
         ticket.queue_ticket_id
       ]);
     }
-    return {
-      ...(await tx.get('SELECT * FROM DiningSession WHERE session_id = ?', [sessionId])),
-      table_no: table.table_no,
-      queue_no: ticket?.queue_no
-    };
+    const session = await tx.get('SELECT * FROM DiningSession WHERE session_id = ?', [sessionId]);
+    session.table_no = table.table_no;
+    if (ticket) session.queue_no = ticket.queue_no;
+    return session;
   });
 }
 module.exports = { openSession, setTableStatus };

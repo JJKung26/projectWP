@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS QueueTicket (
     queue_no TEXT NOT NULL,
     queue_date DATE NOT NULL,
     guest_count INTEGER NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     queue_status TEXT NOT NULL DEFAULT 'WAITING' CHECK(queue_status IN ('WAITING', 'CALLED', 'SEATED', 'CANCELLED'))
 );
 
@@ -77,6 +78,9 @@ CREATE TABLE IF NOT EXISTS MenuItem (
 CREATE TABLE IF NOT EXISTS FoodOrder (
     order_id TEXT PRIMARY KEY,
     session_id TEXT NOT NULL REFERENCES DiningSession(session_id),
+    request_key TEXT,
+    request_hash TEXT,
+    round_no INTEGER,
     ordered_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -90,6 +94,8 @@ CREATE TABLE IF NOT EXISTS OrderItem (
     served_by TEXT REFERENCES Employee(employee_id),
     quantity INTEGER NOT NULL CHECK(quantity > 0),
     unit_price_at_order REAL NOT NULL DEFAULT 0.0,
+    item_name_at_order TEXT,
+    charge_type_at_order TEXT,
     item_status TEXT NOT NULL DEFAULT 'PENDING' CHECK(item_status IN ('PENDING', 'COOKING', 'READY', 'SERVED', 'CANCELLED')),
     cancel_reason TEXT
 );
@@ -99,8 +105,12 @@ CREATE TABLE IF NOT EXISTS OrderItem (
 CREATE TABLE IF NOT EXISTS Bill (
     bill_id TEXT PRIMARY KEY,
     session_id TEXT UNIQUE NOT NULL REFERENCES DiningSession(session_id),
+    subtotal REAL,
     tax_amount REAL NOT NULL DEFAULT 0.0,
+    before_rounding REAL,
+    rounding_amount REAL,
     net_amount REAL NOT NULL DEFAULT 0.0,
+    snapshot_json TEXT,
     bill_status TEXT NOT NULL DEFAULT 'UNPAID' CHECK(bill_status IN ('UNPAID', 'PAID', 'VOID')),
     receipt_no TEXT UNIQUE
 );
@@ -113,5 +123,17 @@ CREATE TABLE IF NOT EXISTS Payment (
     received_by TEXT NOT NULL REFERENCES Employee(employee_id),
     payment_method TEXT NOT NULL CHECK(payment_method IN ('CASH', 'PROMPTPAY', 'CREDIT_CARD')),
     amount REAL NOT NULL,
+    amount_received REAL,
+    change_amount REAL,
+    paid_at TEXT,
     payment_status TEXT NOT NULL DEFAULT 'SUCCESS' CHECK(payment_status IN ('SUCCESS', 'FAILED', 'CANCELLED'))
 );
+
+-- ป้องกันเปิดโต๊ะ ออกเลขคิว ส่งออเดอร์ และรับเงินซ้ำ
+CREATE UNIQUE INDEX IF NOT EXISTS one_active_session ON DiningSession(table_id) WHERE session_status = 'ACTIVE';
+CREATE UNIQUE INDEX IF NOT EXISTS unique_daily_queue ON QueueTicket(queue_date, queue_no);
+CREATE UNIQUE INDEX IF NOT EXISTS unique_order_request ON FoodOrder(session_id, request_key);
+CREATE UNIQUE INDEX IF NOT EXISTS one_success_payment ON Payment(bill_id) WHERE payment_status = 'SUCCESS';
+-- ช่วยค้นหาออเดอร์และรายการอาหารของแต่ละโต๊ะ
+CREATE INDEX IF NOT EXISTS orders_by_session ON FoodOrder(session_id);
+CREATE INDEX IF NOT EXISTS items_by_order ON OrderItem(order_id);

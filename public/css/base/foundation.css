@@ -79,3 +79,12 @@ a {
 .muted {
   color: var(--ink-2);
 }
+/* ปิดการเคลื่อนไหวตามการตั้งค่าผู้ใช้ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

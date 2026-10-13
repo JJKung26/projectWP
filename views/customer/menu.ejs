@@ -58,7 +58,7 @@
                     <article class="menu-row<%= soldOut ? ' sold-out' : '' %>" data-id="<%= item.menu_item_id %>" data-name="<%= item.item_name %> <%= item.description || '' %>">
                         <div class="menu-thumb">
                             <img src="<%= item.image_url %>" alt="<%= item.item_name %>" loading="lazy" onerror="this.style.visibility='hidden'">
-                            <% if (soldOut) { %><span class="sold-tag">หมดชั่วคราว</span><% } %>
+                            <span class="sold-tag" <%= soldOut ? '' : 'hidden' %>>หมดชั่วคราว</span>
                         </div>
                         <div class="menu-info column">
                             <div class="menu-name"><%= item.item_name %></div>

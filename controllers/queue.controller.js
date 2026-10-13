@@ -49,15 +49,14 @@ async function getQueues(req, res) {
   const tickets = await db.query(sql, [day]);
   const waiting = tickets.filter((ticket) => ['WAITING', 'CALLED'].includes(ticket.queue_status));
   let queues = waiting;
-  if (req.query.history === '1') {
-    queues = tickets;
-    if (date !== day) {
-      queues = await db.query(sql, [date]);
-    }
+  if (req.query.history === '1') queues = tickets;
+  if (req.query.history === '1' && date !== day) {
+    queues = await db.query(sql, [date]);
   }
   const data = { queues, today: day, totalWaiting: waiting.length };
-  if (req.get('accept')?.includes('text/html'))
+  if (req.get('accept')?.includes('text/html')) {
     return res.render('cashier/partials/queue-list', data);
+  }
   res.json({ success: true, ...data });
 }
 

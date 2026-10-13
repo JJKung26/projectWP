@@ -1,5 +1,4 @@
 // คำนวณค่าบุฟเฟ่ อาหารเพิ่ม ภาษี และยอดสุทธิ
-const db = require('../database/database');
 const { money } = require('./validation');
 
 // รวมราคา คิด VAT 7% และปัดยอดสุทธิลงเป็นบาท
@@ -18,8 +17,6 @@ function totals(session, items) {
   const before = subtotal + tax;
   const net = Math.floor(before / 100) * 100;
   return {
-    buffetTotal: buffet / 100,
-    alacarteTotal: extra / 100,
     subtotal: subtotal / 100,
     taxAmount: tax / 100,
     beforeRounding: before / 100,
@@ -29,8 +26,8 @@ function totals(session, items) {
 }
 
 // อ่านอาหารของรอบบริการ โดยไม่รวมรายการยกเลิก
-function itemsFor(sessionId, connection = db) {
-  return connection.query(
+function itemsFor(sessionId, tx) {
+  return tx.query(
     `SELECT oi.*, oi.item_name_at_order AS item_name,
     oi.charge_type_at_order AS charge_type FROM OrderItem oi JOIN FoodOrder fo ON fo.order_id = oi.order_id
     WHERE fo.session_id = ? AND oi.item_status != 'CANCELLED' ORDER BY fo.rowid, oi.rowid`,

@@ -11,8 +11,7 @@ function readPendingOrder() {
   try {
     const saved = JSON.parse(readStorage(STORE_KEY + ':pending'));
     if (!saved || typeof saved.key !== 'string') return null;
-    // ตะกร้าที่ค้างจากรุ่นก่อนยังลองส่งซ้ำได้
-    const items = saved.payload === undefined ? saved.items : JSON.parse(saved.payload);
+    const items = saved.items;
     if (!Array.isArray(items) || !items.length) return null;
     for (const item of items) {
       if (!item || typeof item.menu_item_id !== 'string') return null;
@@ -100,9 +99,11 @@ function renderCart(showItems = false) {
     count += cart[id];
     extra += cart[id] * item.price;
     if (show) {
+      let price = 'รวมในบุฟเฟต์';
+      if (item.price) price = '฿' + item.price + ' / ชิ้น';
       html += `<div class="sheet-line row">
         <img src="${item.img}" alt="">
-        <div class="nm">${item.name}<small>${item.price ? '฿' + item.price + ' / ชิ้น' : 'รวมในบุฟเฟต์'}</small></div>
+        <div class="nm">${item.name}<small>${price}</small></div>
         ${controlHtml(id)}
       </div>`;
     }
@@ -186,8 +187,10 @@ function toast(msg, isError) {
 // ส่งออเดอร์
 async function submitOrder() {
   if (window.orderSending) return;
-  const items = pendingOrder ? pendingOrder.items : [];
-  if (!pendingOrder) {
+  let items = [];
+  if (pendingOrder) {
+    items = pendingOrder.items;
+  } else {
     for (const id in cart) {
       items.push({ menu_item_id: id, quantity: cart[id] });
     }

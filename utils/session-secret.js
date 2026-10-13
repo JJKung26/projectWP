@@ -12,13 +12,12 @@ function validateSecret(secret, source) {
 }
 
 // เก็บกุญแจข้างฐานข้อมูล เพื่อให้ cookie ยังใช้ได้หลังเปิดโปรแกรมใหม่
-function getSessionSecret(secretPath) {
+function getSessionSecret() {
   if (process.env.SESSION_SECRET !== undefined) {
     return validateSecret(process.env.SESSION_SECRET, 'SESSION_SECRET');
   }
   const databasePath = process.env.DB_PATH || path.join(__dirname, '..', 'data', 'restaurant.db');
-  const file =
-    secretPath || path.join(path.dirname(path.resolve(databasePath)), 'session-secret.key');
+  const file = path.join(path.dirname(path.resolve(databasePath)), 'session-secret.key');
   fs.mkdirSync(path.dirname(file), { recursive: true });
   try {
     fs.writeFileSync(file, randomBytes(32).toString('hex') + '\n', { flag: 'wx', mode: 0o600 });

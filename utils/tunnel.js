@@ -24,7 +24,7 @@ function getPublicUrl(req) {
     }
     return url.origin;
   }
-  if (!['localhost', '127.0.0.1', '::1'].includes(req.hostname)) {
+  if (!['localhost', '127.0.0.1', '::1', '[::1]'].includes(req.hostname)) {
     return req.protocol + '://' + req.get('host');
   }
   urlError('กรุณาเปิด Cloudflare ด้วย npm start หรือตั้ง PUBLIC_URL เป็น IP บน Wi-Fi ก่อนเปิดโต๊ะ');

@@ -43,7 +43,8 @@ async function submitPayment(event) {
   byId('payMethod').disabled = true;
   button.disabled = true;
   try {
-    const amount_received = payment_method === 'CASH' ? byId('amountReceived').value : NET;
+    let amount_received = NET;
+    if (payment_method === 'CASH') amount_received = byId('amountReceived').value;
     const data = await requestData('/cashier/payment', {
       session_id: SESSION_ID,
       payment_method,

@@ -327,12 +327,6 @@
   color: var(--ink-2);
   text-align: center;
 }
-@media (max-width: 380px) {
-  /* จัดตัวเลือกโต๊ะว่างสำหรับลูกค้าจากคิว */
-  .seat-table-options {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
 
 #paymentModal .modal-actions {
   position: sticky;

@@ -29,31 +29,14 @@ const dbPath = process.env.DB_PATH || path.join(__dirname, '..', 'data', 'restau
 fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 const connection = new sqlite3.Database(dbPath);
 connection.configure('busyTimeout', 10000);
-// รันคำสั่งอ่านหรือเพิ่มข้อมูลบัญชีใน SQLite
-function query(method, sql) {
-  return new Promise(function (resolve, reject) {
-    connection[method](sql, function (error, rows) {
-      if (error) reject(error);
-      else resolve(rows);
-    });
-  });
-}
-// เตรียมตารางพนักงานแล้วบันทึกบัญชีและรหัสผ่านเริ่มต้น
-async function main() {
-  try {
-    const columns = await query('all', 'PRAGMA table_info(Employee)');
-    if (!columns.length) {
-      await query('exec', fs.readFileSync(path.join(directory, 'schema.sql'), 'utf8'));
-    } else if (!columns.some((column) => column.name === 'password_hash')) {
-      await query('exec', 'ALTER TABLE Employee ADD COLUMN password_hash TEXT');
-    }
-    await query('exec', sql);
-    console.log('อัปเดตบัญชีแล้ว:', ACCOUNTS.length, 'บัญชี');
-  } catch (error) {
+// สร้างตารางที่ยังไม่มี แล้วเพิ่มหรืออัปเดตบัญชี
+const schema = fs.readFileSync(path.join(directory, 'schema.sql'), 'utf8');
+connection.exec(schema + sql, function (error) {
+  if (error) {
     console.error(error.message);
     process.exitCode = 1;
-  } finally {
-    connection.close();
+  } else {
+    console.log('อัปเดตบัญชีแล้ว:', ACCOUNTS.length, 'บัญชี');
   }
-}
-main();
+  connection.close();
+});

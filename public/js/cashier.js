@@ -152,11 +152,12 @@ function displayQueueTicket(ticket) {
   writeStorage('lastQueueTicket', lastTicketId);
   byId('qsQueueNo').innerText = ticket.queue_no;
   byId('qsDate').innerText = ticket.queue_date;
-  byId('qsTime').innerText = ticket.created_at
-    ? new Date(ticket.created_at.replace(' ', 'T') + 'Z').toLocaleTimeString('th-TH', {
-        timeZone: 'Asia/Bangkok'
-      })
-    : 'ไม่พบเวลาเดิม';
+  let time = 'ไม่พบเวลาเดิม';
+  if (ticket.created_at) {
+    const created = new Date(ticket.created_at.replace(' ', 'T') + 'Z');
+    time = created.toLocaleTimeString('th-TH', { timeZone: 'Asia/Bangkok' });
+  }
+  byId('qsTime').innerText = time;
   byId('qsGuests').innerText = ticket.guest_count;
   byId('qsAhead').innerText = ticket.count_ahead;
   openModal('queueSlipModal');

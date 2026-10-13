@@ -108,9 +108,7 @@ async function getBill(req, res) {
 async function processPayment(req, res) {
   const { session_id } = req.body;
   id(session_id, 'รอบบริการ');
-  let method = req.body.payment_method;
-  if (method === 'QR') method = 'PROMPTPAY';
-  if (method === 'CARD') method = 'CREDIT_CARD';
+  const method = req.body.payment_method;
   check(['CASH', 'PROMPTPAY', 'CREDIT_CARD'].includes(method), 400, 'ช่องทางชำระไม่ถูกต้อง');
   const received = money(req.body.amount_received);
   const expected = money(req.body.expected_total);

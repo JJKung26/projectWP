@@ -5,7 +5,14 @@ const { check, id } = require('./validation');
 // ตรวจสถานะเดิม แล้วบันทึกสถานะใหม่พร้อมชื่อพนักงาน
 module.exports = async function changeItems(req, res, serving = false) {
   const { order_id, order_item_id, cancel_reason, out_of_stock } = req.body;
-  const status = serving ? 'SERVED' : req.body.status;
+  let status = req.body.status;
+  let employeeColumn = 'prepared_by';
+  let filter = 'oi.order_item_id';
+  if (serving) {
+    status = 'SERVED';
+    employeeColumn = 'served_by';
+  }
+  if (order_id) filter = 'oi.order_id';
   check(serving || ['COOKING', 'READY', 'CANCELLED'].includes(status), 400, 'สถานะไม่ถูกต้อง');
   const oneId = Boolean(order_id) !== Boolean(order_item_id);
   check(oneId, 400, 'ระบุออเดอร์หรือรายการอาหารเพียงอย่างเดียว');
@@ -14,7 +21,7 @@ module.exports = async function changeItems(req, res, serving = false) {
     const items = await tx.query(
       `SELECT oi.*, fo.session_id, ds.session_status FROM OrderItem oi
             JOIN FoodOrder fo ON fo.order_id = oi.order_id JOIN DiningSession ds ON ds.session_id = fo.session_id
-            WHERE ${order_id ? 'oi.order_id' : 'oi.order_item_id'} = ?`,
+            WHERE ${filter} = ?`,
       [order_id || order_item_id]
     );
     check(items.length, 404, 'ไม่พบออเดอร์หรือรายการอาหาร');
@@ -25,8 +32,8 @@ module.exports = async function changeItems(req, res, serving = false) {
       CANCELLED: ['PENDING', 'COOKING', 'READY'],
       SERVED: ['READY']
     }[status];
-    const employeeColumn = serving ? 'served_by' : 'prepared_by';
-    const reason = status === 'CANCELLED' ? cancel_reason || 'ยกเลิกรายการ' : null;
+    let reason = null;
+    if (status === 'CANCELLED') reason = cancel_reason || 'ยกเลิกรายการ';
     const soldOut = status === 'CANCELLED' && out_of_stock === true;
     let changed = 0;
     for (const item of items) {
