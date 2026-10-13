@@ -98,15 +98,19 @@ async function sendStaffAction(url, body, refresh) {
 // เบราว์เซอร์จัดการโฟกัสและปุ่ม Tab ภายในหน้าต่างให้
 function dialogOpen(id, state = 'active') {
   const dialog = byId(id);
-  dialog.classList.add(state);
+  clearTimeout(dialog.closeTimer);
   if (!dialog.open) dialog.showModal();
+  // อ่านขนาดเพื่อให้เบราว์เซอร์เริ่มเอฟเฟกต์จากสถานะที่ยังซ่อนอยู่
+  void dialog.offsetHeight;
+  dialog.classList.add(state);
 }
 
-// ปิดหน้าต่างและเอาคลาสแสดงผลออก
+// รอเอฟเฟกต์จบก่อนปิดหน้าต่างจริง
 function dialogClose(id, state = 'active') {
   const dialog = byId(id);
-  dialog.close();
   dialog.classList.remove(state);
+  clearTimeout(dialog.closeTimer);
+  dialog.closeTimer = setTimeout(() => dialog.close(), 260);
 }
 
 // ปิดหน้าต่างเมื่อไม่มีงานส่งข้อมูลหรือพิมพ์ค้างอยู่
