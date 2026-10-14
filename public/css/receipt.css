@@ -28,12 +28,14 @@
 .slip-qr-box { padding: 12px 0; }
 .slip-qr-img { width: 170px; height: 170px; }
 .slip-url { font-size: 9px; overflow-wrap: anywhere; }
-/* ฟอนต์และโลโก้ของเอกสาร */
+/* ฟอนต์และโลโก้ขาวดำของเอกสาร */
 .payment-receipt, .order-slip { font: 12px/1.5 Tahoma, sans-serif; }
-.receipt-logo, .order-slip-logo { display: block; width: 66px; height: 66px; margin: 0 auto 12px; }
+.receipt-logo, .order-slip-logo { display: block; width: 66px; height: 66px;
+  margin: 0 auto 12px; filter: grayscale(1);
+}
 /* ใบเสร็จรับเงินใช้กรอบเหลี่ยม โลโก้สีเทา และหัวข้อกึ่งกลาง */
 .payment-receipt { max-width: 320px; border-radius: 0; }
-.receipt-logo { width: 56px; height: 56px; filter: grayscale(1); }
+.receipt-logo { width: 56px; height: 56px; }
 .payment-receipt h1 { font: bold 15px Tahoma, sans-serif; }
 .receipt-shop { font-weight: bold; margin: 4px 0 12px; }
 .receipt-dining { margin: 12px 0 10px; font-size: 14px; font-weight: bold; }

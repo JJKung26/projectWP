@@ -2,8 +2,10 @@
 html, body { width: var(--paper-width); }
 body { background: #fff; font: 12px Tahoma, sans-serif; print-color-adjust: exact; }
 :focus-visible { outline: none; }
-/* ระยะขอบ ขนาดหัวเอกสาร และ QR บนกระดาษ */
-.receipt-slip { width: 100%; max-width: none; margin: 0; padding: 3mm; }
+/* กรอบมีเฉพาะพรีวิว; ตอนพิมพ์เหลือระยะขอบกระดาษ */
+.receipt-slip { width: 100%; max-width: none; margin: 0; padding: 3mm;
+  border: 0; border-radius: 0;
+}
 .payment-receipt { padding: 2mm; font-size: 11px; }
 .payment-receipt h1 { font-size: 14px; }
 /* ลดข้อความยาวให้หัวตารางและยอดรวมอยู่บรรทัดเดียวบนกระดาษ 58 มม. */
