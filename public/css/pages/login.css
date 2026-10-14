@@ -36,7 +36,7 @@
 .login-form .form-label { margin-bottom: 4px; }
 /* ช่องกรอก ไอคอน และขอบเมื่อกำลังพิมพ์ */
 .input-icon-wrap { position: relative; }
-.input-icon { position: absolute; left: 12px; width: 18px; color: var(--muted); }
+.input-icon { position: absolute; left: 12px; width: 18px; }
 .login-form .form-input { height: 48px; border-radius: 6px; padding-left: 38px; }
 .login-form .form-input:focus { outline: none; border-color: var(--ember);
   box-shadow: 0 0 0 3px #bd452518;

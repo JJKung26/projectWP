@@ -17,7 +17,6 @@
 /* หัวป๊อปอัป รายการอาหาร และยอดที่ต้องจ่ายเพิ่ม */
 .sheet-head, .sheet-foot { padding: 14px 20px; border-bottom: 1px solid var(--line); }
 .sheet-body { padding: 0 20px; overflow: auto; }
-.sheet-line { padding: 14px; border-top: 1px solid var(--line); }
 .sheet-total { margin-bottom: 12px; }
 /* ข้อความแจ้งว่าส่งออเดอร์แล้ว */
 .toast { position: fixed; top: 16px; left: 50%; padding: 10px 16px;

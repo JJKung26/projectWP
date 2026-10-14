@@ -3,7 +3,7 @@
   <%# หัวข้อผังโต๊ะ จำนวนโต๊ะว่าง มีลูกค้า และคิวรอ %>
   <div class="page-head row between wrap">
     <div>
-      <div class="eyebrow small muted">แคชเชียร์</div>
+      <div class="small muted">แคชเชียร์</div>
       <h1>ผังโต๊ะ</h1>
       <p>แตะโต๊ะว่างเพื่อเปิดโต๊ะและดู QR · แตะโต๊ะที่มีลูกค้าเพื่อเช็คบิล</p>
     </div>
@@ -18,7 +18,7 @@
         </div>
         <div class="stat">
           <div class="stat-label row small muted">
-            <span class="dot busy"></span>
+            <span class="dot"></span>
             มีลูกค้า
           </div>
           <div class="stat-value number digits large"><%= occupiedCount %></div>
@@ -29,8 +29,8 @@
             id="queueBadge"><%= waitingQueues.length %></div>
         </div>
       </div>
-      <a class="btn btn-secondary inline-row" href="/cashier/receipts">ใบเสร็จย้อนหลัง</a>
-      <button class="btn btn-dark inline-row" onclick="openQueueModal()">จัดการคิว</button>
+      <a class="btn inline-row" href="/cashier/receipts">ใบเสร็จย้อนหลัง</a>
+      <button class="btn btn-primary inline-row" onclick="openQueueModal()">จัดการคิว</button>
     </div>
   </div>
   <%# แจ้งโต๊ะเต็มและแสดงปุ่มออกบัตรคิว %>

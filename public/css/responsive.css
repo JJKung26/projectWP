@@ -5,7 +5,7 @@
 /* ปรับหัวเว็บ ระยะขอบ และฟอร์มสำหรับมือถือ */
 @media (max-width: 600px) {
   .navbar { flex-wrap: wrap; padding: 10px 12px; gap: 8px; }
-  .nav-links { gap: 0; flex-wrap: wrap; }
+  .nav-links { flex-wrap: wrap; }
   .nav-link { min-height: 44px; padding: 6px 8px; }
   .container { padding: 0 12px; }
   .order-line { flex-wrap: wrap; }

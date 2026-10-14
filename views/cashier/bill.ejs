@@ -2,8 +2,8 @@
 <div class="container" style="max-width:760px">
   <%# ปุ่มกลับผังโต๊ะและเปิดประวัติใบเสร็จ %>
   <div class="no-print page-head row between wrap">
-    <a class="btn btn-secondary inline-row" href="/cashier/tables">กลับผังโต๊ะ</a>
-    <a class="btn btn-secondary inline-row" href="/cashier/receipts">ใบเสร็จย้อนหลัง</a>
+    <a class="btn inline-row" href="/cashier/tables">กลับผังโต๊ะ</a>
+    <a class="btn inline-row" href="/cashier/receipts">ใบเสร็จย้อนหลัง</a>
   </div>
   <%# ใช้ใบสรุปยอดร่วมกันทั้งก่อนและหลังชำระเงิน %>
   <%- include('../partials/receipt') %>
@@ -34,9 +34,9 @@
       </div>
       <form onsubmit="submitPayment(event)">
         <%# ตัวเลือกเงินสด พร้อมเพย์ และบัตรจำลอง %>
-        <fieldset class="payment-methods" id="payMethod" onchange="togglePayDetails()">
+        <fieldset id="payMethod" onchange="togglePayDetails()">
           <legend class="form-label">ช่องทางชำระเงิน</legend>
-          <div class="payment-options choices">
+          <div class="choices">
             <label>
               <input id="payCash" type="radio" name="payment_method" value="CASH" checked />
               <span><strong>เงินสด</strong> <small>รับเงินสด</small></span>
@@ -53,7 +53,7 @@
         </fieldset>
         <%# QR พร้อมเพย์และยอดที่ลูกค้าต้องจ่าย %>
         <section class="text-center promptpay-panel" id="promptpayDetails" hidden>
-          <div class="promptpay-title">สแกนจ่ายด้วยพร้อมเพย์</div>
+          <div>สแกนจ่ายด้วยพร้อมเพย์</div>
           <strong class="promptpay-amount digits"><%= netAmount.toFixed(2) %> บาท</strong>
           <img class="payment-image" src="/images/promptpay.png" alt="QR พร้อมเพย์" />
           <p>กรอกยอดตามบิลในแอปธนาคาร และตรวจสอบเงินเข้าก่อนกดยืนยันรับเงิน</p>
@@ -71,7 +71,7 @@
         </div>
         <%# ปุ่มยกเลิกและยืนยันการรับเงิน %>
         <div class="flex modal-actions">
-          <button type="button" class="btn btn-secondary inline-row" onclick="closeModal()">
+          <button type="button" class="btn inline-row" onclick="closeModal()">
             ยกเลิก
           </button>
           <button type="submit" id="confirmPayment" class="btn btn-success grow inline-row">

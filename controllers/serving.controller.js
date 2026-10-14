@@ -11,7 +11,5 @@ function getDashboard(req, res) {
   });
 }
 // ยืนยันว่าอาหารในรอบนี้เสิร์ฟแล้วผ่านฟังก์ชันกลาง
-function confirmServed(req, res) {
-  changeItems(req, res, true);
-}
+function confirmServed(req, res) { changeItems(req, res, true); }
 module.exports = { getDashboard, confirmServed };

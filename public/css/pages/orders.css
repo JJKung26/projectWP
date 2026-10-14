@@ -12,8 +12,7 @@
 .cust-round-card { margin-top: 16px; }
 .cust-round-header { cursor: pointer; }
 .order-line.cancelled .nm { text-decoration: line-through; }
-/* เส้นแบ่งรายการและรูปจางเมื่อรายการถูกยกเลิก */
-.order-line { padding: 14px; border-top: 1px solid var(--line); }
+/* รูปจางเมื่อรายการถูกยกเลิก */
 .order-line.cancelled img { filter: grayscale(1); opacity: .5; }
 
 /* ใช้กับ EJS:

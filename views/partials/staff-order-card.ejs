@@ -1,29 +1,24 @@
 <%# เลือกสี ป้าย และคำสั่งตามหน้ารอทำ กำลังทำ หรือเสิร์ฟ %>
 <%
-  const cooking = mode === 'cooking',
-    serving = mode === 'serving';
+  const cooking = mode === 'cooking';
+  const serving = mode === 'serving';
   const nextStatus = cooking ? 'READY' : 'COOKING';
   const actionLabel = cooking ? 'เสร็จแล้ว' : 'เริ่มทำ';
   const actionTitle = cooking
     ? 'เปลี่ยนสถานะทุกรายการเป็นเสร็จแล้ว'
     : 'เปลี่ยนสถานะทุกรายการเป็นกำลังทำ';
-  let cardClass = 'round-card';
-  if (cooking) cardClass += ' is-cooking';
-  if (serving) cardClass += ' is-ready-card';
 %>
-<div class="<%= cardClass %> box" id="round-card-<%= round.order_id %>">
+<div class="round-card box" id="round-card-<%= round.order_id %>">
   <%# หมายเลขโต๊ะ เวลาสั่ง และปุ่มเปลี่ยนสถานะทั้งรอบ %>
   <div class="round-card-header row wrap between">
-    <div class="round-card-title-group row wrap">
+    <div class="row wrap">
       <span class="round-card-table badge badge-cancelled">โต๊ะ <%= round.table_no %></span>
-      <span
-        class="round-card-time digits small muted">
-          สั่งเมื่อ <%= thaiTime(round.ordered_at) %> น.</span>
-      <span class="round-card-summary font-sm muted small">
+      <span class="digits small muted">สั่งเมื่อ <%= thaiTime(round.ordered_at) %> น.</span>
+      <span class="muted small">
         <%= round.items.length %> รายการ (<%= round.quantity %> ชิ้น)
       </span>
     </div>
-    <div class="round-card-header-actions row wrap">
+    <div class="row wrap">
       <% if (serving) { %>
         <button class="btn btn-success btn-sm inline-row"
           onclick="confirmServedRound('<%= round.order_id %>')">เสิร์ฟแล้ว</button>
@@ -36,24 +31,21 @@
         onclick="toggleOrderDropdown('<%= round.order_id %>')"
         id="toggle-btn-<%= round.order_id %>">
         <span class="toggle-text">ซ่อนรายการ</span>
-        <svg class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M6 9l6 6 6-6" />
-        </svg>
+        <img class="chevron-icon" src="/images/icons/chevron.svg" width="16" height="16" alt="" />
       </button>
     </div>
   </div>
   <%# รายการอาหารในรอบที่เปิดหรือพับซ่อนได้ %>
   <div class="order-dropdown open" id="dropdown-<%= round.order_id %>"
     data-order="<%= round.order_id %>">
-    <div class="round-card-items column">
+    <div class="column">
       <% for (const item of round.items) { %>
-        <div class="round-item-row<%= cooking ? ' is-cooking' : '' %> row">
+        <div class="round-item-row row">
           <img class="round-item-thumb" src="<%= item.image_url %>" alt="" />
           <div class="round-item-details">
             <div class="round-item-name"><%= item.item_name %></div>
           </div>
-          <div class="round-item-qty digits large">
+          <div class="digits large">
             <small>×</small>
             <%= item.quantity %>
           </div>

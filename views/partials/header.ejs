@@ -1,10 +1,10 @@
 <%- include('head', { scripts: ['print', 'ui', 'live'] }) %>
-<body class="staff">
+<body>
   <%# โลโก้ร้านและลิงก์กลับหน้าแรกตามหน้าที่ของพนักงาน %>
   <header class="navbar no-print row between">
-    <a href="<%= HOME_BY_ROLE[staff.role] %>" class="brand row">
+    <a href="<%= HOME_BY_ROLE[staff.role] %>" class="row">
       <%- include('brand-logo', { logoClass: 'brand-logo' }) %>
-      <span class="brand-name number">ร้านหมูกระทะ บุฟเฟต์</span>
+      <span class="number">ร้านหมูกระทะ บุฟเฟต์</span>
       <span class="brand-sub small muted">หลังร้าน</span>
     </a>
     <%# แสดงเมนูตามสิทธิ์ แคชเชียร์ ครัว หรือเสิร์ฟ %>
@@ -19,11 +19,11 @@
         <a href="/serving" class="nav-link row" data-match="/serving">เสิร์ฟ</a>
       <% } %>
       <%# ชื่อพนักงานและปุ่มออกจากระบบของหน้าที่นี้ %>
-      <div class="nav-user row">
+      <div class="row">
         <span class="nav-user-name small"><%= staff.full_name %></span>
         <form method="POST" action="/logout">
           <input type="hidden" name="role" value="<%= staff.role %>" />
-          <button type="submit" class="btn btn-secondary btn-sm inline-row">ออกจากระบบ</button>
+          <button type="submit" class="btn btn-sm inline-row">ออกจากระบบ</button>
         </form>
       </div>
     </nav>

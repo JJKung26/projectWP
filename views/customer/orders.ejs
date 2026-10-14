@@ -8,22 +8,19 @@
     CANCELLED: { cls: 'badge-cancelled', label: 'ยกเลิก', roundLabel: 'ยกเลิกทั้งรอบ' }
   };
   const summary = { PENDING: 0, COOKING: 0, READY: 0, SERVED: 0, CANCELLED: 0 };
+  const summaryLabels = {
+    PENDING: 'รอคิว', COOKING: 'กำลังเตรียม', READY: 'กำลังมา', SERVED: 'เสิร์ฟแล้ว'
+  };
   for (const item of orders) summary[item.item_status] += item.quantity;
 %>
-<%-
-  include('../partials/head', {
-    title: 'ออเดอร์ · โต๊ะ ' + session.table_no,
-    scripts: ['ui', 'live']
-  })
-%>
-<body class="cust">
+<%- include('../partials/head', {
+  title: 'ออเดอร์ · โต๊ะ ' + session.table_no, scripts: ['ui', 'live']
+}) %>
+<body>
   <%# หัวข้อโต๊ะ จำนวนลูกค้า และปุ่มกลับไปเลือกอาหาร %>
   <header class="app-bar row">
     <a class="icon-btn plain-button center" href="/menu?token=<%= token %>" aria-label="กลับไปเมนู">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M15 5l-7 7 7 7" />
-      </svg>
+      <img src="/images/icons/back.svg" width="20" height="20" alt="" />
     </a>
     <h1>ออเดอร์ของโต๊ะ <%= session.table_no %></h1>
     <span class="muted" style="font-size: 0.85rem; padding-right: 8px;">
@@ -35,11 +32,7 @@
     <% if (orders.length === 0) { %>
       <div class="text-center empty">
         <div class="empty-icon center">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            stroke-width="1.8" stroke-linecap="round">
-            <circle cx="12" cy="12" r="8" />
-            <path d="M12 8v4l2.5 2" />
-          </svg>
+          <img src="/images/icons/clock.svg" width="24" height="24" alt="" />
         </div>
         <h3>ยังไม่ได้สั่งอะไรเลย</h3>
         <p>เลือกเมนูแล้วกดส่งเข้าครัว สถานะจะอัปเดตที่หน้านี้เอง</p>
@@ -49,22 +42,12 @@
     <% } else { %>
       <%# ยอดรวมรอคิว กำลังเตรียม กำลังมา และเสิร์ฟแล้ว %>
       <div class="text-center status-summary">
-        <div class="box">
-          <b class="number digits"><%= summary.PENDING %></b>
-          <small>รอคิว</small>
-        </div>
-        <div class="box">
-          <b class="number digits"><%= summary.COOKING %></b>
-          <small>กำลังเตรียม</small>
-        </div>
-        <div class="box">
-          <b class="number digits"><%= summary.READY %></b>
-          <small>กำลังมา</small>
-        </div>
-        <div class="box">
-          <b class="number digits"><%= summary.SERVED %></b>
-          <small>เสิร์ฟแล้ว</small>
-        </div>
+        <% for (const status in summaryLabels) { %>
+          <div class="box">
+            <b class="number digits"><%= summary[status] %></b>
+            <small><%= summaryLabels[status] %></small>
+          </div>
+        <% } %>
       </div>
       <%
         // แสดงรอบล่าสุดก่อน แล้วดูสถานะอาหารที่ยังไม่ถูกยกเลิก
@@ -77,31 +60,26 @@
         <div class="cust-round-card box">
           <div class="cust-round-header row between wrap"
             onclick="toggleOrderDropdown('<%= g.order_id %>')">
-            <div class="cust-round-title row">
+            <div class="row">
               <span class="cust-round-badge">รอบที่ <%= g.round_no %></span>
-              <span
-                class="cust-round-time digits small muted">
-                  สั่งเมื่อ <%= thaiTime(g.ordered_at) %> น.</span>
+              <span class="digits small muted">สั่งเมื่อ <%= thaiTime(g.ordered_at) %> น.</span>
             </div>
-            <div class="cust-round-meta row wrap">
+            <div class="row wrap">
               <span class="badge <%= badge.cls %> inline-row">
                 <%= badge.roundLabel || badge.label %>
               </span>
-              <button class="cust-dropdown-btn<%= isLatest ? '' : ' collapsed' %> row plain-button"
+              <button class="<%= isLatest ? '' : ' collapsed' %> row plain-button"
                 id="toggle-btn-<%= g.order_id %>" type="button" aria-label="แสดง/ซ่อนรายการ">
                 <span class="muted" style="font-size: 0.8rem;"><%= g.items.length %> รายการ</span>
-                <svg class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
-                  stroke-linejoin="round">
-                  <path d="M6 9l6 6 6-6" />
-                </svg>
+                <img class="chevron-icon" src="/images/icons/chevron.svg"
+                  width="16" height="16" alt="" />
               </button>
             </div>
           </div>
           <div class="order-dropdown<%= isLatest ? ' open' : '' %>" id="dropdown-<%= g.order_id %>"
             data-order="<%= g.order_id %>">
             <%# รูป ชื่อ จำนวน และสถานะของอาหารในรอบ %>
-            <div class="order-list">
+            <div>
               <%
                 for (const item of g.items) {
                   const st = statusInfo[item.item_status];
@@ -125,7 +103,7 @@
           </div>
         </div>
       <% } %>
-      <a href="/menu?token=<%= token %>" class="btn btn-secondary btn-block inline-row"
+      <a href="/menu?token=<%= token %>" class="btn btn-block inline-row"
         style="margin-top: 22px;">สั่งอาหารเพิ่ม</a>
     <% } %>
   </main>

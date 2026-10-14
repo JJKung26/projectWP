@@ -2,7 +2,7 @@
 <%
   const children = session.child_count;
   const adults = session.guest_count - children - session.free_child_count;
-  const buffetRows = [
+  const billRows = [
     { name: 'บุฟเฟต์ ผู้ใหญ่', count: adults, price: session.buffet_price },
     { name: 'บุฟเฟต์ เด็ก 90–120 ซม.', count: children, price: session.child_price }
   ];
@@ -26,9 +26,13 @@
       row.unit_price_at_order === item.unit_price_at_order
     );
     if (group) group.quantity += item.quantity;
-    else itemGroups.push({
-      item_name: item.item_name, menu_item_id: item.menu_item_id,
-      unit_price_at_order: item.unit_price_at_order, quantity: item.quantity
+    else itemGroups.push(item);
+  }
+  // ใช้ตารางเดียวแสดงทั้งบุฟเฟต์และอาหารคิดเพิ่ม
+  for (const item of itemGroups) {
+    billRows.push({
+      name: item.item_name, count: item.quantity,
+      price: item.unit_price_at_order, unit: 'หน่วย'
     });
   }
 %>
@@ -59,38 +63,25 @@
   </div>
   <%# แสดงค่าบุฟเฟต์และอาหารคิดเพิ่มพร้อมจำนวนกับยอดเงิน %>
   <table class="receipt-items" aria-label="รายการที่คิดเงิน">
-    <colgroup>
-      <col />
-      <col class="receipt-quantity" />
-      <col class="receipt-amount" />
-    </colgroup>
     <thead>
       <tr>
         <th>รายการ</th>
-        <th class="r">จำนวน</th>
-        <th class="r">บาท</th>
+        <th class="r receipt-quantity">จำนวน</th>
+        <th class="r receipt-amount">บาท</th>
       </tr>
     </thead>
     <tbody>
-      <% for (const row of buffetRows) { %>
+      <% for (const row of billRows) { %>
         <% if (row.count * row.price <= 0) continue; %>
         <tr>
           <td>
             <%= row.name %>
-            <span class="small block"><%= row.price.toFixed(2) %> บาท/ท่าน</span>
+            <span class="small block">
+              <%= row.price.toFixed(2) %> บาท/<%= row.unit || 'ท่าน' %>
+            </span>
           </td>
           <td class="r"><%= row.count %></td>
           <td class="r"><%= (row.count * row.price).toFixed(2) %></td>
-        </tr>
-      <% } %>
-      <% for (const i of itemGroups) { %>
-        <tr>
-          <td>
-            <%= i.item_name %>
-            <small class="block"><%= i.unit_price_at_order.toFixed(2) %> บาท/หน่วย</small>
-          </td>
-          <td class="r"><%= i.quantity %></td>
-          <td class="r"><%= (i.quantity*i.unit_price_at_order).toFixed(2) %></td>
         </tr>
       <% } %>
     </tbody>

@@ -12,7 +12,7 @@
     <form action="/cashier/queue/seat" method="post" onsubmit="submitTable(event)">
       <input type="hidden" id="seatQueueTicketId" name="queue_ticket_id" />
       <%# ตัวเลือกเฉพาะโต๊ะว่าง พร้อมจำนวนที่นั่ง %>
-      <fieldset class="form-group seat-table-picker">
+      <fieldset class="form-group">
         <legend class="form-label row">
           โต๊ะว่าง
           <% if (availableTables.length > 8) { %>
@@ -42,7 +42,7 @@
       <%# กรอกประเภทลูกค้ากับราคา แล้วเปิดโต๊ะให้คิวที่เลือก %>
       <%- include('../../partials/guest-inputs', { guestPrefix: 'seat' }) %>
       <div class="flex modal-actions">
-        <button type="button" class="btn btn-secondary inline-row"
+        <button type="button" class="btn inline-row"
           onclick="closeModal('seatQueueModal')">ยกเลิก</button>
         <button type="submit" class="btn btn-primary grow inline-row"
           <%= availableTables.length === 0 ? 'disabled' : '' %>>เปิดโต๊ะให้คิวนี้</button>

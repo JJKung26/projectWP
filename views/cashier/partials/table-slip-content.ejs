@@ -13,14 +13,14 @@
 <div class="text-center slip-header">
   <%- include('../../partials/shop-logo', { logoClass: 'order-slip-logo' }) %>
   <div class="slip-title">ร้านหมูกระทะ บุฟเฟต์</div>
-  <div class="slip-subtitle small">ใบ QR สำหรับสั่งอาหาร</div>
+  <div class="small">ใบ QR สำหรับสั่งอาหาร</div>
   <h2 class="order-slip-table" tabindex="-1" autofocus>
     หมายเลขโต๊ะ:
     <span><%= slip.table_no %></span>
   </h2>
 </div>
 <%# จำนวนลูกค้า วันที่ และรหัสรอบบริการ %>
-<div class="order-slip-meta small">
+<div class="small">
   <div class="slip-row">
     <span>จำนวนลูกค้า: <span><%= slip.guest_count %></span> ท่าน</span>
     <span><%= thaiDay(start) %></span>
@@ -37,14 +37,14 @@
 <%# รูป QR และลิงก์ที่ลูกค้าใช้เปิดเมนู %>
 <div class="text-center slip-qr-box">
   <img class="slip-qr-img" src="<%= slip.qr_image %>" alt="QR Code สั่งอาหาร" />
-  <div class="slip-qr-caption">สแกน QR Code เพื่อสั่งอาหาร</div>
+  <div>สแกน QR Code เพื่อสั่งอาหาร</div>
   <div class="slip-url"><%= slip.customer_url %></div>
 </div>
 <div class="text-center order-slip-time digits">
   หมดเวลา:
   <strong><%= thaiTime(end) %></strong>
 </div>
-<div class="text-center order-slip-end-date small">
+<div class="text-center small">
   <%= thaiDay(start) !== thaiDay(end) ? 'หมดเวลาในวันที่ ' + thaiDay(end) : '' %>
 </div>
 <%# จำนวนผู้ใหญ่และเด็ก ราคาต่อคน VAT และยอดบุฟเฟต์รวม %>

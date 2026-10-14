@@ -19,13 +19,10 @@ function changeItems(req, res, serving = false) {
     JOIN DiningSession s ON s.session_id = fo.session_id
     WHERE s.session_status = 'ACTIVE' AND (oi.order_id = ? OR oi.order_item_id = ?)`;
   // เลือกว่าจะบันทึกพนักงานครัวหรือพนักงานเสิร์ฟ
-  let update = `UPDATE OrderItem
-    SET item_status = ?, prepared_by = ?, cancel_reason = ?
+  const worker = serving ? 'served_by' : 'prepared_by';
+  const update = `UPDATE OrderItem
+    SET item_status = ?, ${worker} = ?, cancel_reason = ?
     WHERE order_item_id = ?`;
-  if (serving)
-    update = `UPDATE OrderItem
-      SET item_status = ?, served_by = ?, cancel_reason = ?
-      WHERE order_item_id = ?`;
 
   // เปลี่ยนรายการที่ทำได้ และปิดสต็อกเมื่อยกเลิกเพราะของหมด
   db.transaction(function () {

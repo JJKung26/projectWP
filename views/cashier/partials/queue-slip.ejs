@@ -5,7 +5,7 @@
       <div class="text-center slip-header">
         <%- include('../../partials/shop-logo', { logoClass: 'order-slip-logo' }) %>
         <div class="slip-title">หมูกระทะ บุฟเฟต์</div>
-        <div class="slip-subtitle small">บัตรคิว</div>
+        <div class="small">บัตรคิว</div>
         <div class="slip-table-badge number" id="qsQueueNo">-</div>
       </div>
       <%# วันที่ เวลา จำนวนลูกค้า และจำนวนคิวก่อนหน้า %>
@@ -35,8 +35,8 @@
     <%# เลือกกระดาษ พิมพ์บัตร และปิดป๊อปอัป %>
     <div class="flex no-print modal-actions">
       <%- include('../../partials/paper', { paperId: 'queue-paper' }) %>
-      <button class="btn btn-secondary inline-row" onclick="printSlip()">พิมพ์</button>
-      <button class="btn btn-dark grow inline-row" onclick="closeModal('queueSlipModal')">
+      <button class="btn inline-row" onclick="printSlip()">พิมพ์</button>
+      <button class="btn btn-primary grow inline-row" onclick="closeModal('queueSlipModal')">
         เสร็จ
       </button>
     </div>

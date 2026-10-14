@@ -19,11 +19,6 @@ function getDashboard(req, res) {
   res.render('kitchen/dashboard', data);
 }
 
-// ส่งคำสั่งเปลี่ยนสถานะอาหารไปยังฟังก์ชันกลาง
-function updateStatus(req, res) {
-  changeItems(req, res);
-}
-
 // บันทึกว่าเมนูมีของหรือหมดชั่วคราว
 function toggleStock(req, res) {
   const body = req.body;
@@ -34,4 +29,6 @@ function toggleStock(req, res) {
   ]);
   res.json({ success: true });
 }
+// ส่งคำสั่งครัวให้ฟังก์ชันกลาง โดยรับเฉพาะ req และ res
+function updateStatus(req, res) { changeItems(req, res); }
 module.exports = { getDashboard, updateStatus, toggleStock };

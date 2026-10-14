@@ -1,0 +1,6 @@
+<!-- ไอคอนปิด ใช้เป็นรูปในหน้า EJS -->
+<svg xmlns="http://www.w3.org/2000/svg"
+  width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#30251f" stroke-width="2"
+  stroke-linecap="round">
+  <path d="M3 3l10 10M13 3L3 13" />
+</svg>

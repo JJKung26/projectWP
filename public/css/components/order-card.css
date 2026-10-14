@@ -1,9 +1,8 @@
 /* กรอบและหัวรอบอาหารที่ครัว เสิร์ฟ และลูกค้าใช้ร่วมกัน */
 .round-card, .cust-round-card { overflow: hidden; }
 .round-card-header, .cust-round-header { padding: 14px; background: #fcfaf6; }
-/* ช่องว่างระหว่างรอบและเส้นแบ่งรายการอาหาร */
+/* ช่องว่างระหว่างรอบอาหาร */
 .round-card-list { gap: 12px; }
-.round-item-row { padding: 14px; border-top: 1px solid var(--line); }
 /* แสดงหรือพับรายการ พร้อมปรับทิศลูกศร */
 .order-dropdown { display: none; }
 .order-dropdown.open { display: block; }

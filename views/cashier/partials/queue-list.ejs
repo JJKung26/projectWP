@@ -17,7 +17,7 @@
   <div
     class="queue-card-item<%= ticket.queue_status === 'CALLED' ? ' called' : '' %> row box between">
     <div style="display: flex; align-items: center; gap: 14px;">
-      <div class="queue-no-badge number digits large"><%= ticket.queue_no %></div>
+      <div class="number digits large"><%= ticket.queue_no %></div>
       <div>
         <div style="font-weight: 500;"><%= ticket.guest_count %> ท่าน</div>
         <div class="small muted">
@@ -26,14 +26,14 @@
       </div>
     </div>
     <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-      <button class="btn btn-secondary btn-sm inline-row"
+      <button class="btn btn-sm inline-row"
         onclick="reprintQueue('<%= ticket.queue_ticket_id %>')">พิมพ์ซ้ำ</button>
       <%# เรียก จัดโต๊ะ หรือยกเลิกได้เฉพาะคิววันนี้ที่ยังไม่จบ %>
       <% if (ticket.queue_date === today &&
              ['WAITING', 'CALLED'].includes(ticket.queue_status)) { %>
-        <button class="btn btn-secondary btn-sm inline-row"
+        <button class="btn btn-sm inline-row"
           onclick="callQueue('<%= ticket.queue_ticket_id %>')">เรียกคิว</button>
-        <button class="btn btn-dark btn-sm inline-row"
+        <button class="btn btn-primary btn-sm inline-row"
           onclick="openSeatModal(
             '<%= ticket.queue_ticket_id %>', '<%= ticket.queue_no %>',
             <%= ticket.guest_count %>

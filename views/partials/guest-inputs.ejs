@@ -18,13 +18,13 @@
   ];
 %>
 <%# สร้างช่องจำนวนพร้อมปุ่มบวก/ลบ และราคาของลูกค้าแต่ละกลุ่ม %>
-<div class="guest-inputs" oninput="updateGuestTotal('<%= guestPrefix %>')">
+<div oninput="updateGuestTotal('<%= guestPrefix %>')">
   <%
     for (const guest of guestTypes) {
       const countId = guestPrefix + guest.type + 'Count';
       const guestPriceId = guestPrefix + guest.type + 'Price';
   %>
-    <div class="grid-2 form-row">
+    <div class="grid-2">
       <div class="form-group">
         <label class="form-label" for="<%= countId %>"><%= guest.label %></label>
         <div class="flex stepper-input">
@@ -52,7 +52,7 @@
     </div>
   <% } %>
   <%# แสดงจำนวนลูกค้ารวมที่ JavaScript คำนวณให้ %>
-  <p class="form-hint small">
+  <p class="small">
     รวม
     <strong id="<%= guestPrefix %>GuestTotal">0</strong>
     ท่าน · ราคายังไม่รวม VAT 7%

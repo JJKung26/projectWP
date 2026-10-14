@@ -44,19 +44,10 @@ function openSession(body, employeeId) {
       (session_id, table_id, opened_by, queue_ticket_id, qr_token,
        guest_count, child_count, free_child_count, buffet_price, child_price)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-    const values = [
-      sessionId,
-      table.table_id,
-      employeeId,
-      ticketId,
-      token,
-      count,
-      children,
-      freeChildren,
-      price,
-      childPrice
-    ];
-    db.run(sql, values);
+    db.run(sql, [
+      sessionId, table.table_id, employeeId, ticketId, token,
+      count, children, freeChildren, price, childPrice
+    ]);
     setTableStatus(table.table_id, 'OCCUPIED');
     if (ticketId) {
       db.run(

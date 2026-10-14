@@ -59,16 +59,10 @@ function placeOrder(req, res) {
         item.menu_item_id
       ]);
       if (!menu || menu.availability !== 1) fail('อาหารที่เลือกหมดชั่วคราว', 409);
-      const values = [
-        randomUUID(),
-        id,
-        menu.menu_item_id,
-        quantity,
-        menu.unit_price,
-        menu.item_name,
-        menu.charge_type
-      ];
-      db.run(itemSql, values);
+      db.run(itemSql, [
+        randomUUID(), id, menu.menu_item_id, quantity,
+        menu.unit_price, menu.item_name, menu.charge_type
+      ]);
     }
     return id;
   });
@@ -93,10 +87,4 @@ function getMenuData(req, res) {
   const menuItems = db.query(`SELECT menu_item_id, availability FROM MenuItem WHERE is_active = 1`);
   res.json({ success: true, menuItems });
 }
-module.exports = {
-  landingQr,
-  getMenu,
-  placeOrder,
-  getOrderStatus,
-  getMenuData
-};
+module.exports = { landingQr, getMenu, placeOrder, getOrderStatus, getMenuData };

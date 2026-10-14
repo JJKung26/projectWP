@@ -37,9 +37,7 @@ function renderElapsed() {
 
 // เปิดป๊อปอัปทีละอัน และรีเฟรชโต๊ะหลังปิด
 function openModal(id) {
-  for (const dialog of document.querySelectorAll('.modal-overlay.active')) {
-    dialogClose(dialog.id);
-  }
+  for (const dialog of document.querySelectorAll('.modal-overlay.active')) dialogClose(dialog.id);
   dialogOpen(id);
 }
 

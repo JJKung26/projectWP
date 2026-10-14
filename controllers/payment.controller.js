@@ -40,10 +40,10 @@ function getBill(req, res) {
 function processPayment(req, res) {
   const sessionId = req.body.session_id;
   const method = req.body.payment_method;
-  const result = db.transaction(function () {
+  db.transaction(function () {
     // 1. ตรวจว่าบิลยังไม่ได้จ่าย และอาหารไม่มีรายการค้าง
     const old = db.get('SELECT * FROM Bill WHERE session_id = ?', [sessionId]);
-    if (old) return { receipt_no: old.receipt_no, net_amount: old.net_amount };
+    if (old) return;
     const session = getBillSession(sessionId);
     if (session.session_status !== 'ACTIVE') fail('รอบบริการปิดแล้ว', 409);
     const items = itemsFor(sessionId);
@@ -69,31 +69,18 @@ function processPayment(req, res) {
       (bill_id, session_id, subtotal, tax_amount,
        before_rounding, rounding_amount, net_amount, bill_status, receipt_no, snapshot_json)
       VALUES (?, ?, ?, ?, ?, ?, ?, 'PAID', ?, ?)`;
-    const billValues = [
-      billId,
-      sessionId,
-      amounts.subtotal,
-      amounts.taxAmount,
-      amounts.beforeRounding,
-      amounts.roundingAmount,
-      amounts.netAmount,
-      receiptNo,
-      JSON.stringify(amounts)
-    ];
-    db.run(billSql, billValues);
+    db.run(billSql, [
+      billId, sessionId, amounts.subtotal, amounts.taxAmount,
+      amounts.beforeRounding, amounts.roundingAmount, amounts.netAmount,
+      receiptNo, JSON.stringify(amounts)
+    ]);
     const paymentSql = `INSERT INTO Payment (payment_id, bill_id, received_by,
       payment_method, amount, amount_received, change_amount,
       paid_at) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`;
-    const paymentValues = [
-      randomUUID(),
-      billId,
-      req.staff.employee_id,
-      method,
-      amounts.netAmount,
-      received / 100,
-      change
-    ];
-    db.run(paymentSql, paymentValues);
+    db.run(paymentSql, [
+      randomUUID(), billId, req.staff.employee_id, method,
+      amounts.netAmount, received / 100, change
+    ]);
     db.run(
       `UPDATE DiningSession
         SET session_status = 'CLOSED', ends_at = CURRENT_TIMESTAMP
@@ -101,15 +88,8 @@ function processPayment(req, res) {
       [sessionId]
     );
     setTableStatus(session.table_id, 'AVAILABLE');
-    return {
-      receipt_no: receiptNo,
-      net_amount: amounts.netAmount,
-      change_amount: change
-    };
   });
-  result.success = true;
-  result.receipt_url = '/cashier/bill/' + sessionId;
-  res.json(result);
+  res.json({ success: true, receipt_url: '/cashier/bill/' + sessionId });
 }
 
 // อ่านใบเสร็จล่าสุดไม่เกิน 200 ใบ เพื่อแสดงประวัติ

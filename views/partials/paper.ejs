@@ -3,10 +3,10 @@
   <legend>ขนาดกระดาษ</legend>
   <div class="grid-2 paper-options choices">
     <% for (const value of ['80', '58']) { %>
-      <label class="paper-choice">
+      <label>
         <input type="radio" class="paper-size" name="<%= paperId %>" value="<%= value %>"
           <%= value === '80' ? 'checked' : '' %> />
-        <span class="paper-tile"><strong><%= value %> มม.</strong> <small>ใบเสร็จ</small></span>
+        <span><strong><%= value %> มม.</strong> <small>ใบเสร็จ</small></span>
       </label>
     <% } %>
   </div>

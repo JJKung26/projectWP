@@ -1,10 +1,5 @@
-// อ่านรหัสบัตรคิวล่าสุดที่จำไว้ เพื่อเปิดดูหรือพิมพ์ซ้ำ
-let lastTicketId = sessionStorage.getItem('lastQueueTicket') || '';
-
-// จำบัตรคิวล่าสุดและใส่ข้อมูลลงในใบสำหรับพิมพ์
+// ใส่ข้อมูลคิวลงในใบสำหรับพิมพ์
 function displayQueueTicket(ticket) {
-  lastTicketId = ticket.queue_ticket_id;
-  sessionStorage.setItem('lastQueueTicket', lastTicketId);
   byId('qsQueueNo').textContent = ticket.queue_no;
   byId('qsDate').textContent = ticket.queue_date;
   const created = new Date(ticket.created_at.replace(' ', 'T') + 'Z');
@@ -30,10 +25,7 @@ function openIssueQueueModal() {
 // โหลดคิวตามวันและสถานะ แล้วอัปเดตรายการกับจำนวนคิวรอ
 async function loadQueues() {
   const history = byId('queueHistory').checked ? '1' : '0';
-  const filters = new URLSearchParams({
-    date: byId('queueDate').value,
-    history
-  });
+  const filters = new URLSearchParams({ date: byId('queueDate').value, history });
   try {
     const response = await fetch('/cashier/queue/list?' + filters, {
       headers: { Accept: 'text/html' }
@@ -94,11 +86,7 @@ async function cancelQueue(ticketId) {
 }
 
 // อ่านบัตรคิวเดิมเพื่อเปิดดูหรือพิมพ์ซ้ำ
-async function reprintQueue(id = lastTicketId) {
-  if (!id) {
-    openQueueModal();
-    return;
-  }
+async function reprintQueue(id) {
   const data = await requestAction('/cashier/queue/ticket/' + id);
   if (data) displayQueueTicket(data.ticket);
 }

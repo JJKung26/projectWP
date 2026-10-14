@@ -3,7 +3,7 @@
   <%# หัวข้อจุดเสิร์ฟและจำนวนรายการที่ครัวทำเสร็จ %>
   <div class="page-head row between wrap">
     <div>
-      <div class="eyebrow small muted">เสิร์ฟ</div>
+      <div class="small muted">เสิร์ฟ</div>
       <h1>รอนำไปเสิร์ฟ</h1>
       <p>ครัวทำเสร็จแล้ว ยกไปที่โต๊ะแล้วกดยืนยัน</p>
     </div>
@@ -19,12 +19,9 @@
   </div>
   <%# แสดงรอบพร้อมเสิร์ฟ หรือข้อความเมื่อไม่มีรายการ %>
   <% if (readyRounds.length === 0) { %>
-    <%-
-      include('../partials/empty', {
-        heading: 'ไม่มีจานค้างเสิร์ฟ',
-        message: 'เมื่อครัวกด "เสร็จแล้ว" รายการจะขึ้นที่นี่ทันที'
-      })
-    %>
+    <%- include('../partials/empty', {
+      heading: 'ไม่มีจานค้างเสิร์ฟ', message: 'เมื่อครัวกด "เสร็จแล้ว" รายการจะขึ้นที่นี่ทันที'
+    }) %>
   <% } else { %>
     <div class="round-card-list column">
       <% for (const round of readyRounds) { %>

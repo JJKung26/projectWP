@@ -6,7 +6,7 @@
 %>
 <div class="kitchen-col-card">
   <%# หัวคอลัมน์และจำนวนรอบอาหาร %>
-  <div class="kitchen-col-header row between">
+  <div class="row between">
     <h2><%= heading %></h2>
     <span class="<%= badgeClass %>"><%= badgeLabel %> (<%= rounds.length %>)</span>
   </div>
@@ -18,12 +18,9 @@
   <% } else { %>
     <div class="round-card-list column">
       <% for (const round of rounds) { %>
-        <%-
-          include('../../partials/staff-order-card', {
-            round,
-            mode: isCooking ? 'cooking' : 'waiting'
-          })
-        %>
+        <%- include('../../partials/staff-order-card', {
+          round, mode: isCooking ? 'cooking' : 'waiting'
+        }) %>
       <% } %>
     </div>
   <% } %>

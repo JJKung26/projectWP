@@ -19,9 +19,7 @@ async function enableSound() {
 // เรียงเสียงเริ่มต้น ตัวเลขคิว และเสียงปิดท้าย
 function announceQueue(number) {
   const clips = ['chime', 'intro'];
-  for (const digit of number.slice(1)) {
-    clips.push(digit);
-  }
+  for (const digit of number.slice(1)) clips.push(digit);
   clips.push('outro');
   let index = 0;
   queueAudio.pause();

@@ -1,4 +1,3 @@
-// ค้นหา เลือกหมวด และอัปเดตสต็อก
 // เปิดและปิดป๊อปอัปตะกร้าหรือหมวดอาหาร
 function openSheet(id) {
   dialogOpen(id, 'open');
@@ -6,9 +5,7 @@ function openSheet(id) {
 
 function closeSheets() {
   const sheets = document.querySelectorAll('.sheet.open');
-  for (const sheet of sheets) {
-    dialogClose(sheet.id, 'open');
-  }
+  for (const sheet of sheets) dialogClose(sheet.id, 'open');
 }
 
 // ทำเครื่องหมายหมวดที่กำลังดู ก่อนเปิดรายการหมวดทั้งหมด
@@ -98,11 +95,7 @@ function updateCategory(entries) {
 const observer = new IntersectionObserver(updateCategory, {
   rootMargin: '-60px 0px -75% 0px'
 });
-for (const section of document.querySelectorAll('.menu-section')) {
-  observer.observe(section);
-}
-for (const id in ITEMS) {
-  renderControl(id);
-}
+for (const section of document.querySelectorAll('.menu-section')) observer.observe(section);
+for (const id in ITEMS) renderControl(id);
 renderCart();
 const stockTimer = setInterval(refreshStock, 5000);

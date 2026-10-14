@@ -5,9 +5,11 @@
     <%# เลือกกระดาษ คัดลอกลิงก์ พิมพ์ และปิดป๊อปอัป %>
     <div class="grid-2 no-print modal-actions">
       <%- include('../../partials/paper', { paperId: 'qr-paper' }) %>
-      <button class="btn btn-secondary inline-row" onclick="copySlipUrl()">คัดลอกลิงก์</button>
-      <button class="btn btn-secondary inline-row" onclick="printSlip()">พิมพ์</button>
-      <button class="btn btn-dark grow inline-row" onclick="closeModal('slipModal')">เสร็จ</button>
+      <button class="btn inline-row" onclick="copySlipUrl()">คัดลอกลิงก์</button>
+      <button class="btn inline-row" onclick="printSlip()">พิมพ์</button>
+      <button class="btn btn-primary grow inline-row" onclick="closeModal('slipModal')">
+        เสร็จ
+      </button>
     </div>
   </div>
 </dialog>

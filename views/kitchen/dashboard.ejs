@@ -9,14 +9,14 @@
   <%# หัวข้อครัวและจำนวนรายการในแต่ละสถานะ %>
   <div class="page-head row between wrap">
     <div>
-      <div class="eyebrow small muted">ครัว</div>
+      <div class="small muted">ครัว</div>
       <h1>คิวออเดอร์</h1>
       <p>เรียงตามเวลาสั่ง รายการเก่าสุดอยู่ก่อน</p>
     </div>
     <div class="flex stat-strip box">
       <div class="stat">
         <div class="stat-label row small muted">
-          <span class="dot warn"></span>
+          <span class="dot"></span>
           รอทำ
         </div>
         <div class="stat-value number digits large"><%= pending %></div>
@@ -41,19 +41,16 @@
       onclick="showTab('stockTab')">
       สต็อกวัตถุดิบ
       <% if (soldOut > 0) { %>
-        <span class="badge badge-cancelled plain inline-row">หมด <%= soldOut %></span>
+        <span class="badge badge-cancelled inline-row">หมด <%= soldOut %></span>
       <% } %>
     </button>
   </div>
   <%# แยกการ์ดรอทำและกำลังทำ หรือแสดงข้อความเมื่อไม่มีออเดอร์ %>
   <div id="ordersTab">
     <% if (orderRounds.length === 0) { %>
-      <%-
-        include('../partials/empty', {
-          heading: 'ไม่มีออเดอร์ค้าง',
-          message: 'ออเดอร์ใหม่จะขึ้นที่นี่ทันทีที่ลูกค้ากดส่ง'
-        })
-      %>
+      <%- include('../partials/empty', {
+        heading: 'ไม่มีออเดอร์ค้าง', message: 'ออเดอร์ใหม่จะขึ้นที่นี่ทันทีที่ลูกค้ากดส่ง'
+      }) %>
     <% } else { %>
       <div class="grid-2 kitchen-2col-layout">
         <%- include('partials/order-column', { rounds: pendingRounds, isCooking: false }) %>

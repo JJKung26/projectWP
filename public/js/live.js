@@ -59,14 +59,11 @@ function liveRegion(selectors, afterRefresh) {
 
 // ปิดป๊อปอัป ปิดปุ่ม และแจ้งลูกค้าเมื่อรอบบริการจบ
 function diningEnded() {
-  for (const dialog of document.querySelectorAll('dialog[open]')) {
-    dialog.close();
-  }
+  for (const dialog of document.querySelectorAll('dialog[open]')) dialog.close();
   for (const button of document.querySelectorAll('button,input')) {
     button.disabled = true;
   }
   const notice = document.createElement('div');
-  notice.id = 'diningEnded';
   notice.className = 'card dining-ended';
   notice.textContent = 'รอบบริการนี้จบแล้ว กรุณาติดต่อพนักงาน';
   document.body.appendChild(notice);
