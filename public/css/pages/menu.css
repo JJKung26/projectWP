@@ -25,7 +25,7 @@
   background: #30251fcc; color: #fff; text-align: center;
 }
 /* ราคาและปุ่มเพิ่มหรือลดจำนวนอาหาร */
-.menu-foot { margin-top: auto; padding-top: 8px; }
+.menu-foot { margin-top: auto; padding-top: 8px; min-height: 44px; }
 .add-btn { width: 30px; height: 30px; border: 1px solid var(--ember);
   border-radius: 50%; color: var(--ember); background: #fff; font-size: 1.3rem;
 }
