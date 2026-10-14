@@ -1,0 +1,21 @@
+/* จัดเมนูตามหมวดในแท็บสต็อก */
+.stock-category { margin-top: 24px; }
+.stock-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px;
+}
+/* การ์ดเมนู ของหมดแสดงรูปจางเป็นสีเทา */
+.stock-row { padding: 12px; }
+.stock-row.off img { filter: grayscale(1); opacity: .5; }
+/* สวิตช์เปิดหรือปิดวัตถุดิบ สีเขียวคือมีของ */
+.switch { width: 42px; height: 24px; margin-left: auto; border-radius: 20px;
+  background: var(--line);
+}
+.switch::before { content: ''; display: block; width: 18px; height: 18px; margin: 3px;
+  border-radius: 50%; background: #fff;
+}
+.switch[aria-checked='true'] { background: #34734a; }
+.switch[aria-checked='true']::before { transform: translateX(18px); }
+
+/* ใช้กับ EJS:
+   views/kitchen/dashboard.ejs
+*/

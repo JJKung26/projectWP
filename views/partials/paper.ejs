@@ -1,13 +1,13 @@
-<%# สร้างตัวเลือกกระดาษพิมพ์ขนาด 58 และ 80 มม. %>
-<% const selectedPaper = typeof defaultPaper === 'undefined' ? '80' : defaultPaper; %>
+<%# ตัวเลือกกระดาษ 80 หรือ 58 มม. ใช้ร่วมกับใบ QR บัตรคิว และใบเสร็จ %>
 <fieldset class="paper-picker">
-    <legend>ขนาดกระดาษ</legend>
-    <div class="paper-options">
-        <% for (const value of ['80', '58']) { %>
-        <label class="paper-choice">
-            <input type="radio" class="paper-size" name="<%= paperId %>" value="<%= value %>" <%= selectedPaper === value ? 'checked' : '' %>>
-            <span class="paper-tile"><strong><%= value %> มม.</strong><small>ใบเสร็จ</small></span>
-        </label>
-        <% } %>
-    </div>
+  <legend>ขนาดกระดาษ</legend>
+  <div class="grid-2 paper-options choices">
+    <% for (const value of ['80', '58']) { %>
+      <label class="paper-choice">
+        <input type="radio" class="paper-size" name="<%= paperId %>" value="<%= value %>"
+          <%= value === '80' ? 'checked' : '' %> />
+        <span class="paper-tile"><strong><%= value %> มม.</strong> <small>ใบเสร็จ</small></span>
+      </label>
+    <% } %>
+  </div>
 </fieldset>

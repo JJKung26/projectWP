@@ -1,0 +1,50 @@
+/* เว้นพื้นที่ให้แถบตะกร้าและแสดงภาพร้าน */
+.menu-page { background: #fff; padding-bottom: 100px; }
+.hero { height: 220px; padding: 16px; background: url('/images/hero.jpg') center / cover; }
+/* หมายเลขโต๊ะ โลโก้ และชื่อร้านบนหน้าเมนู */
+.table-pill { padding: 8px 14px; }
+.shop-head { padding: 0 16px 14px; }
+.shop-head h1 { font-size: 1.1rem; font-weight: 600; }
+.shop-head p { font-size: .8rem; color: var(--muted); }
+.shop-logo { width: 80px; height: 80px; margin-top: -40px; position: relative;
+  border: 3px solid #fff; border-radius: 50%; box-shadow: 0 2px 6px #30251f1a;
+}
+/* ปุ่มและแถบเลื่อนเลือกหมวดอาหาร */
+.cat-bar { padding: 0 8px; border-bottom: 1px solid var(--line); }
+.cat-tool { width: 36px; flex-shrink: 0; }
+.cat-scroll { flex: 1; overflow: auto; }
+.category-tab { padding: 12px 10px; font-size: .85rem; }
+/* รายการอาหารพื้นขาว คั่นด้วยเส้นบาง */
+.menu-section { padding: 14px 16px 0; scroll-margin-top: 56px; }
+.menu-section h2 { font-size: 1.05rem; font-weight: 600; margin-bottom: 4px; }
+.menu-row { gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.menu-thumb { position: relative; width: 88px; height: 88px; flex-shrink: 0; }
+.menu-thumb img { width: 100%; height: 100%; object-fit: contain; border-radius: 8px; }
+/* ป้ายแสดงอาหารที่หมดชั่วคราว */
+.sold-tag { position: absolute; bottom: 0; left: 0; width: 100%;
+  background: #30251fcc; color: #fff; text-align: center;
+}
+/* ราคาและปุ่มเพิ่มหรือลดจำนวนอาหาร */
+.menu-foot { margin-top: auto; padding-top: 8px; }
+.add-btn { width: 30px; height: 30px; border: 1px solid var(--ember);
+  border-radius: 50%; color: var(--ember); background: #fff; font-size: 1.3rem;
+}
+.qty { border-radius: 20px; gap: 0; }
+.qty button { width: 34px; height: 36px; }
+.qty span { min-width: 18px; text-align: center; }
+/* ช่องค้นหาที่แสดงแทนหัวร้านเมื่อกดค้นหา */
+.search-bar { display: none; padding: 10px 16px; align-items: center; gap: 12px; }
+.searching .search-bar { display: flex; }
+.searching .cat-bar, .searching .hero, .searching .shop-head { display: none; }
+.search-field { flex: 1; padding: 0 12px; background: var(--paper); border-radius: 14px; }
+.search-field input { width: 0; flex: 1; padding: 11px 0; border: 0; background: none; }
+/* รายการหมวดทั้งหมดและเครื่องหมายหมวดที่เลือก */
+.cat-list { list-style: none; }
+.cat-list a { padding: 14px 0; }
+.cat-list .tick { visibility: hidden; }
+.cat-list .current .tick { visibility: visible; }
+.sold-out img { filter: grayscale(1); opacity: .5; }
+
+/* ใช้กับ EJS:
+   views/customer/menu.ejs
+*/

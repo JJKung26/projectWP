@@ -1,32 +1,60 @@
-<%# สร้างช่องจำนวนผู้ใหญ่ เด็ก เด็กฟรี และราคาบุฟเฟ่ %>
-<% const guestTypes = [
-    { type: 'Adult', field: 'adult_count', label: 'ผู้ใหญ่ / สูงเกิน 120 ซม.', name: 'ผู้ใหญ่', price: 279 },
-    { type: 'Child', field: 'child_count', label: 'เด็ก 90–120 ซม.', name: 'เด็ก 90–120 ซม.', price: 179 },
-    { type: 'FreeChild', field: 'free_child_count', label: 'เด็กต่ำกว่า 90 ซม.', name: 'เด็กทานฟรี', price: 'ทานฟรี' }
-]; %>
+<%# กำหนดช่องจำนวนและราคาสำหรับผู้ใหญ่ เด็ก และเด็กทานฟรี %>
+<%
+  const guestTypes = [
+    {
+      type: 'Adult', field: 'adult_count',
+      label: 'ผู้ใหญ่ / สูงเกิน 120 ซม.', name: 'ผู้ใหญ่',
+      priceField: 'buffet_price', price: 279
+    },
+    {
+      type: 'Child', field: 'child_count',
+      label: 'เด็ก 90–120 ซม.', name: 'เด็ก 90–120 ซม.',
+      priceField: 'child_price', price: 179
+    },
+    {
+      type: 'FreeChild', field: 'free_child_count',
+      label: 'เด็กต่ำกว่า 90 ซม.', name: 'เด็กทานฟรี', price: 'ทานฟรี'
+    }
+  ];
+%>
+<%# สร้างช่องจำนวนพร้อมปุ่มบวก/ลบ และราคาของลูกค้าแต่ละกลุ่ม %>
 <div class="guest-inputs" oninput="updateGuestTotal('<%= guestPrefix %>')">
-    <% for (const guest of guestTypes) {
-        const countId = guestPrefix + guest.type + 'Count';
-        const guestPriceId = guest.type === 'Adult' ? priceId : guestPrefix + guest.type + 'Price';
-    %>
-    <div class="form-row">
-        <div class="form-group">
-            <label class="form-label" for="<%= countId %>"><%= guest.label %></label>
-            <div class="stepper-input">
-                <button class="plain-button" type="button" onclick="stepInput('<%= countId %>', -1)" aria-label="ลด<%= guest.name %>">−</button>
-                <input class="number" type="number" id="<%= countId %>" name="<%= guest.field %>" min="0" max="50" value="0" required>
-                <button class="plain-button" type="button" onclick="stepInput('<%= countId %>', 1)" aria-label="เพิ่ม<%= guest.name %>">+</button>
-            </div>
+  <%
+    for (const guest of guestTypes) {
+      const countId = guestPrefix + guest.type + 'Count';
+      const guestPriceId = guestPrefix + guest.type + 'Price';
+  %>
+    <div class="grid-2 form-row">
+      <div class="form-group">
+        <label class="form-label" for="<%= countId %>"><%= guest.label %></label>
+        <div class="flex stepper-input">
+          <button class="plain-button" type="button" onclick="stepInput('<%= countId %>', -1)"
+            aria-label="ลด<%= guest.name %>">−</button>
+          <input class="number" type="number" id="<%= countId %>" name="<%= guest.field %>"
+            min="0" max="50" value="0" required />
+          <button class="plain-button" type="button" onclick="stepInput('<%= countId %>', 1)"
+            aria-label="เพิ่ม<%= guest.name %>">+</button>
         </div>
-        <div class="form-group">
-            <label class="form-label" for="<%= guestPriceId %>">ราคา<%= guest.type === 'Adult' ? 'ผู้ใหญ่' : 'เด็ก' %> (บาท)</label>
-            <% if (guest.type === 'FreeChild') { %>
-            <input type="text" class="form-input" id="<%= guestPriceId %>" value="<%= guest.price %>" readonly>
-            <% } else { %>
-            <input type="number" class="form-input" id="<%= guestPriceId %>" name="<%= guest.type === 'Adult' ? 'buffet_price' : 'child_price' %>" value="<%= guest.price %>" min="0.01" max="10000" step="0.01" required>
-            <% } %>
-        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="<%= guestPriceId %>">
+          ราคา<%= guest.type === 'Adult' ? 'ผู้ใหญ่' : 'เด็ก' %> (บาท)
+        </label>
+        <% if (guest.type === 'FreeChild') { %>
+          <input type="text" class="form-input" id="<%= guestPriceId %>"
+            value="<%= guest.price %>" readonly />
+        <% } else { %>
+          <input type="number" class="form-input" id="<%= guestPriceId %>"
+            name="<%= guest.priceField %>" value="<%= guest.price %>" min="0.01" max="10000"
+            step="0.01" required />
+        <% } %>
+      </div>
     </div>
-    <% } %>
-    <p class="form-hint">รวม <strong id="<%= guestPrefix %>GuestTotal">0</strong> ท่าน · ราคายังไม่รวม VAT 7%</p>
+  <% } %>
+  <%# แสดงจำนวนลูกค้ารวมที่ JavaScript คำนวณให้ %>
+  <p class="form-hint small">
+    รวม
+    <strong id="<%= guestPrefix %>GuestTotal">0</strong>
+    ท่าน · ราคายังไม่รวม VAT 7%
+  </p>
 </div>

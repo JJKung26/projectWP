@@ -1,0 +1,19 @@
+/* แจ้งโต๊ะเต็มและกรอบฟอร์มออกบัตรคิว */
+.queue-alert-banner, .queue-issue-box { padding: 16px; margin-bottom: 20px; border-radius: 14px; }
+.queue-alert-banner { background: #fbe9df; }
+.queue-alert-banner strong { color: var(--ember); }
+.queue-issue-box { background: #efe9e2; }
+/* การ์ดคิวและแถวปุ่ม เรียกคิว จัดโต๊ะ พิมพ์ซ้ำ */
+.queue-card-item { padding: 14px; }
+.queue-card-item, .queue-filters { flex-wrap: wrap; gap: 12px; }
+/* คิวที่เรียกแล้วใช้พื้นสีเหลืองอ่อน */
+.queue-card-item.called { background: #fbefd9; border-color: #f1d19c; }
+/* ระยะห่างของช่องค้นหาคิวตามวันและสถานะ */
+.queue-filters { margin-bottom: 12px; }
+
+/* ใช้กับ EJS:
+   views/cashier/tables.ejs
+   views/cashier/partials/queue.ejs
+   views/cashier/partials/queue-list.ejs
+   views/cashier/partials/seat-queue.ejs
+*/

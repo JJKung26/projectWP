@@ -1,69 +1,130 @@
-<%# แสดงใบตรวจบิลหรือใบเสร็จ โดยแสดงเฉพาะรายการคิดเงิน %>
-<% const children = session.child_count || 0;
-   const adults = session.guest_count - children - (session.free_child_count || 0);
-   const buffetRows = [
-       { name: 'บุฟเฟต์ ผู้ใหญ่', count: adults, price: session.buffet_price },
-       { name: 'บุฟเฟต์ เด็ก 90–120 ซม.', count: children, price: session.child_price ?? 179 }
-   ];
-   const method = paid ? {CASH:'CASH · เงินสด',PROMPTPAY:'พร้อมเพย์',CREDIT_CARD:'บัตร (จำลอง)'}[payment.payment_method] : '';
-   // แสดงเฉพาะรายการคิดเงินเพิ่ม และรวมรายการซ้ำที่สั่งด้วยราคาเดียวกัน
-   const itemGroups = [];
-   for (const item of items) {
-       if (item.charge_type !== 'ALACARTE' || item.quantity * item.unit_price_at_order <= 0) continue;
-       const group = itemGroups.find(row =>
-           row.menu_item_id === item.menu_item_id && row.item_name === item.item_name &&
-           row.unit_price_at_order === item.unit_price_at_order);
-       if (group) group.quantity += item.quantity;
-       else itemGroups.push({ ...item });
-   } %>
+<%# เตรียมจำนวนลูกค้า ราคาบุฟเฟต์ และชื่อช่องทางชำระเงิน %>
+<%
+  const children = session.child_count;
+  const adults = session.guest_count - children - session.free_child_count;
+  const buffetRows = [
+    { name: 'บุฟเฟต์ ผู้ใหญ่', count: adults, price: session.buffet_price },
+    { name: 'บุฟเฟต์ เด็ก 90–120 ซม.', count: children, price: session.child_price }
+  ];
+  const methods = {
+    CASH: 'CASH · เงินสด', PROMPTPAY: 'พร้อมเพย์', CREDIT_CARD: 'บัตร (จำลอง)'
+  };
+  const method = paid ? methods[payment.payment_method] : '';
+  const totals = [
+    { name: 'Subtotal · ก่อน VAT', amount: subtotal },
+    { name: 'VAT 7%', amount: taxAmount },
+    { name: 'Before Rounding', amount: beforeRounding },
+    { name: 'Rounding · ปัดเศษ', amount: roundingAmount }
+  ];
+  // แสดงเฉพาะรายการคิดเงินเพิ่ม และรวมรายการซ้ำที่สั่งด้วยราคาเดียวกัน
+  const itemGroups = [];
+  for (const item of items) {
+    if (item.charge_type !== 'ALACARTE' || item.quantity * item.unit_price_at_order <= 0) continue;
+    const group = itemGroups.find(row =>
+      row.menu_item_id === item.menu_item_id &&
+      row.item_name === item.item_name &&
+      row.unit_price_at_order === item.unit_price_at_order
+    );
+    if (group) group.quantity += item.quantity;
+    else itemGroups.push({
+      item_name: item.item_name, menu_item_id: item.menu_item_id,
+      unit_price_at_order: item.unit_price_at_order, quantity: item.quantity
+    });
+  }
+%>
 <article class="receipt-slip payment-receipt digits" id="billPrintArea">
-    <header class="receipt-heading">
-        <%- include('shop-logo', {logoClass:'receipt-logo'}) %>
-        <h1><%= paid ? 'ใบเสร็จรับเงิน / RECEIPT' : 'ใบตรวจสอบยอด / CHECK BILL' %></h1>
-        <p class="receipt-shop">ร้านหมูกระทะ บุฟเฟต์</p>
-    </header>
-    <div class="receipt-meta">
-        <% if (paid) { %>
-        <p>เลขที่: <%= bill.receipt_no %></p>
-        <div class="receipt-line"><span>ผู้รับเงิน: <%= payment.received_by %></span><span><%= thaiDate(payment.paid_at) %></span></div>
-        <% } else { %>
-        <p>รอบบริการ: <%= session.session_id.slice(0,8).toUpperCase() %></p>
-        <p>เปิดโต๊ะ: <%= thaiDate(session.started_at) %></p>
-        <% } %>
-    </div>
-    <div class="receipt-dining"> <p>DINE IN | ลูกค้า: <%= session.guest_count %> ท่าน</p> <h2>TABLE No. <%= session.table_no %></h2> </div>
-    <%# แสดงค่าบุฟเฟ่และอาหารที่คิดเงินเพิ่ม %>
-    <table class="receipt-items" aria-label="รายการที่คิดเงิน">
-        <colgroup><col><col class="receipt-quantity"><col class="receipt-amount"></colgroup>
-        <thead><tr><th>รายการ</th><th class="r">จำนวน</th><th class="r">บาท</th></tr></thead>
-        <tbody>
-            <% for (const row of buffetRows) { %>
-            <% if (row.count * row.price <= 0) continue; %>
-            <tr><td><%= row.name %><span class="buffet-rate"><%= row.price.toFixed(2) %> บาท/ท่าน</span></td><td class="r"><%= row.count %></td><td class="r"><%= (row.count * row.price).toFixed(2) %></td></tr>
-            <% } %>
-            <% for (const i of itemGroups) { %>
-            <tr><td><%= i.item_name %><small style="display:block"><%= i.unit_price_at_order.toFixed(2) %> บาท/หน่วย</small></td><td class="r"><%= i.quantity %></td><td class="r"><%= (i.quantity*i.unit_price_at_order).toFixed(2) %></td></tr>
-            <% } %>
-        </tbody>
-    </table>
-    <%# แสดงยอดก่อนภาษี VAT และยอดสุทธิ %>
-    <div class="receipt-totals">
-        <div class="receipt-line"><span>Subtotal · ก่อน VAT</span><span><%= subtotal.toFixed(2) %></span></div>
-        <div class="receipt-line"><span>VAT 7%</span><span><%= taxAmount.toFixed(2) %></span></div>
-        <div class="receipt-line"><span>Before Rounding</span><span><%= beforeRounding.toFixed(2) %></span></div>
-        <div class="receipt-line"><span>Rounding · ปัดเศษ</span><span><%= roundingAmount.toFixed(2) %></span></div>
-        <div class="receipt-line receipt-grand-total"><strong>Grand Total</strong><strong><%= netAmount.toFixed(2) %></strong></div>
-    </div>
+  <%# โลโก้และชื่อใบตรวจสอบยอดหรือใบเสร็จ %>
+  <header class="text-center">
+    <%- include('shop-logo', { logoClass: 'receipt-logo' }) %>
+    <h1><%= paid ? 'ใบเสร็จรับเงิน / RECEIPT' : 'ใบตรวจสอบยอด / CHECK BILL' %></h1>
+    <p class="receipt-shop">ร้านหมูกระทะ บุฟเฟต์</p>
+  </header>
+  <%# เลขใบเสร็จ ผู้รับเงิน หรือข้อมูลรอบที่ยังไม่ได้จ่าย %>
+  <div class="receipt-meta small">
     <% if (paid) { %>
-    <%# แสดงเงินรับและเงินทอนเฉพาะบิลที่ชำระแล้ว %>
-    <div class="receipt-payment">
-        <div class="receipt-line"><span><%= method %></span><span><%= payment.amount_received.toFixed(2) %></span></div>
-        <div class="receipt-line"><span>CHANGE · เงินทอน</span><span><%= payment.change_amount.toFixed(2) %></span></div>
-    </div>
+      <p>เลขที่: <%= bill.receipt_no %></p>
+      <div class="receipt-line">
+        <span>ผู้รับเงิน: <%= payment.received_by %></span>
+        <span><%= thaiDate(payment.paid_at) %></span>
+      </div>
+    <% } else { %>
+      <p>รอบบริการ: <%= session.session_id.slice(0,8).toUpperCase() %></p>
+      <p>เปิดโต๊ะ: <%= thaiDate(session.started_at) %></p>
     <% } %>
-    <footer class="receipt-footer">
-        <p>VAT INCLUDED · ยอดรวม VAT 7% แล้ว</p>
-        <p><%= paid ? 'PAID · ชำระเงินแล้ว' : 'UNPAID · ยังไม่ชำระ' %></p>
-        <p><%= paid ? 'ขอบคุณที่ใช้บริการ' : 'ใบนี้ไม่ใช่หลักฐานการชำระเงิน' %></p>
-    </footer>
+  </div>
+  <%# จำนวนลูกค้าและหมายเลขโต๊ะ %>
+  <div class="text-center receipt-dining">
+    <p>DINE IN | ลูกค้า: <%= session.guest_count %> ท่าน</p>
+    <h2>TABLE No. <%= session.table_no %></h2>
+  </div>
+  <%# แสดงค่าบุฟเฟต์และอาหารคิดเพิ่มพร้อมจำนวนกับยอดเงิน %>
+  <table class="receipt-items" aria-label="รายการที่คิดเงิน">
+    <colgroup>
+      <col />
+      <col class="receipt-quantity" />
+      <col class="receipt-amount" />
+    </colgroup>
+    <thead>
+      <tr>
+        <th>รายการ</th>
+        <th class="r">จำนวน</th>
+        <th class="r">บาท</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% for (const row of buffetRows) { %>
+        <% if (row.count * row.price <= 0) continue; %>
+        <tr>
+          <td>
+            <%= row.name %>
+            <span class="small block"><%= row.price.toFixed(2) %> บาท/ท่าน</span>
+          </td>
+          <td class="r"><%= row.count %></td>
+          <td class="r"><%= (row.count * row.price).toFixed(2) %></td>
+        </tr>
+      <% } %>
+      <% for (const i of itemGroups) { %>
+        <tr>
+          <td>
+            <%= i.item_name %>
+            <small class="block"><%= i.unit_price_at_order.toFixed(2) %> บาท/หน่วย</small>
+          </td>
+          <td class="r"><%= i.quantity %></td>
+          <td class="r"><%= (i.quantity*i.unit_price_at_order).toFixed(2) %></td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table>
+  <%# สรุปยอดก่อน VAT ภาษี การปัดเศษ และยอดสุทธิ %>
+  <div class="receipt-totals">
+    <% for (const row of totals) { %>
+      <div class="receipt-line">
+        <span><%= row.name %></span>
+        <span><%= row.amount.toFixed(2) %></span>
+      </div>
+    <% } %>
+    <div class="receipt-line receipt-grand-total">
+      <strong>Grand Total</strong>
+      <strong><%= netAmount.toFixed(2) %></strong>
+    </div>
+  </div>
+  <%# แสดงยอดรับและเงินทอนเมื่อชำระแล้ว %>
+  <% if (paid) { %>
+    <div class="receipt-payment">
+      <div class="receipt-line">
+        <span><%= method %></span>
+        <span><%= payment.amount_received.toFixed(2) %></span>
+      </div>
+      <div class="receipt-line">
+        <span>CHANGE · เงินทอน</span>
+        <span><%= payment.change_amount.toFixed(2) %></span>
+      </div>
+    </div>
+  <% } %>
+  <%# ข้อความสถานะการจ่ายเงินและท้ายใบเสร็จ %>
+  <footer class="text-center receipt-footer small">
+    <p>VAT INCLUDED · ยอดรวม VAT 7% แล้ว</p>
+    <p><%= paid ? 'PAID · ชำระเงินแล้ว' : 'UNPAID · ยังไม่ชำระ' %></p>
+    <p><%= paid ? 'ขอบคุณที่ใช้บริการ' : 'ใบนี้ไม่ใช่หลักฐานการชำระเงิน' %></p>
+  </footer>
 </article>

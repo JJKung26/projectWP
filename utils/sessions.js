@@ -1,72 +1,72 @@
-// เปิดรอบบริการและปรับสถานะโต๊ะ
 const db = require('../database/database');
 const { randomUUID } = require('crypto');
-const { check, id, integer, money, today } = require('./validation');
+const { fail, integer, money, today } = require('./validation');
 
-// บันทึกสถานะโต๊ะ เช่น ว่างหรือมีลูกค้า
-function setTableStatus(tx, tableId, status) {
-  return tx.run('UPDATE DiningTable SET table_status = ? WHERE table_id = ?', [status, tableId]);
+// บันทึกสถานะโต๊ะว่างหรือมีลูกค้า
+function setTableStatus(tableId, status) {
+  db.run(`UPDATE DiningTable SET table_status = ? WHERE table_id = ?`, [status, tableId]);
 }
 
-// ตรวจโต๊ะ จำนวนลูกค้าและราคา แล้วสร้างรอบบริการพร้อม QR
-async function openSession(body, employeeId) {
-  const { child_count = 0, free_child_count = 0, child_price = 179 } = body;
-  id(body.table_id, 'รหัสโต๊ะ');
-  if (body.queue_ticket_id) id(body.queue_ticket_id, 'รหัสคิว');
-  return db.transaction(async (tx) => {
-    const table = await tx.get('SELECT * FROM DiningTable WHERE table_id = ?', [body.table_id]);
-    check(table, 404, 'ไม่พบโต๊ะ');
-    check(table.table_status === 'AVAILABLE', 409, 'เปิดได้เฉพาะโต๊ะว่าง');
-    let ticket;
+// เปิดรอบบริการและสร้าง token สำหรับ QR ของโต๊ะ
+function openSession(body, employeeId) {
+  return db.transaction(function () {
+    // 1. ตรวจโต๊ะ จำนวนลูกค้า และราคา
+    const table = db.get('SELECT * FROM DiningTable WHERE table_id = ?', [body.table_id]);
+    if (!table || table.table_status !== 'AVAILABLE') fail('โต๊ะนี้ไม่ว่าง', 409);
+    const adults = integer(body.adult_count, table.capacity, 'จำนวนผู้ใหญ่', 0);
+    const children = integer(body.child_count, table.capacity, 'จำนวนเด็ก', 0);
+    const freeChildren = integer(body.free_child_count, table.capacity, 'จำนวนเด็กทานฟรี', 0);
+    const count = integer(adults + children + freeChildren, table.capacity, 'จำนวนลูกค้ารวม');
+    const price = money(body.buffet_price) / 100;
+    const childPrice = money(body.child_price) / 100;
+    if (price <= 0 || childPrice <= 0) fail('ราคาบุฟเฟต์ต้องมากกว่า 0');
+
+    // 2. ถ้ามาจากคิว ตรวจว่าคิวยังรออยู่และจำนวนคนตรงกัน
+    let ticketId = null;
     if (body.queue_ticket_id) {
-      ticket = await tx.get('SELECT * FROM QueueTicket WHERE queue_ticket_id = ?', [
+      const ticket = db.get('SELECT * FROM QueueTicket WHERE queue_ticket_id = ?', [
         body.queue_ticket_id
       ]);
-      check(ticket, 404, 'ไม่พบคิว');
-      check(
-        ['WAITING', 'CALLED'].includes(ticket.queue_status) && ticket.queue_date === today(),
-        409,
-        'คิวนี้ไม่สามารถจัดโต๊ะได้'
-      );
+      if (
+        !ticket ||
+        ticket.queue_date !== today() ||
+        (ticket.queue_status !== 'WAITING' && ticket.queue_status !== 'CALLED')
+      )
+        fail('คิวนี้จัดโต๊ะไม่ได้แล้ว', 409);
+      if (ticket.guest_count !== count) fail('จำนวนลูกค้าต้องตรงกับบัตรคิว');
+      ticketId = ticket.queue_ticket_id;
     }
-    const children = integer(child_count, table.capacity, 'จำนวนเด็ก', 0);
-    const freeChildren = integer(free_child_count, table.capacity, 'จำนวนเด็กทานฟรี', 0);
-    let count = body.guest_count;
-    if (ticket) count = ticket.guest_count;
-    if (body.adult_count !== undefined) {
-      const adults = integer(body.adult_count, table.capacity, 'จำนวนผู้ใหญ่', 0);
-      count = adults + children + freeChildren;
-    }
-    count = integer(count, table.capacity, 'จำนวนลูกค้ารวม');
-    check(children + freeChildren <= count, 400, 'จำนวนเด็กต้องไม่เกินจำนวนลูกค้ารวม');
-    check(!ticket || count === ticket.guest_count, 400, 'จำนวนลูกค้ารวมต้องตรงกับบัตรคิว');
-    const price = money(body.buffet_price, 10000) / 100;
-    check(price > 0, 400, 'ราคาแพ็กเกจต้องมากกว่า 0');
-    const childPrice = money(child_price, 10000) / 100;
-    check(childPrice > 0, 400, 'ราคาเด็กต้องมากกว่า 0');
+
+    // 3. บันทึกรอบบริการและเปลี่ยนโต๊ะเป็นมีลูกค้า
     const sessionId = randomUUID();
     const token = randomUUID();
-    await tx.insert('DiningSession', {
-      session_id: sessionId,
-      table_id: table.table_id,
-      opened_by: employeeId,
-      queue_ticket_id: ticket?.queue_ticket_id || null,
-      qr_token: token,
-      guest_count: count,
-      buffet_price: price,
-      child_count: children,
-      free_child_count: freeChildren,
-      child_price: childPrice
-    });
-    await setTableStatus(tx, table.table_id, 'OCCUPIED');
-    if (ticket) {
-      await tx.run("UPDATE QueueTicket SET queue_status = 'SEATED' WHERE queue_ticket_id = ?", [
-        ticket.queue_ticket_id
-      ]);
+    const sql = `INSERT INTO DiningSession
+      (session_id, table_id, opened_by, queue_ticket_id, qr_token,
+       guest_count, child_count, free_child_count, buffet_price, child_price)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const values = [
+      sessionId,
+      table.table_id,
+      employeeId,
+      ticketId,
+      token,
+      count,
+      children,
+      freeChildren,
+      price,
+      childPrice
+    ];
+    db.run(sql, values);
+    setTableStatus(table.table_id, 'OCCUPIED');
+    if (ticketId) {
+      db.run(
+        `UPDATE QueueTicket SET queue_status = 'SEATED'
+          WHERE queue_ticket_id = ?`,
+        [ticketId]
+      );
     }
-    const session = await tx.get('SELECT * FROM DiningSession WHERE session_id = ?', [sessionId]);
+    const session = db.get('SELECT * FROM DiningSession WHERE session_id = ?', [sessionId]);
     session.table_no = table.table_no;
-    if (ticket) session.queue_no = ticket.queue_no;
     return session;
   });
 }

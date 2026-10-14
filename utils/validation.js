@@ -1,49 +1,26 @@
-// ตรวจรหัส จำนวน และยอดเงินก่อนใช้ข้อมูล
-// หยุดทำรายการและแจ้งข้อความเมื่อเงื่อนไขไม่ผ่าน
-function check(ok, status, message) {
-  if (ok) return;
+// สร้างข้อผิดพลาดพร้อมรหัสสถานะ ให้ middleware ส่งข้อความกลับ
+function fail(message, status = 400) {
   const error = new Error(message);
   error.status = status;
   throw error;
 }
 
-// ตรวจว่ารหัสเป็นข้อความที่มีความยาวถูกต้อง
-function id(value, label = 'รหัส') {
-  const valid = typeof value === 'string' && value.length > 0 && value.length <= 100;
-  check(valid, 400, label + 'ไม่ถูกต้อง');
-  return value;
-}
-
-// ตรวจจำนวนเต็มให้อยู่ในช่วงที่กำหนด
+// ตรวจจำนวนเต็มและช่วงที่ใช้ เช่น จำนวนคนหรืออาหาร
 function integer(value, max, label, min = 1) {
-  const n = Number(value);
-  const message = label + 'ต้องเป็นจำนวนเต็ม ' + min + '–' + max;
-  check(typeof value === 'number' || typeof value === 'string', 400, message);
-  check(String(value).trim() !== '' && Number.isInteger(n), 400, message);
-  check(n >= min && n <= max, 400, message);
-  return n;
+  const number = Number(value);
+  if (!Number.isInteger(number) || number < min || number > max) fail(label + 'ไม่ถูกต้อง');
+  return number;
 }
 
-// ตรวจยอดเงินและแปลงบาทเป็นสตางค์เพื่อใช้คำนวณ
-function money(value, max = 1000000) {
-  // คืนค่าสตางค์เป็นจำนวนเต็ม เพื่อคำนวณยอดเงินโดยไม่เสียความแม่นยำ
-  check(typeof value === 'number' || typeof value === 'string', 400, 'จำนวนเงินไม่ถูกต้อง');
-  const n = Number(value);
-  const cents = Math.round(n * 100);
-  const message = 'จำนวนเงินต้องถูกต้องและมีทศนิยมไม่เกิน 2 ตำแหน่ง';
-  check(String(value).trim() !== '' && Number.isFinite(n), 400, message);
-  check(n >= 0 && n <= max, 400, message);
-  check(Math.abs(n * 100 - cents) < 0.00001, 400, message);
-  return cents;
+// คิดเงินเป็นสตางค์ เพื่อให้คำนวณทศนิยมได้ตรง
+function money(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number) || number < 0) fail('จำนวนเงินไม่ถูกต้อง');
+  return Math.round(number * 100);
 }
 
-// คืนวันที่วันนี้ตามเขตเวลาไทย
+// อ่านวันที่วันนี้ตามเวลาไทย สำหรับเลขคิวประจำวัน
 function today() {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Bangkok',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  }).format(new Date());
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Bangkok' });
 }
-module.exports = { check, id, integer, money, today };
+module.exports = { fail, integer, money, today };

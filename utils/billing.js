@@ -1,18 +1,17 @@
-// คำนวณค่าบุฟเฟ่ อาหารเพิ่ม ภาษี และยอดสุทธิ
 const { money } = require('./validation');
+const db = require('../database/database');
 
-// รวมราคา คิด VAT 7% และปัดยอดสุทธิลงเป็นบาท
+// ค่าบุฟเฟต์ + อาหารคิดเพิ่ม + VAT 7% แล้วปัดเศษลงเป็นบาท
 function totals(session, items) {
-  const children = session.child_count || 0;
-  const adults = session.guest_count - children - (session.free_child_count || 0);
-  const buffet =
-    adults * money(session.buffet_price) + children * money(session.child_price ?? 179);
-  let extra = 0;
+  const adults = session.guest_count - session.child_count - session.free_child_count;
+  let subtotal =
+    adults * money(session.buffet_price) + session.child_count * money(session.child_price);
   for (const item of items) {
-    if (item.charge_type !== 'ALACARTE') continue;
-    extra += item.quantity * money(item.unit_price_at_order);
+    if (item.charge_type === 'ALACARTE') {
+      subtotal += item.quantity * money(item.unit_price_at_order);
+    }
   }
-  const subtotal = buffet + extra;
+  // คิด VAT ปัดยอดสุทธิลงเป็นบาท แล้วส่งยอดต่าง ๆ กลับ
   const tax = Math.round((subtotal * 7) / 100);
   const before = subtotal + tax;
   const net = Math.floor(before / 100) * 100;
@@ -25,13 +24,14 @@ function totals(session, items) {
   };
 }
 
-// อ่านอาหารของรอบบริการ โดยไม่รวมรายการยกเลิก
-function itemsFor(sessionId, tx) {
-  return tx.query(
-    `SELECT oi.*, oi.item_name_at_order AS item_name,
-    oi.charge_type_at_order AS charge_type FROM OrderItem oi JOIN FoodOrder fo ON fo.order_id = oi.order_id
-    WHERE fo.session_id = ? AND oi.item_status != 'CANCELLED' ORDER BY fo.rowid, oi.rowid`,
-    [sessionId]
-  );
+// อ่านอาหารของรอบบริการที่ยังไม่ถูกยกเลิก พร้อมราคาตอนสั่ง
+function itemsFor(sessionId) {
+  const sql = `SELECT oi.*, oi.item_name_at_order AS item_name,
+    oi.charge_type_at_order AS charge_type
+    FROM OrderItem oi
+    JOIN FoodOrder fo ON fo.order_id = oi.order_id
+    WHERE fo.session_id = ? AND oi.item_status != 'CANCELLED'
+    ORDER BY fo.rowid, oi.rowid`;
+  return db.query(sql, [sessionId]);
 }
 module.exports = { totals, itemsFor };

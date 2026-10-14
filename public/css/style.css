@@ -1,17 +1,20 @@
-/* รูปแบบพื้นฐาน ตามด้วยรูปแบบของแต่ละหน้า */
-@import url('base/foundation.css');
-@import url('components/layout.css');
-@import url('components/navigation.css');
-@import url('components/buttons.css');
-@import url('components/status.css');
-@import url('cashier/tables.css');
-@import url('components/dialogs.css');
-@import url('cashier/slips.css');
-@import url('cashier/queue.css');
-@import url('kitchen/stock.css');
-@import url('customer/menu.css');
-@import url('customer/overlays.css');
-@import url('customer/order-status.css');
-@import url('kitchen/board.css');
-@import url('customer/order-cards.css');
-@import url('base/print.css');
+/* โหลดส่วนกลาง แล้วตามด้วยส่วนประกอบและแต่ละหน้า */
+@import url('base.css');
+@import url('components/forms.css');
+@import url('components/choices.css');
+@import url('components/cart.css');
+@import url('components/order-card.css');
+@import url('pages/login.css');
+@import url('pages/tables.css');
+@import url('pages/queue.css');
+@import url('pages/kitchen.css');
+@import url('pages/stock.css');
+@import url('pages/serving.css');
+@import url('pages/menu.css');
+@import url('pages/orders.css');
+@import url('receipt.css');
+@import url('responsive.css');
+
+/* ใช้กับ EJS:
+   views/partials/head.ejs
+*/

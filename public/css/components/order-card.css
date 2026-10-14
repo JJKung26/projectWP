@@ -1,0 +1,17 @@
+/* กรอบและหัวรอบอาหารที่ครัว เสิร์ฟ และลูกค้าใช้ร่วมกัน */
+.round-card, .cust-round-card { overflow: hidden; }
+.round-card-header, .cust-round-header { padding: 14px; background: #fcfaf6; }
+/* ช่องว่างระหว่างรอบและเส้นแบ่งรายการอาหาร */
+.round-card-list { gap: 12px; }
+.round-item-row { padding: 14px; border-top: 1px solid var(--line); }
+/* แสดงหรือพับรายการ พร้อมปรับทิศลูกศร */
+.order-dropdown { display: none; }
+.order-dropdown.open { display: block; }
+.collapsed .chevron-icon { transform: rotate(-90deg); }
+
+/* ใช้กับ EJS:
+   views/partials/staff-order-card.ejs
+   views/customer/orders.ejs
+   views/kitchen/partials/order-column.ejs
+   views/serving/dashboard.ejs
+*/

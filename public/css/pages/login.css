@@ -1,0 +1,52 @@
+/* พื้นขาวและแบ่งจอเป็นส่วนแนะนำร้านกับฟอร์ม */
+.login-page { background: #fff; }
+.login-split { display: flex; min-height: 100vh; }
+.login-hero, .login-form-panel { flex: 1; justify-content: center; padding: 40px 24px; }
+/* พื้นแดงลายจุด และวงกลมเส้นบางที่มุม */
+.login-hero { flex: 0 0 46%; position: relative; overflow: hidden; color: #fff;
+  background: #b3291f url('/images/login-dots.svg');
+}
+.login-hero::before, .login-hero::after { content: ''; position: absolute;
+  width: 260px; height: 260px; border: 1px solid #ffffff26; border-radius: 50%;
+}
+.login-hero::before { top: -60px; left: -60px; }
+.login-hero::after { width: 180px; height: 180px; bottom: -55px; right: -40px; }
+/* ชื่อร้าน เส้นใต้หัวข้อ โลโก้ และป้ายหน้าที่ */
+.login-hero-content { max-width: 380px; text-align: center; position: relative; }
+.login-hero-title { font-size: 28px; font-weight: 600; }
+.login-hero-title::after { content: ''; display: block; width: 48px; height: 3px;
+  margin: 18px auto 0; background: #fff; border-radius: 2px;
+}
+.login-hero-logo { margin: 38px auto 28px; }
+.hero-logo { width: 128px; height: 128px; }
+.login-hero-tagline { font-size: 1.2rem; }
+.login-hero-sub { margin: 10px 0 28px; color: #ffffffd9; }
+.login-hero-roles { justify-content: center; gap: 10px; }
+.role-chip { padding: 6px 16px; border: 1px solid #ffffff4d;
+  border-radius: 24px; background: #ffffff14; color: #fff;
+}
+/* ฟอร์มบนพื้นขาว ไม่มีกรอบการ์ด */
+.login-form-wrap { width: 100%; max-width: 360px; }
+.login-brand { margin-bottom: 36px; gap: 10px; }
+.login-brand-logo { width: 48px; height: 48px; }
+.login-brand-name { font-size: 18px; }
+.login-heading { font-size: 28px; }
+.login-sub { margin: 6px 0 28px; color: var(--muted); }
+.login-form .form-group { margin-bottom: 18px; }
+.login-form .form-label { margin-bottom: 4px; }
+/* ช่องกรอก ไอคอน และขอบเมื่อกำลังพิมพ์ */
+.input-icon-wrap { position: relative; }
+.input-icon { position: absolute; left: 12px; width: 18px; color: var(--muted); }
+.login-form .form-input { height: 48px; border-radius: 6px; padding-left: 38px; }
+.login-form .form-input:focus { outline: none; border-color: var(--ember);
+  box-shadow: 0 0 0 3px #bd452518;
+}
+.login-form .btn { height: 48px; border: 0; border-radius: 6px; }
+/* ข้อความเมื่อชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง */
+.login-error { padding: 10px; margin-bottom: 16px; border-radius: 6px;
+  background: #fae3e1; color: var(--danger);
+}
+
+/* ใช้กับ EJS:
+   views/auth/login.ejs
+*/

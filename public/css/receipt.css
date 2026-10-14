@@ -1,0 +1,68 @@
+/* กรอบเอกสารและหัวใบเสร็จ ใบ QR บัตรคิว */
+.receipt-slip { max-width: 350px; margin: auto; padding: 20px; color: #111; background: #fff;
+  border: 1px solid var(--line); border-radius: 6px;
+}
+.slip-header { padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px dashed #aaa; }
+.slip-title { font-size: 18px; font-weight: 600; }
+.slip-table-badge { font-size: 3rem; }
+/* บัตรคิวมีขอบดำ และใช้สีอ่อนกับชื่อช่องข้อมูล */
+.queue-ticket { border-color: #111; }
+.queue-ticket .slip-row > span:first-child, .queue-ticket .slip-footer { color: var(--muted); }
+/* จัดชื่อรายการกับจำนวนเงินให้แยกซ้ายขวา */
+.slip-row, .receipt-line { display: flex; justify-content: space-between;
+  gap: 12px; overflow-wrap: anywhere;
+}
+.slip-row > span:first-child { flex: 1; min-width: 0; }
+.slip-row > strong { flex-shrink: 0; }
+.slip-row.total, .receipt-footer, .order-slip .slip-footer {
+  padding-top: 10px; margin-top: 10px; border-top: 1px dashed #aaa;
+}
+/* เวลาเริ่มและหมดเวลาอยู่ในกรอบ ยอดสุทธิใช้ตัวหนา */
+.order-slip-time { padding: 4px; margin-top: 10px; border: 1px solid #555;
+  border-radius: 4px; font: bold 20px/1.4 Tahoma, sans-serif;
+}
+.order-slip .slip-details { margin-top: 12px; gap: 3px; }
+.order-slip .total { font-size: 14px; font-weight: bold; }
+.receipt-grand-total { font-size: 18px; padding-top: 4px; }
+/* ขนาด QR และการตัดบรรทัดลิงก์ยาว */
+.slip-qr-box { padding: 12px 0; }
+.slip-qr-img { width: 170px; height: 170px; }
+.slip-url { font-size: 9px; overflow-wrap: anywhere; }
+/* ฟอนต์และโลโก้ของเอกสาร */
+.payment-receipt, .order-slip { font: 12px/1.5 Tahoma, sans-serif; }
+.receipt-logo, .order-slip-logo { display: block; width: 66px; height: 66px; margin: 0 auto 12px; }
+/* ใบเสร็จรับเงินใช้กรอบเหลี่ยม โลโก้สีเทา และหัวข้อกึ่งกลาง */
+.payment-receipt { max-width: 320px; border-radius: 0; }
+.receipt-logo { width: 56px; height: 56px; filter: grayscale(1); }
+.payment-receipt h1 { font: bold 15px Tahoma, sans-serif; }
+.receipt-shop { font-weight: bold; margin: 4px 0 12px; }
+.receipt-dining { margin: 12px 0 10px; font-size: 14px; font-weight: bold; }
+.receipt-line > :last-child { text-align: right; flex-shrink: 0; }
+.payment-receipt h2, .order-slip-table { font: bold 21px Tahoma, sans-serif; }
+/* ตารางจำนวนและราคาอาหารในใบเสร็จ */
+.receipt-items { width: 100%; border-collapse: collapse; table-layout: fixed;
+  border-top: 1px dashed #aaa; border-bottom: 1px dashed #aaa;
+}
+.receipt-quantity { width: 12%; }
+.receipt-amount { width: 27%; }
+.receipt-items th, .receipt-items td {
+  padding: 6px 0; vertical-align: top; overflow-wrap: anywhere; }
+.receipt-items .r { text-align: right; }
+.receipt-items th { font-size: 9px; }
+.receipt-totals { padding: 8px 0; }
+.receipt-payment { padding-top: 8px; border-top: 1px dashed #aaa; }
+/* ปุ่มข้างเอกสารและ iframe ที่ใช้พิมพ์ */
+.receipt-actions { display: flex; align-items: flex-end; justify-content: center; gap: 10px;
+  max-width: 320px; margin: 16px auto 0; flex-wrap: wrap;
+}
+.receipt-actions .paper-picker { font-size: 10px; }
+.print-frame { position: fixed; left: -10000px; height: 1000px; border: 0; }
+.receipt-slip .small { font-size: 10px; }
+.receipt-footer.small { font-size: 9px; }
+
+/* ใช้กับ EJS:
+   views/partials/receipt.ejs
+   views/cashier/bill.ejs
+   views/cashier/partials/table-slip-content.ejs
+   views/cashier/partials/queue-slip.ejs
+*/

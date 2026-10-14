@@ -1,15 +1,11 @@
-// แจ้งว่าส่งอาหารแล้ว และอัปเดตสถานะออเดอร์ของลูกค้า
-// สถานะออเดอร์
-if (new URLSearchParams(location.search).get('sent')) {
-  const notice = byId('toast');
-  notice.textContent = 'ส่งออเดอร์เข้าครัวเรียบร้อยแล้ว';
-  notice.classList.add('show');
-  setTimeout(() => notice.classList.remove('show'), 2600);
-  history.replaceState(null, '', location.pathname + '?token=' + TOKEN);
+// แสดงข้อความส่งออเดอร์สำเร็จ แล้วลบ sent ออกจาก URL
+if (new URLSearchParams(location.search).has('sent')) {
+  byId('toast').textContent = 'ส่งออเดอร์เข้าครัวเรียบร้อยแล้ว';
+  byId('toast').classList.add('show');
+  setTimeout(function () {
+    byId('toast').classList.remove('show');
+  }, 2600);
+  history.replaceState(null, '', '/orders?token=' + TOKEN);
 }
-
-// เปิดหรือซ่อนอาหารในรอบที่ลูกค้าเลือก
-function toggleCustDropdown(orderId) {
-  toggleOrderDropdown(orderId, true);
-}
+// อัปเดตสถานะอาหารในหน้าลูกค้าทุก 5 วินาที
 liveRegion(['main']);

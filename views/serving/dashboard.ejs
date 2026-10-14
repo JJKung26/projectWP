@@ -1,27 +1,38 @@
-<%# แสดงอาหารพร้อมเสิร์ฟและปุ่มยืนยันเสิร์ฟ %>
 <%- include('../partials/header') %>
-<div class="container">
-    <div class="page-head">
-        <div> <div class="eyebrow">เสิร์ฟ</div> <h1>รอนำไปเสิร์ฟ</h1> <p>ครัวทำเสร็จแล้ว ยกไปที่โต๊ะแล้วกดยืนยัน</p> </div>
-        <div class="stat-strip">
-            <div class="stat"> <div class="stat-label row"><span class="dot ok"></span>พร้อมเสิร์ฟ</div> <div class="stat-value number digits"><%= readyItems.length %></div> </div>
-        </div>
+<div class="container serving-page">
+  <%# หัวข้อจุดเสิร์ฟและจำนวนรายการที่ครัวทำเสร็จ %>
+  <div class="page-head row between wrap">
+    <div>
+      <div class="eyebrow small muted">เสิร์ฟ</div>
+      <h1>รอนำไปเสิร์ฟ</h1>
+      <p>ครัวทำเสร็จแล้ว ยกไปที่โต๊ะแล้วกดยืนยัน</p>
     </div>
-    <% if (!readyRounds || readyRounds.length === 0) { %>
-        <div class="card empty">
-            <div class="empty-icon center">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4 10-10"/></svg>
-            </div>
-            <h3>ไม่มีจานค้างเสิร์ฟ</h3>
-            <p>เมื่อครัวกด "เสร็จแล้ว" รายการจะขึ้นที่นี่ทันที</p>
+    <div class="flex stat-strip box">
+      <div class="stat">
+        <div class="stat-label row small muted">
+          <span class="dot ok"></span>
+          พร้อมเสิร์ฟ
         </div>
-    <% } else { %>
-        <div class="round-card-list column">
-            <% for (const round of readyRounds) { %>
-                <%- include('../partials/staff-order-card', { round, mode: 'serving' }) %>
-            <% } %>
-        </div>
-    <% } %>
+        <div class="stat-value number digits large"><%= readyItems.length %></div>
+      </div>
+    </div>
+  </div>
+  <%# แสดงรอบพร้อมเสิร์ฟ หรือข้อความเมื่อไม่มีรายการ %>
+  <% if (readyRounds.length === 0) { %>
+    <%-
+      include('../partials/empty', {
+        heading: 'ไม่มีจานค้างเสิร์ฟ',
+        message: 'เมื่อครัวกด "เสร็จแล้ว" รายการจะขึ้นที่นี่ทันที'
+      })
+    %>
+  <% } else { %>
+    <div class="round-card-list column">
+      <% for (const round of readyRounds) { %>
+        <%- include('../partials/staff-order-card', { round, mode: 'serving' }) %>
+      <% } %>
+    </div>
+  <% } %>
 </div>
-<script src="/js/serving.js?v=basic-1"></script>
+<%# โหลดคำสั่งยืนยันเสิร์ฟและอัปเดตรายการ %>
+<script src="/js/serving.js"></script>
 <%- include('../partials/footer') %>

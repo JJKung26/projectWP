@@ -1,0 +1,18 @@
+/* แท็บออเดอร์และสต็อกวัตถุดิบ */
+.tabs { gap: 0; margin-bottom: 24px; border-bottom: 1px solid var(--line); }
+/* กรอบคอลัมน์รอทำและกำลังทำ */
+.kitchen-col-card { padding: 18px; border-radius: 18px; background: #efe9e2; }
+/* จอเล็กใช้คอลัมน์เดียว ให้ปุ่มไม่บีบชื่ออาหาร */
+@media (max-width: 860px) {
+  .kitchen-2col-layout { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .round-item-row { flex-wrap: wrap; }
+  .round-item-actions { width: 100%; justify-content: flex-end; }
+}
+
+/* ใช้กับ EJS:
+   views/kitchen/dashboard.ejs
+   views/kitchen/partials/order-column.ejs
+   views/partials/staff-order-card.ejs
+*/

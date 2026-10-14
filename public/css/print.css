@@ -1,0 +1,22 @@
+/* ความกว้างกระดาษและฟอนต์เมื่อพิมพ์ใน iframe */
+html, body { width: var(--paper-width); }
+body { background: #fff; font: 12px Tahoma, sans-serif; print-color-adjust: exact; }
+:focus-visible { outline: none; }
+/* ระยะขอบ ขนาดหัวเอกสาร และ QR บนกระดาษ */
+.receipt-slip { width: 100%; max-width: none; margin: 0; padding: 3mm; }
+.payment-receipt { padding: 2mm; font-size: 11px; }
+.payment-receipt h1 { font-size: 14px; }
+/* ลดข้อความยาวให้หัวตารางและยอดรวมอยู่บรรทัดเดียวบนกระดาษ 58 มม. */
+.payment-receipt .receipt-meta { font-size: 8px; }
+.receipt-items th { font-size: 7px; }
+.receipt-grand-total { font-size: 15px; }
+.slip-qr-img { width: 40mm; height: 40mm; }
+/* ป้องกันแถวข้อมูลถูกแบ่งข้ามหน้า */
+tr, .slip-header { break-inside: avoid; }
+.order-slip-table, .order-slip-time, .payment-receipt h2 { font-size: 18px; }
+
+/* ใช้กับ EJS:
+   views/partials/receipt.ejs
+   views/cashier/partials/table-slip-content.ejs
+   views/cashier/partials/queue-slip.ejs
+*/

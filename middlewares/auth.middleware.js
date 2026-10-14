@@ -1,79 +1,43 @@
-// ตรวจบัญชีและสิทธิ์พนักงานก่อนเข้าหน้าเว็บ
 const db = require('../database/database');
-const ROLES = ['ADMIN', 'CASHIER', 'KITCHEN', 'SERVICE'];
-const COOKIE_OPTIONS = {
-  httpOnly: true,
-  signed: true,
-  sameSite: 'strict',
-  secure: process.env.COOKIE_SECURE === 'true',
-  maxAge: 12 * 60 * 60 * 1000 // 12 ชั่วโมง
-};
+// กำหนดหน้าแรกของพนักงานแต่ละหน้าที่
 const HOME_BY_ROLE = {
   ADMIN: '/cashier/tables',
   CASHIER: '/cashier/tables',
   KITCHEN: '/kitchen',
   SERVICE: '/serving'
 };
+// เก็บการเข้าสู่ระบบในคุกกี้ที่เซ็นชื่อไว้ มีอายุ 12 ชั่วโมง
+const COOKIE_OPTIONS = {
+  signed: true,
+  httpOnly: true,
+  sameSite: 'lax',
+  maxAge: 12 * 60 * 60 * 1000
+};
 
-// สร้างชื่อ cookie แยกตามหน้าที่ของพนักงาน
-function cookieNameFor(role) {
-  return 'staff_' + role;
-}
-
-// เปิดหน้าเว็บให้ไปหน้า login ส่วน fetch ให้รับข้อความ JSON
-function wantsHtml(req) {
-  return (req.get('accept') || '').includes('text/html');
-}
-
-// รับเฉพาะ path ภายในเว็บ กันไม่ให้ ?next= พาผู้ใช้ออกไปเว็บอื่น
-function safeNextPath(next) {
-  if (typeof next !== 'string' || !next.startsWith('/')) return null;
-  if (next.startsWith('//') || next.startsWith('/\\')) return null;
-  return next;
-}
-
-// ตรวจบัญชีของหน้านี้ก่อน แล้วจึงลองบัญชี ADMIN
-async function resolveStaff(req, role) {
-  const cookies = req.signedCookies || {};
-  const roles = role === 'ADMIN' ? ['ADMIN'] : [role, 'ADMIN'];
-  for (const expectedRole of roles) {
-    const employeeId = cookies[cookieNameFor(expectedRole)];
-    if (!employeeId) continue;
-    const staff = await db.get(
-      'SELECT employee_id, username, full_name, role FROM Employee WHERE employee_id = ?',
-      [employeeId]
-    );
-    if (staff && staff.role === expectedRole) return staff;
-  }
-  return null;
-}
-
-// อนุญาตบัญชีที่มีสิทธิ์ หรือให้กลับไปเข้าสู่ระบบ
+// ยอมให้พนักงานหน้าที่นั้นหรือ ADMIN เข้าได้
 function requireRole(role) {
-  return async function (req, res, next) {
-    const staff = await resolveStaff(req, role);
-    if (staff) {
-      req.staff = staff;
-      res.locals.staff = staff;
-      return next();
+  return function (req, res, next) {
+    const allowedRoles = [role, 'ADMIN'];
+    for (const allowed of allowedRoles) {
+      const employeeId = req.signedCookies['staff_' + allowed];
+      if (!employeeId) continue;
+      const sql = `SELECT employee_id, full_name, role FROM Employee WHERE
+          employee_id = ?`;
+      const staff = db.get(sql, [employeeId]);
+      if (staff && staff.role === allowed) {
+        req.staff = staff;
+        res.locals.staff = staff;
+        next();
+        return;
+      }
     }
-    if (wantsHtml(req)) return res.redirect('/login');
-    let loggedIn = false;
-    for (const name in req.signedCookies) {
-      if (req.signedCookies[name]) loggedIn = true;
+    // ถ้ายังไม่มีสิทธิ์ ให้กลับหน้าเข้าสู่ระบบหรือแจ้งผ่าน JSON
+    const accept = req.get('accept') || '';
+    if (accept.includes('text/html')) {
+      res.redirect('/login');
+    } else {
+      res.status(401).json({ success: false, message: 'กรุณาเข้าสู่ระบบ' });
     }
-    return res
-      .status(loggedIn ? 403 : 401)
-      .json({ success: false, message: 'กรุณาเข้าสู่ระบบอีกครั้ง' });
   };
 }
-module.exports = {
-  requireRole,
-  resolveStaff,
-  ROLES,
-  COOKIE_OPTIONS,
-  HOME_BY_ROLE,
-  cookieNameFor,
-  wantsHtml,
-  safeNextPath
-};
+module.exports = { requireRole, HOME_BY_ROLE, COOKIE_OPTIONS };

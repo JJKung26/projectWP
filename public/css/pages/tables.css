@@ -1,0 +1,16 @@
+/* ผังโต๊ะปรับจำนวนคอลัมน์ตามพื้นที่จอ */
+.grid-50-tables {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px;
+}
+/* ทุกโต๊ะสูงเท่ากัน ชี้แล้วเปลี่ยนเฉพาะสีขอบ */
+.table-card { height: 128px; padding: 12px; text-align: left; justify-content: space-between; }
+.table-card:hover { border-color: var(--ember); }
+/* จำนวนคนและเวลาอยู่บรรทัดเดียว ไม่ทำให้การ์ดยืด */
+.table-meta { width: 100%; white-space: nowrap; justify-content: space-between; gap: 4px; }
+/* สีพื้นและหมายเลขของโต๊ะที่มีลูกค้า */
+.table-card.occupied { background: #fbe9df; border-color: #eab8a1; }
+.table-card.occupied .table-number { color: var(--ember); }
+
+/* ใช้กับ EJS:
+   views/cashier/tables.ejs
+*/

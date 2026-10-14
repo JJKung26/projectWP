@@ -1,0 +1,21 @@
+/* หัวหน้าสถานะอาหารและปุ่มกลับไปเลือกเมนู */
+.app-bar { padding: 12px; }
+.app-bar h1 { flex: 1; font-size: 1.1rem; }
+/* ยอดจำนวนอาหารในแต่ละสถานะ */
+.cust-wrap { padding: 18px 16px 0; }
+.status-summary {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 0 0 20px;
+}
+.status-summary div { padding: 12px 6px; }
+.status-summary b { display: block; font-size: 1.3rem; }
+/* รอบอาหารและรายการที่ถูกยกเลิก */
+.cust-round-card { margin-top: 16px; }
+.cust-round-header { cursor: pointer; }
+.order-line.cancelled .nm { text-decoration: line-through; }
+/* เส้นแบ่งรายการและรูปจางเมื่อรายการถูกยกเลิก */
+.order-line { padding: 14px; border-top: 1px solid var(--line); }
+.order-line.cancelled img { filter: grayscale(1); opacity: .5; }
+
+/* ใช้กับ EJS:
+   views/customer/orders.ejs
+*/

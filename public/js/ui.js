@@ -1,143 +1,118 @@
-// คำสั่งส่งข้อมูลและควบคุมหน้าต่างที่ทุกหน้าใช้ร่วมกัน
-// หาองค์ประกอบจาก id ใช้ร่วมกันทุกหน้า
+// หาองค์ประกอบ HTML จาก id เพื่อให้ฟังก์ชันอื่นเรียกใช้สั้นลง
 function byId(id) {
   return document.getElementById(id);
 }
 
-// หยุดรอเมื่อเครือข่ายค้าง เพื่อให้ finally ปลดล็อกปุ่มได้
-function requestFetch(url, options = {}) {
-  options.signal = AbortSignal.timeout(12000);
-  return fetch(url, options);
+// อ่านชื่อและค่าของช่องกรอกในฟอร์ม
+function readForm(form) {
+  const data = {};
+  for (const [name, value] of new FormData(form)) data[name] = value;
+  return data;
 }
 
-// ส่ง body เป็น POST; ถ้าไม่มี body ให้อ่านข้อมูลด้วย GET
+// รับข้อมูล JSON; ถ้ามี body ให้ส่งเป็น POST
 async function requestData(url, body) {
-  const options = {};
-  if (body !== undefined) {
+  const options = { headers: { Accept: 'application/json' } };
+  if (body) {
     options.method = 'POST';
-    options.headers = { 'Content-Type': 'application/json' };
+    options.headers['Content-Type'] = 'application/json';
     options.body = JSON.stringify(body);
   }
-  const response = await requestFetch(url, options);
+  const response = await fetch(url, options);
   const data = await response.json();
   data.httpStatus = response.status;
   return data;
 }
 
-// คำสั่งทั่วไป: ส่งข้อมูล แล้วแจ้งข้อผิดพลาดในที่เดียว
+// ปิดปุ่มระหว่างส่ง และแจ้งเมื่อคำสั่งไม่สำเร็จ
 async function requestAction(url, body, button) {
-  if (button && button.disabled) return null;
   if (button) button.disabled = true;
   try {
     const data = await requestData(url, body);
     if (data.success) return data;
-    alert(data.message || 'ทำรายการไม่สำเร็จ');
+    alert(data.message);
+    if (data.httpStatus === 409) location.reload();
   } catch {
     alert('เชื่อมต่อไม่ได้ กรุณาลองอีกครั้ง');
   } finally {
     if (button) button.disabled = false;
   }
-  return null;
 }
 
-// อ่านข้อมูลชั่วคราวที่เก็บไว้ในแท็บนี้
-function readStorage(key) {
-  try {
-    return sessionStorage.getItem(key);
-  } catch {
-    return null;
-  }
+// แสดงชื่ออาหารเป็นข้อความ แม้ชื่อมีเครื่องหมาย < หรือ >
+function escapeHtml(value) {
+  const span = document.createElement('span');
+  span.textContent = value;
+  return span.innerHTML;
 }
 
-// บันทึกหรือลบข้อมูลชั่วคราวในแท็บนี้
-function writeStorage(key, value) {
-  try {
-    if (value === null) {
-      sessionStorage.removeItem(key);
-    } else {
-      sessionStorage.setItem(key, value);
-    }
-  } catch {}
-}
-
-// สลับเปิดหรือซ่อนรายการอาหารของออเดอร์
-function toggleOrderDropdown(orderId, customer = false) {
-  const dropdown = byId((customer ? 'cust-dropdown-' : 'dropdown-') + orderId);
-  if (dropdown) setOrderDropdown(dropdown.id, !dropdown.classList.contains('open'));
-}
-
-// กำหนดสถานะรายการและข้อความบนปุ่มเปิดหรือซ่อน
+// เปิดหรือพับรายการอาหาร พร้อมเปลี่ยนข้อความบนปุ่ม
 function setOrderDropdown(id, open) {
-  const dropdown = byId(id);
-  let buttonId = id.replace('dropdown-', 'toggle-btn-');
-  if (id.startsWith('cust-')) buttonId = id.replace('cust-dropdown-', 'cust-btn-');
-  const button = byId(buttonId);
+  const dropdown = byId('dropdown-' + id);
   if (!dropdown) return;
+  const button = byId('toggle-btn-' + id);
   dropdown.classList.toggle('open', open);
-  if (!button) return;
   button.classList.toggle('collapsed', !open);
   const label = button.querySelector('.toggle-text');
   if (label) label.textContent = open ? 'ซ่อนรายการ' : 'ดูรายการ';
 }
 
-// ส่งคำสั่งพนักงาน ป้องกันกดซ้ำ แล้วอัปเดตหน้าจอ
+function toggleOrderDropdown(id) {
+  setOrderDropdown(id, !byId('dropdown-' + id).classList.contains('open'));
+}
+
+// ส่งคำสั่งพนักงานทีละครั้ง แล้วรีเฟรชข้อมูล
 async function sendStaffAction(url, body, refresh) {
   if (window.staffSending) return;
   window.staffSending = true;
-  const controls = document.querySelectorAll('.container button:not(:disabled)');
-  for (const button of controls) button.disabled = true;
-  try {
-    await requestAction(url, body);
-  } finally {
-    window.staffSending = false;
-    for (const button of controls) button.disabled = false;
-    refresh();
-  }
+  await requestAction(url, body);
+  window.staffSending = false;
+  refresh();
 }
 
-// เบราว์เซอร์จัดการโฟกัสและปุ่ม Tab ภายในหน้าต่างให้
+// เปิดและปิดป๊อปอัป โดยรอให้ CSS เล่นแอนิเมชันก่อนปิด
 function dialogOpen(id, state = 'active') {
   const dialog = byId(id);
   clearTimeout(dialog.closeTimer);
   if (!dialog.open) dialog.showModal();
-  // อ่านขนาดเพื่อให้เบราว์เซอร์เริ่มเอฟเฟกต์จากสถานะที่ยังซ่อนอยู่
-  void dialog.offsetHeight;
+  // อ่านขนาดก่อนใส่ class เพื่อให้แอนิเมชันเริ่มหลังเปิด dialog
+  dialog.getBoundingClientRect();
   dialog.classList.add(state);
 }
 
-// รอเอฟเฟกต์จบก่อนปิดหน้าต่างจริง
 function dialogClose(id, state = 'active') {
   const dialog = byId(id);
   dialog.classList.remove(state);
-  clearTimeout(dialog.closeTimer);
-  dialog.closeTimer = setTimeout(() => dialog.close(), 260);
+  dialog.closeTimer = setTimeout(function () {
+    dialog.close();
+  }, 320);
 }
 
-// ปิดหน้าต่างเมื่อไม่มีงานส่งข้อมูลหรือพิมพ์ค้างอยู่
-function closeActiveDialog(dialog) {
-  if (window.orderSending || window.printingDocument) return;
-  if (dialog.querySelector('button[type=submit]:disabled')) return;
+// เลือกวิธีปิดป๊อปอัป และยังไม่ปิดขณะกำลังส่งข้อมูล
+function dismissDialog(dialog) {
+  if (window.orderSending || dialog.querySelector('button[type=submit]:disabled')) return;
   if (dialog.classList.contains('sheet')) {
     closeSheets();
   } else {
     closeModal(dialog.id);
   }
 }
-// ปิดหน้าต่างเมื่อคลิกพื้นที่ด้านนอก
-function dismissDialog(event) {
-  const dialog = event.target;
-  if (dialog.matches('.modal-overlay.active')) closeActiveDialog(dialog);
-  if (!dialog.matches('.sheet.open')) return;
-  const rect = dialog.getBoundingClientRect();
-  const insideX = event.clientX >= rect.left && event.clientX <= rect.right;
-  const insideY = event.clientY >= rect.top && event.clientY <= rect.bottom;
-  if (!insideX || !insideY) closeActiveDialog(dialog);
-}
-document.addEventListener('click', dismissDialog);
-// รับปุ่ม Escape แล้วปิดหน้าต่างที่ใช้งานอยู่
-function cancelDialog(event) {
-  event.preventDefault();
-  closeActiveDialog(event.target);
-}
-// รับ Escape จาก dialog ทุกอันผ่าน document (cancel ไม่ส่งต่อแบบ bubble)
-document.addEventListener('cancel', cancelDialog, true);
+// ปิดเมื่อกดพื้นหลังหรือ Escape โดยใช้แอนิเมชันเดิม
+document.addEventListener('click', function (event) {
+  if (event.target.matches('dialog.modal-overlay')) dismissDialog(event.target);
+});
+document.addEventListener(
+  'cancel',
+  function (event) {
+    event.preventDefault();
+    dismissDialog(event.target);
+  },
+  true
+);
+
+// ทำเครื่องหมายเมนูพนักงานตามหน้าที่เปิดอยู่
+document.addEventListener('DOMContentLoaded', function () {
+  for (const link of document.querySelectorAll('.nav-link')) {
+    if (location.pathname.startsWith(link.dataset.match)) link.classList.add('active');
+  }
+});

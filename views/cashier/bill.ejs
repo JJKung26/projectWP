@@ -1,57 +1,91 @@
-<%# แสดงบิล ใบเสร็จ และฟอร์มรับชำระเงิน %>
 <%- include('../partials/header') %>
 <div class="container" style="max-width:760px">
-    <div class="no-print page-head">
-        <a class="btn btn-secondary inline-row" href="/cashier/tables">กลับผังโต๊ะ</a>
-        <a class="btn btn-secondary inline-row" href="/cashier/receipts">ใบเสร็จย้อนหลัง</a>
-    </div>
-    <%# แสดงรายการคิดเงินและยอดบิล %>
-    <%- include('../partials/receipt') %>
-    <div class="no-print receipt-actions <%= paid ? '' : 'check-bill-actions' %>" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
-        <% if (paid) { %>
-            <%- include('../partials/paper', { paperId: 'receipt-paper' }) %>
-            <button class="btn btn-primary inline-row" onclick="printDocument('billPrintArea', true)">พิมพ์ใบเสร็จ</button>
-        <% } else { %>
-            <p>ต้องเสิร์ฟหรือยกเลิกรายการค้างก่อนรับเงิน · ปัดเศษลงหลัง VAT ทุกช่องทาง</p>
-            <button class="btn btn-primary btn-block inline-row" onclick="openPayment()">รับชำระ <%= netAmount.toFixed(2) %> บาท</button>
-        <% } %>
-    </div>
+  <%# ปุ่มกลับผังโต๊ะและเปิดประวัติใบเสร็จ %>
+  <div class="no-print page-head row between wrap">
+    <a class="btn btn-secondary inline-row" href="/cashier/tables">กลับผังโต๊ะ</a>
+    <a class="btn btn-secondary inline-row" href="/cashier/receipts">ใบเสร็จย้อนหลัง</a>
+  </div>
+  <%# ใช้ใบสรุปยอดร่วมกันทั้งก่อนและหลังชำระเงิน %>
+  <%- include('../partials/receipt') %>
+  <%# ยังไม่จ่ายให้รับเงิน; จ่ายแล้วให้เลือกกระดาษและพิมพ์ %>
+  <div class="text-center no-print receipt-actions">
+    <% if (paid) { %>
+      <%- include('../partials/paper', { paperId: 'receipt-paper' }) %>
+      <button class="btn btn-primary inline-row" onclick="printDocument('billPrintArea', true)">
+        พิมพ์ใบเสร็จ
+      </button>
+    <% } else { %>
+      <p>ต้องเสิร์ฟหรือยกเลิกรายการค้างก่อนรับเงิน · ปัดเศษลงหลัง VAT ทุกช่องทาง</p>
+      <button class="btn btn-primary btn-block inline-row" onclick="openPayment()">
+        รับชำระ <%= netAmount.toFixed(2) %> บาท
+      </button>
+    <% } %>
+  </div>
 </div>
+<%# แสดงป๊อปอัปรับเงินเฉพาะบิลที่ยังไม่ชำระ %>
 <% if (!paid) { %>
-<%# แสดงวิธีชำระและรับข้อมูลยืนยันการจ่าย %>
-<dialog class="modal-overlay row" id="paymentModal" aria-labelledby="paymentModalTitle">
+  <dialog class="modal-overlay row" id="paymentModal" aria-labelledby="paymentModalTitle">
     <div class="modal-content">
-        <div class="modal-head"><h2 id="paymentModalTitle">รับชำระเงิน</h2><button class="icon-btn plain-button center" onclick="closeModal()" aria-label="ปิด">✕</button></div>
-        <form onsubmit="submitPayment(event)">
-            <fieldset class="payment-methods" id="payMethod" onchange="togglePayDetails()">
-                <legend class="form-label">ช่องทางชำระเงิน</legend>
-                <div class="payment-options">
-                    <label><input id="payCash" type="radio" name="payment_method" value="CASH" checked><span>เงินสด<small>รับเงินสด</small></span></label>
-                    <label><input id="payPromptpay" type="radio" name="payment_method" value="PROMPTPAY"><span>พร้อมเพย์<small>สแกน QR</small></span></label>
-                    <label><input id="payCard" type="radio" name="payment_method" value="CREDIT_CARD"><span>บัตร<small>จำลอง</small></span></label>
-                </div>
-            </fieldset>
-            <section class="promptpay-panel" id="promptpayDetails" hidden>
-                <div class="promptpay-title">สแกนจ่ายด้วยพร้อมเพย์</div>
-                <strong class="promptpay-amount digits"><%= netAmount.toFixed(2) %> บาท</strong>
-                <img class="promptpay-qr" src="/images/promptpay.png" alt="QR พร้อมเพย์">
-                <p>กรอกยอดตามบิลในแอปธนาคาร และตรวจสอบเงินเข้าก่อนกดยืนยันรับเงิน</p>
-            </section>
-            <p id="cardNotice" hidden>บัตรเป็นการจำลอง พนักงานยืนยันรับเงินตามระบบเดิม</p>
-            <div id="cashDetails">
-                <label class="form-label" for="amountReceived">รับเงิน (บาท)</label>
-                <input class="form-input" id="amountReceived" type="number" min="<%= netAmount %>" max="1000000" step="0.01" value="<%= netAmount %>" oninput="calcChange()" required>
-                <p>เงินทอน <strong id="changeAmount">0.00</strong> บาท</p>
-            </div>
-            <div class="modal-actions"><button type="button" class="btn btn-secondary inline-row" onclick="closeModal()">ยกเลิก</button><button type="submit" id="confirmPayment" class="btn btn-success grow inline-row">ยืนยันรับเงิน</button></div>
-        </form>
+      <div class="modal-head row between">
+        <h2 id="paymentModalTitle">รับชำระเงิน</h2>
+        <button class="icon-btn plain-button center" onclick="closeModal()" aria-label="ปิด">
+          ✕
+        </button>
+      </div>
+      <form onsubmit="submitPayment(event)">
+        <%# ตัวเลือกเงินสด พร้อมเพย์ และบัตรจำลอง %>
+        <fieldset class="payment-methods" id="payMethod" onchange="togglePayDetails()">
+          <legend class="form-label">ช่องทางชำระเงิน</legend>
+          <div class="payment-options choices">
+            <label>
+              <input id="payCash" type="radio" name="payment_method" value="CASH" checked />
+              <span><strong>เงินสด</strong> <small>รับเงินสด</small></span>
+            </label>
+            <label>
+              <input id="payPromptpay" type="radio" name="payment_method" value="PROMPTPAY" />
+              <span><strong>พร้อมเพย์</strong> <small>สแกน QR</small></span>
+            </label>
+            <label>
+              <input id="payCard" type="radio" name="payment_method" value="CREDIT_CARD" />
+              <span><strong>บัตรเครดิต</strong> <small>จำลอง</small></span>
+            </label>
+          </div>
+        </fieldset>
+        <%# QR พร้อมเพย์และยอดที่ลูกค้าต้องจ่าย %>
+        <section class="text-center promptpay-panel" id="promptpayDetails" hidden>
+          <div class="promptpay-title">สแกนจ่ายด้วยพร้อมเพย์</div>
+          <strong class="promptpay-amount digits"><%= netAmount.toFixed(2) %> บาท</strong>
+          <img class="payment-image" src="/images/promptpay.png" alt="QR พร้อมเพย์" />
+          <p>กรอกยอดตามบิลในแอปธนาคาร และตรวจสอบเงินเข้าก่อนกดยืนยันรับเงิน</p>
+        </section>
+        <%# รูปแตะจ่าย แสดงเมื่อเลือกบัตรเครดิต %>
+        <section class="text-center" id="cardNotice" hidden>
+          <img class="payment-image" src="/images/card-payment.png" alt="แตะจ่ายด้วยบัตรเครดิต" />
+        </section>
+        <%# ช่องรับเงินสดและยอดเงินทอน %>
+        <div id="cashDetails">
+          <label class="form-label" for="amountReceived">รับเงิน (บาท)</label>
+          <input class="form-input" id="amountReceived" type="number" min="<%= netAmount %>"
+            max="1000000" step="0.01" value="0" oninput="calcChange()" required />
+          <p>เงินทอน <strong id="changeAmount">0.00</strong> บาท</p>
+        </div>
+        <%# ปุ่มยกเลิกและยืนยันการรับเงิน %>
+        <div class="flex modal-actions">
+          <button type="button" class="btn btn-secondary inline-row" onclick="closeModal()">
+            ยกเลิก
+          </button>
+          <button type="submit" id="confirmPayment" class="btn btn-success grow inline-row">
+            ยืนยันรับเงิน
+          </button>
+        </div>
+      </form>
     </div>
-</dialog>
-<%# ส่งยอดสุทธิและรหัสรอบบริการให้ JavaScript ใช้รับเงิน %>
-<script>
+  </dialog>
+  <%# ส่งยอดบิลและรอบบริการให้ payment.js %>
+  <script>
     const NET = <%= netAmount %>;
     const SESSION_ID = '<%= session.session_id %>';
-</script>
-<script src="/js/payment.js?v=static-promptpay-1"></script>
+  </script>
+  <script src="/js/payment.js"></script>
 <% } %>
 <%- include('../partials/footer') %>

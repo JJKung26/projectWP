@@ -1,0 +1,30 @@
+/* ซ่อนส่วนตกแต่งและชื่อพนักงานเมื่อจอแคบ */
+@media (max-width: 860px) {
+  .login-hero, .brand-sub, .nav-user-name { display: none; }
+}
+/* ปรับหัวเว็บ ระยะขอบ และฟอร์มสำหรับมือถือ */
+@media (max-width: 600px) {
+  .navbar { flex-wrap: wrap; padding: 10px 12px; gap: 8px; }
+  .nav-links { gap: 0; flex-wrap: wrap; }
+  .nav-link { min-height: 44px; padding: 6px 8px; }
+  .container { padding: 0 12px; }
+  .order-line { flex-wrap: wrap; }
+}
+/* ปิดแอนิเมชันเมื่อผู้ใช้ตั้งค่าลดการเคลื่อนไหว */
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+  .sheet::backdrop { transition: none; }
+}
+/* ตอนพิมพ์ให้แสดงเฉพาะเอกสารที่เลือก */
+@media print {
+  body:not(.print-document) * { visibility: hidden; }
+  body:not(.print-document) .print-target, .print-target * { visibility: visible; }
+  .no-print { display: none; }
+}
+
+/* ใช้กับ EJS:
+   views/partials/head.ejs
+   views/partials/header.ejs
+   views/auth/login.ejs
+   views/customer/orders.ejs
+*/

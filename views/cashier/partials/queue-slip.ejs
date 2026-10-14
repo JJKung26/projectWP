@@ -1,26 +1,44 @@
-<%# ใบพิมพ์เลขคิว เวลา จำนวนลูกค้า และจำนวนคิวข้างหน้า %>
-<!-- Queue ticket slip -->
 <dialog class="modal-overlay row" id="queueSlipModal" aria-label="บัตรคิว">
-    <div class="modal-content" style="max-width: 380px;">
-        <div class="receipt-slip print-target" id="queueSlipPrintArea">
-            <div class="slip-header">
-                <%- include('../../partials/shop-logo', { logoClass: 'order-slip-logo' }) %>
-                <div class="slip-title">หมูกระทะ บุฟเฟต์</div>
-                <div class="slip-subtitle">บัตรคิว</div>
-                <div class="slip-table-badge number" id="qsQueueNo" style="font-size: 3rem;">-</div>
-            </div>
-            <div class="slip-details column">
-                <div class="slip-row"><span>วันที่</span><strong id="qsDate">-</strong></div>
-                <div class="slip-row"><span>เวลาออกคิว</span><strong id="qsTime">-</strong></div>
-                <div class="slip-row"><span>จำนวนลูกค้า</span><strong><span id="qsGuests">-</span> ท่าน</strong></div>
-                <div class="slip-row total"><span>คิวก่อนหน้า</span><strong><span id="qsAhead">-</span> คิว</strong></div>
-            </div>
-            <div class="slip-footer"> <div>กรุณารอพนักงานเรียกหมายเลขคิว</div> <div style="margin-top: 2px;">ขอบคุณที่รอ</div> </div>
+  <div class="modal-content" style="max-width: 380px;">
+    <%# บัตรคิวสำหรับพิมพ์ โดย queue.js ใส่เลขและข้อมูลลูกค้า %>
+    <div class="receipt-slip queue-ticket print-target" id="queueSlipPrintArea">
+      <div class="text-center slip-header">
+        <%- include('../../partials/shop-logo', { logoClass: 'order-slip-logo' }) %>
+        <div class="slip-title">หมูกระทะ บุฟเฟต์</div>
+        <div class="slip-subtitle small">บัตรคิว</div>
+        <div class="slip-table-badge number" id="qsQueueNo">-</div>
+      </div>
+      <%# วันที่ เวลา จำนวนลูกค้า และจำนวนคิวก่อนหน้า %>
+      <div class="slip-details column">
+        <div class="slip-row">
+          <span>วันที่</span>
+          <strong id="qsDate">-</strong>
         </div>
-        <div class="no-print modal-actions">
-            <%- include('../../partials/paper', { paperId: 'queue-paper', defaultPaper: '80' }) %>
-            <button class="btn btn-secondary inline-row" onclick="printSlip()">พิมพ์</button>
-            <button class="btn btn-dark grow inline-row" onclick="closeModal('queueSlipModal')">เสร็จ</button>
+        <div class="slip-row">
+          <span>เวลาออกคิว</span>
+          <strong id="qsTime">-</strong>
         </div>
+        <div class="slip-row">
+          <span>จำนวนลูกค้า</span>
+          <strong><span id="qsGuests">-</span> ท่าน</strong>
+        </div>
+        <div class="slip-row total">
+          <span>คิวก่อนหน้า</span>
+          <strong><span id="qsAhead">-</span> คิว</strong>
+        </div>
+      </div>
+      <div class="text-center slip-footer small">
+        <div>กรุณารอพนักงานเรียกหมายเลขคิว</div>
+        <div style="margin-top: 2px;">ขอบคุณที่รอ</div>
+      </div>
     </div>
+    <%# เลือกกระดาษ พิมพ์บัตร และปิดป๊อปอัป %>
+    <div class="flex no-print modal-actions">
+      <%- include('../../partials/paper', { paperId: 'queue-paper' }) %>
+      <button class="btn btn-secondary inline-row" onclick="printSlip()">พิมพ์</button>
+      <button class="btn btn-dark grow inline-row" onclick="closeModal('queueSlipModal')">
+        เสร็จ
+      </button>
+    </div>
+  </div>
 </dialog>

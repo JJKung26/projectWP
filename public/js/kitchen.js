@@ -1,53 +1,38 @@
-// ควบคุมหน้าครัวและปุ่มปรับสถานะของหมด
-// ครัวและสต็อก
-function restoreStockTab() {
-  if (location.hash === '#stock') showTab('stockTab');
-}
-const refreshLive = liveRegion(
-  ['#ordersTab', '#stockTab', '.stat-strip', '.tabs'],
-  restoreStockTab
-);
-
-// สลับหน้ารายการอาหารกับหน้าสต็อก
-function showTab(tabId) {
-  byId('ordersTab').style.display = tabId === 'ordersTab' ? 'block' : 'none';
-  byId('stockTab').style.display = tabId === 'stockTab' ? 'block' : 'none';
-  byId('btnOrdersTab').classList.toggle('active', tabId === 'ordersTab');
-  byId('btnStockTab').classList.toggle('active', tabId === 'stockTab');
-  location.hash = tabId === 'stockTab' ? 'stock' : '';
-}
-if (location.hash === '#stock') showTab('stockTab');
-
-// ส่งคำสั่งเปลี่ยนสถานะอาหารทั้งรอบ
-function updateRoundStatus(order_id, status) {
-  return sendStaffAction('/kitchen/update-status', { order_id, status }, refreshLive);
+// สลับแท็บออเดอร์กับสต็อก และจำแท็บไว้ใน URL
+function showTab(id) {
+  byId('ordersTab').hidden = id !== 'ordersTab';
+  byId('stockTab').hidden = id !== 'stockTab';
+  location.hash = id === 'stockTab' ? 'stock' : '';
+  byId('btnOrdersTab').classList.toggle('active', id === 'ordersTab');
+  byId('btnStockTab').classList.toggle('active', id === 'stockTab');
 }
 
-// ส่งคำสั่งเปลี่ยนสถานะอาหารหนึ่งรายการ
-function updateStatus(order_item_id, status) {
-  return sendStaffAction('/kitchen/update-status', { order_item_id, status }, refreshLive);
+function restoreTab() {
+  showTab(location.hash === '#stock' ? 'stockTab' : 'ordersTab');
+}
+// อัปเดตข้อมูลครัวและคืนแท็บที่ผู้ใช้เลือกไว้
+const refreshLive = liveRegion(['#ordersTab', '#stockTab', '.stat-strip', '.tabs'], restoreTab);
+restoreTab();
+
+// ส่งคำสั่งเริ่มทำหรือทำเสร็จให้ทั้งรอบอาหาร
+function updateRoundStatus(orderId, status) {
+  sendStaffAction('/kitchen/update-status', { order_id: orderId, status }, refreshLive);
 }
 
-// ยืนยันยกเลิกอาหารโดยไม่เปลี่ยนสถานะของหมด
-function cancelGeneral(id) {
-  if (confirm('ยกเลิกรายการนี้หรือไม่?')) updateStatus(id, 'CANCELLED');
+// ยกเลิกอาหารหนึ่งรายการ หรือยกเลิกพร้อมแจ้งของหมด
+function cancelItem(itemId, stock = false) {
+  const message = stock ? 'ยกเลิกเพราะวัตถุดิบหมด?' : 'ยกเลิกรายการนี้?';
+  if (!confirm(message)) return;
+  const body = {
+    order_item_id: itemId,
+    status: 'CANCELLED',
+    out_of_stock: stock
+  };
+  body.cancel_reason = stock ? 'วัตถุดิบหมด' : 'ยกเลิกรายการ';
+  sendStaffAction('/kitchen/update-status', body, refreshLive);
 }
 
-// ยกเลิกอาหารและแจ้งเมนูนี้ว่าของหมด
-function cancelItem(order_item_id) {
-  if (!confirm('ยืนยันแจ้งวัตถุดิบหมดและยกเลิกรายการนี้หรือไม่?')) return;
-  return sendStaffAction(
-    '/kitchen/update-status',
-    { order_item_id, status: 'CANCELLED', cancel_reason: 'วัตถุดิบหมด', out_of_stock: true },
-    refreshLive
-  );
-}
-
-// ส่งสถานะมีของหรือของหมดของเมนูที่เลือก
-function toggleStock(menu_item_id, availability) {
-  return sendStaffAction(
-    '/kitchen/toggle-stock',
-    { menu_item_id, availability: Number(availability) },
-    refreshLive
-  );
+// เปิดหรือปิดสต็อกของเมนู แล้วโหลดข้อมูลใหม่
+function toggleStock(menuId, availability) {
+  sendStaffAction('/kitchen/toggle-stock', { menu_item_id: menuId, availability }, refreshLive);
 }

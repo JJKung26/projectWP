@@ -1,52 +1,40 @@
-// ประกอบไฟล์เสียงเพื่อประกาศเลขคิวภาษาไทย
-// เล่นเสียงตามลำดับ: เสียงเตือน คิวหมายเลข ตัวเลข และเชิญเข้าร้าน
+// เตรียมเครื่องเล่นเสียงและจำว่าเบราว์เซอร์อนุญาตเสียงแล้วหรือยัง
 const queueAudio = new Audio('/audio/queue/chime.wav');
 let soundReady = false;
-let queueVoiceRun = 0;
 
-// เปิดสิทธิ์เล่นเสียงเมื่อพนักงานกดเรียกคิวครั้งแรก
+// เปิดสิทธิ์เล่นเสียงจากการกดปุ่มของผู้ใช้
 async function enableSound() {
   if (soundReady) return;
   try {
-    // เปิดเสียงครั้งแรกตอนกดปุ่ม เพื่อให้เบราว์เซอร์อนุญาตให้เล่นเสียง
     queueAudio.volume = 0;
     await queueAudio.play();
     queueAudio.pause();
     soundReady = true;
   } catch {
     byId('queueNotice').textContent = 'เปิดเสียงไม่ได้ กรุณาดูเลขคิวบนหน้าจอ';
-  } finally {
-    queueAudio.volume = 1;
   }
+  queueAudio.volume = 1;
 }
 
-// เล่นเสียงเตือน เลขคิว และข้อความเชิญตามลำดับ
-function announceQueue(queueNo) {
-  const run = ++queueVoiceRun;
-  const notice = byId('queueNotice');
-  const number = String(queueNo).replace(/^Q/i, '');
-  const clips = ['chime', 'intro', ...number, 'outro'];
+// เรียงเสียงเริ่มต้น ตัวเลขคิว และเสียงปิดท้าย
+function announceQueue(number) {
+  const clips = ['chime', 'intro'];
+  for (const digit of number.slice(1)) {
+    clips.push(digit);
+  }
+  clips.push('outro');
   let index = 0;
   queueAudio.pause();
-  notice.textContent = 'กำลังประกาศคิว ' + queueNo;
-
-  // แจ้งเลขคิวบนจอเมื่อเล่นเสียงไม่สำเร็จ
-  function failed() {
-    if (run !== queueVoiceRun) return;
-    queueAudio.pause();
-    notice.textContent = 'เรียกคิว ' + queueNo + ' แล้ว · เล่นเสียงไม่ได้ กรุณาดูเลขคิวบนจอ';
-  }
-  // เล่นไฟล์เสียงถัดไปจนจบคำประกาศ
+  byId('queueNotice').textContent = 'เรียกคิว ' + number;
+  // เล่นทีละไฟล์ แล้วเล่นไฟล์ถัดไปเมื่อเสียงเดิมจบ
   function playNext() {
-    if (run !== queueVoiceRun) return;
-    if (index === clips.length) {
-      notice.textContent = 'ประกาศคิว ' + queueNo + ' แล้ว';
-      return;
-    }
-    queueAudio.src = '/audio/queue/' + clips[index++] + '.wav';
-    queueAudio.onended = playNext;
-    queueAudio.onerror = failed;
-    queueAudio.play().catch(failed);
+    if (index === clips.length) return;
+    queueAudio.src = '/audio/queue/' + clips[index] + '.wav';
+    index++;
+    queueAudio.play().catch(function () {
+      byId('queueNotice').textContent = 'เรียกคิว ' + number + ' แล้ว แต่เล่นเสียงไม่ได้';
+    });
   }
+  queueAudio.onended = playNext;
   playNext();
 }

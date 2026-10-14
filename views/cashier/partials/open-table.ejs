@@ -1,19 +1,23 @@
-<%# หน้าต่างกรอกจำนวนลูกค้าและราคาเพื่อเปิดโต๊ะ %>
-<!-- Open table -->
 <dialog class="modal-overlay row" id="openTableModal" aria-labelledby="openTableModalTitle">
-    <div class="modal-content">
-        <div class="modal-head">
-            <div> <h2 id="openTableModalTitle">เปิดโต๊ะ <span id="openTableNo"></span></h2> <p>เปิดใบ QR แล้วกดพิมพ์ได้ตามต้องการ</p> </div>
-            <button type="button" class="icon-btn plain-button center" onclick="closeModal('openTableModal')" aria-label="ปิด">✕</button>
-        </div>
-        <%# ส่งจำนวนลูกค้าและราคาบุฟเฟ่เพื่อเปิดโต๊ะ %>
-        <form id="openTableForm" onsubmit="submitTable(event, 'open')">
-            <input type="hidden" id="openTableId" name="table_id">
-            <%- include('../../partials/guest-inputs', { guestPrefix: 'open', priceId: 'buffetPrice' }) %>
-            <div class="modal-actions">
-                <button type="button" class="btn btn-secondary inline-row" onclick="closeModal('openTableModal')">ยกเลิก</button>
-                <button type="submit" class="btn btn-primary grow inline-row">เปิดโต๊ะและดู QR</button>
-            </div>
-        </form>
+  <div class="modal-content">
+    <%# หัวข้อหมายเลขโต๊ะและปุ่มปิดป๊อปอัป %>
+    <div class="modal-head row between">
+      <div>
+        <h2 id="openTableModalTitle">เปิดโต๊ะ <span id="openTableNo"></span></h2>
+        <p>เปิดใบ QR แล้วกดพิมพ์ได้ตามต้องการ</p>
+      </div>
+      <button type="button" class="icon-btn plain-button center"
+        onclick="closeModal('openTableModal')" aria-label="ปิด">✕</button>
     </div>
+    <%# กรอกจำนวนลูกค้ากับราคา แล้วส่งเปิดโต๊ะเพื่อรับใบ QR %>
+    <form action="/cashier/open-table" method="post" onsubmit="submitTable(event)">
+      <input type="hidden" id="openTableId" name="table_id" />
+      <%- include('../../partials/guest-inputs', { guestPrefix: 'open' }) %>
+      <div class="flex modal-actions">
+        <button type="button" class="btn btn-secondary inline-row"
+          onclick="closeModal('openTableModal')">ยกเลิก</button>
+        <button type="submit" class="btn btn-primary grow inline-row">เปิดโต๊ะและดู QR</button>
+      </div>
+    </form>
+  </div>
 </dialog>

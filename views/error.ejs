@@ -1,22 +1,19 @@
-<%# แสดงข้อความผิดพลาดและปุ่มกลับไปหน้าแรก %>
-<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>เกิดข้อผิดพลาด</title>
-    <%- include('partials/styles') %>
-</head>
+<%- include('partials/head', { title: 'เกิดข้อผิดพลาด' }) %>
 <body>
-    <div class="container" style="max-width: 440px; margin-top: 12vh;">
-        <div class="card empty">
-            <div class="empty-icon center">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/></svg>
-            </div>
-            <h3>เข้าหน้านี้ไม่ได้</h3>
-            <p><%= message %></p>
-            <a href="javascript:history.back()" class="btn btn-secondary inline-row" style="margin-top: 18px;">ย้อนกลับ</a>
-        </div>
+  <div class="container" style="max-width: 440px; margin-top: 12vh;">
+    <%# แสดงสาเหตุที่เปิดหน้าไม่ได้ และปุ่มกลับหน้าก่อนหน้า %>
+    <div class="text-center card empty">
+      <div class="empty-icon center">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="1.8" stroke-linecap="round">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 7.5v5.5M12 16.5v.01" />
+        </svg>
+      </div>
+      <h3>เข้าหน้านี้ไม่ได้</h3>
+      <p><%= message %></p>
+      <a href="javascript:history.back()" class="btn btn-secondary inline-row"
+        style="margin-top: 18px;">ย้อนกลับ</a>
     </div>
-</body>
-</html>
+  </div>
+  <%- include('partials/footer') %>

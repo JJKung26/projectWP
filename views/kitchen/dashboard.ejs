@@ -1,70 +1,101 @@
-<%# แสดงอาหารรอทำ กำลังทำ และหน้าปรับเมนูของหมด %>
 <%- include('../partials/header') %>
+<%# นับรายการรอทำ กำลังทำ และเมนูที่หมด %>
 <%
-    const pending = orderItems.filter(i => i.item_status === 'PENDING').length;
-    const cooking = orderItems.filter(i => i.item_status === 'COOKING').length;
-    const soldOut = menuItems.filter(m => m.availability === 0).length;
+  const pending = orderItems.filter(i => i.item_status === 'PENDING').length;
+  const cooking = orderItems.filter(i => i.item_status === 'COOKING').length;
+  const soldOut = menuItems.filter(m => m.availability === 0).length;
 %>
 <div class="container">
-    <div class="page-head">
-        <div> <div class="eyebrow">ครัว</div> <h1>คิวออเดอร์</h1> <p>เรียงตามเวลาสั่ง รายการเก่าสุดอยู่ก่อน</p> </div>
-        <div class="stat-strip">
-            <div class="stat"> <div class="stat-label row"><span class="dot warn"></span>รอทำ</div> <div class="stat-value number digits"><%= pending %></div> </div>
-            <div class="stat">
-                <div class="stat-label row"><span class="dot" style="background: var(--info);"></span>กำลังทำ</div>
-                <div class="stat-value number digits"><%= cooking %></div>
-            </div>
+  <%# หัวข้อครัวและจำนวนรายการในแต่ละสถานะ %>
+  <div class="page-head row between wrap">
+    <div>
+      <div class="eyebrow small muted">ครัว</div>
+      <h1>คิวออเดอร์</h1>
+      <p>เรียงตามเวลาสั่ง รายการเก่าสุดอยู่ก่อน</p>
+    </div>
+    <div class="flex stat-strip box">
+      <div class="stat">
+        <div class="stat-label row small muted">
+          <span class="dot warn"></span>
+          รอทำ
         </div>
+        <div class="stat-value number digits large"><%= pending %></div>
+      </div>
+      <div class="stat">
+        <div class="stat-label row small muted">
+          <span class="dot" style="background: #2b5aa8;"></span>
+          กำลังทำ
+        </div>
+        <div class="stat-value number digits large"><%= cooking %></div>
+      </div>
     </div>
-    <div class="tabs" role="tablist">
-        <button class="tab active inline-row plain-button" id="btnOrdersTab" role="tab" onclick="showTab('ordersTab')">
-            ออเดอร์ <span class="count-pill digits"><%= orderItems.length %></span>
-        </button>
-        <button class="tab inline-row plain-button" id="btnStockTab" role="tab" onclick="showTab('stockTab')">
-            สต็อกวัตถุดิบ<% if (soldOut > 0) { %> <span class="badge badge-cancelled plain inline-row">หมด <%= soldOut %></span><% } %>
-        </button>
-    </div>
-    <div id="ordersTab">
-        <% if (!orderRounds || orderRounds.length === 0) { %>
-            <div class="card empty">
-                <div class="empty-icon center">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4 10-10"/></svg>
-                </div>
-                <h3>ไม่มีออเดอร์ค้าง</h3>
-                <p>ออเดอร์ใหม่จะขึ้นที่นี่ทันทีที่ลูกค้ากดส่ง</p>
+  </div>
+  <%# ปุ่มสลับหน้าระหว่างออเดอร์กับสต็อก %>
+  <div class="flex tabs" role="tablist">
+    <button class="tab active inline-row plain-button" id="btnOrdersTab" role="tab"
+      onclick="showTab('ordersTab')">
+      ออเดอร์
+      <span class="count-pill digits"><%= orderItems.length %></span>
+    </button>
+    <button class="tab inline-row plain-button" id="btnStockTab" role="tab"
+      onclick="showTab('stockTab')">
+      สต็อกวัตถุดิบ
+      <% if (soldOut > 0) { %>
+        <span class="badge badge-cancelled plain inline-row">หมด <%= soldOut %></span>
+      <% } %>
+    </button>
+  </div>
+  <%# แยกการ์ดรอทำและกำลังทำ หรือแสดงข้อความเมื่อไม่มีออเดอร์ %>
+  <div id="ordersTab">
+    <% if (orderRounds.length === 0) { %>
+      <%-
+        include('../partials/empty', {
+          heading: 'ไม่มีออเดอร์ค้าง',
+          message: 'ออเดอร์ใหม่จะขึ้นที่นี่ทันทีที่ลูกค้ากดส่ง'
+        })
+      %>
+    <% } else { %>
+      <div class="grid-2 kitchen-2col-layout">
+        <%- include('partials/order-column', { rounds: pendingRounds, isCooking: false }) %>
+        <%- include('partials/order-column', { rounds: cookingRounds, isCooking: true }) %>
+      </div>
+    <% } %>
+  </div>
+  <%# แสดงสต็อกตามหมวด พร้อมสวิตช์เปิดหรือปิดแต่ละเมนู %>
+  <div id="stockTab" hidden>
+    <p class="muted" style="margin-bottom: 14px;">
+      ปิดสวิตช์เมื่อวัตถุดิบหมด เมนูนั้นจะขึ้นว่า "หมดชั่วคราว" ในมือถือลูกค้าทันที
+    </p>
+    <% for (const category of sections) { %>
+      <section class="stock-category" aria-labelledby="stock-category-<%= category.category_id %>">
+        <div class="stock-category-heading row between">
+          <h2 id="stock-category-<%= category.category_id %>"><%= category.category_name %></h2>
+          <span class="muted"><%= category.items.length %> รายการ</span>
+        </div>
+        <div class="stock-grid">
+          <%
+            for (const mi of category.items) {
+              const on = mi.availability === 1;
+          %>
+            <div class="stock-row<%= on ? '' : ' off' %> row box"
+              onclick="toggleStock('<%= mi.menu_item_id %>', <%= on ? 0 : 1 %>)"
+              style="cursor: pointer;">
+              <img src="<%= mi.image_url %>" alt="" />
+              <div>
+                <div class="name"><%= mi.item_name %></div>
+                <span class="badge <%= on ? 'badge-available' : 'badge-cancelled' %> inline-row">
+                  <%= on ? 'มีของ' : 'หมด' %>
+                </span>
+              </div>
+              <button class="switch plain-button" role="switch" aria-checked="<%= on %>"
+                aria-label="<%= mi.item_name %>"></button>
             </div>
-        <% } else { %>
-            <div class="kitchen-2col-layout">
-                <%- include('partials/order-column', { rounds: pendingRounds, isCooking: false }) %>
-                <%- include('partials/order-column', { rounds: cookingRounds, isCooking: true }) %>
-            </div>
-        <% } %>
-    </div>
-    <%# แสดงเมนูพร้อมสวิตช์มีของหรือของหมด %>
-    <div id="stockTab" style="display: none;">
-        <p class="muted" style="margin-bottom: 14px;">ปิดสวิตช์เมื่อวัตถุดิบหมด เมนูนั้นจะขึ้นว่า "หมดชั่วคราว" ในมือถือลูกค้าทันที</p>
-        <% for (const category of sections) { %>
-        <section class="stock-category" aria-labelledby="stock-category-<%= category.category_id %>">
-            <div class="stock-category-heading">
-                <h2 id="stock-category-<%= category.category_id %>"><%= category.category_name %></h2>
-                <span class="muted"><%= category.items.length %> รายการ</span>
-            </div>
-            <div class="stock-grid">
-            <% for (const mi of category.items) { const on = mi.availability === 1; %>
-                <div class="stock-row<%= on ? '' : ' off' %> row box" onclick="toggleStock('<%= mi.menu_item_id %>', '<%= on ? 0 : 1 %>')" style="cursor: pointer;">
-                    <img src="<%= mi.image_url %>" alt="" onerror="this.style.visibility='hidden'">
-                    <div>
-                        <div class="name"><%= mi.item_name %></div>
-                        <span class="badge <%= on ? 'badge-available' : 'badge-cancelled' %> inline-row"><%= on ? 'มีของ' : 'หมด' %></span>
-                    </div>
-                    <button class="switch plain-button" role="switch" aria-checked="<%= on %>" aria-label="<%= mi.item_name %>"
-                            onclick="event.stopPropagation(); toggleStock('<%= mi.menu_item_id %>', '<%= on ? 0 : 1 %>')"></button>
-                </div>
-            <% } %>
-            </div>
-        </section>
-        <% } %>
-    </div>
+          <% } %>
+        </div>
+      </section>
+    <% } %>
+  </div>
 </div>
-<script src="/js/kitchen.js?v=basic-1"></script>
+<%# โหลดคำสั่งของปุ่มครัวและการอัปเดตข้อมูล %>
+<script src="/js/kitchen.js"></script>
 <%- include('../partials/footer') %>

@@ -1,15 +1,13 @@
-<%# หน้าต่างใบ QR พร้อมตัวเลือกกระดาษและปุ่มพิมพ์ %>
-<!-- Open-table slip with customer QR -->
 <dialog class="modal-overlay row" id="slipModal" aria-label="ใบ QR สำหรับสั่งอาหาร">
-    <div class="modal-content" style="max-width: 420px;">
-        <div class="receipt-slip order-slip print-target" id="slipPrintArea">
-            <%- include('table-slip-content', { slip: null }) %>
-        </div>
-        <div class="no-print modal-actions">
-            <button class="btn btn-secondary inline-row" onclick="copySlipUrl()">คัดลอกลิงก์</button>
-            <%- include('../../partials/paper', { paperId: 'qr-paper', defaultPaper: '80' }) %>
-            <button class="btn btn-secondary inline-row" onclick="printSlip()">พิมพ์</button>
-            <button class="btn btn-dark grow inline-row" onclick="closeModal('slipModal')">เสร็จ</button>
-        </div>
+  <div class="modal-content" style="max-width: 420px;">
+    <%# พื้นที่ใส่ใบ QR ที่เซิร์ฟเวอร์สร้างจาก table-slip-content.ejs %>
+    <div class="receipt-slip order-slip print-target" id="slipPrintArea"></div>
+    <%# เลือกกระดาษ คัดลอกลิงก์ พิมพ์ และปิดป๊อปอัป %>
+    <div class="grid-2 no-print modal-actions">
+      <%- include('../../partials/paper', { paperId: 'qr-paper' }) %>
+      <button class="btn btn-secondary inline-row" onclick="copySlipUrl()">คัดลอกลิงก์</button>
+      <button class="btn btn-secondary inline-row" onclick="printSlip()">พิมพ์</button>
+      <button class="btn btn-dark grow inline-row" onclick="closeModal('slipModal')">เสร็จ</button>
     </div>
+  </div>
 </dialog>

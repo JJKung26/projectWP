@@ -1,0 +1,28 @@
+/* ตัวเลือกวิธีจ่าย โต๊ะ และขนาดกระดาษ */
+fieldset { border: 0; min-width: 0; }
+.choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+/* ให้ช่อง radio ที่ซ่อนอยู่ในตัวเลือก ไม่ยืดพื้นที่เลื่อนของป๊อปอัป */
+.choices label { position: relative; }
+.choices input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.choices span { display: block; padding: 10px;
+  text-align: center; cursor: pointer;
+}
+/* สีช่องที่เลือกและขอบเมื่อเลือกด้วยคีย์บอร์ด */
+.choices input:checked + span { background: #fbe9e1; border-color: var(--ember); }
+.choices input:focus-visible + span { outline: 2px solid var(--ember); }
+.choices small { display: block; font-size: 11px; }
+/* รายการโต๊ะว่างและตัวเลือกที่กินพื้นที่ทั้งแถว */
+.seat-table-options { grid-template-columns: repeat(4, 1fr); max-height: 186px; overflow: auto; }
+.seat-table-empty, .paper-picker, .modal-actions .grow { grid-column: 1 / -1; }
+/* ยอดเงินและ QR พร้อมเพย์ */
+.promptpay-panel { padding: 16px; background: var(--paper); }
+.promptpay-amount { display: block; font-size: 28px; color: var(--ember); }
+.payment-image { width: 196px; max-width: 100%; }
+/* ตัวเลือกกระดาษ 58 และ 80 มม. */
+.paper-options { grid-template-columns: 1fr 1fr; }
+
+/* ใช้กับ EJS:
+   views/cashier/bill.ejs
+   views/cashier/partials/seat-queue.ejs
+   views/partials/paper.ejs
+*/

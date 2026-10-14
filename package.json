@@ -1,28 +1,20 @@
 {
-  "name": "moo-krata-app",
+  "name": "moo-krata-basic",
   "version": "1.0.0",
-  "description": "",
+  "description": "ระบบร้านหมูกระทะฉบับอ่านง่าย",
   "main": "server.js",
+  "type": "commonjs",
   "scripts": {
     "start": "node scripts/start-cloudflare.js",
     "start:local": "node server.js",
-    "start:cloudflare": "node scripts/start-cloudflare.js",
-    "seed:accounts": "node scripts/generate-accounts.js",
-    "backup": "node scripts/backup-database.js"
+    "start:cloudflare": "node scripts/start-cloudflare.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
+  "engines": { "node": ">=24" },
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "ejs": "^6.0.1",
     "express": "^5.2.1",
-    "qrcode": "^1.5.4",
-    "sqlite3": "^6.0.1"
-  },
-  "engines": {
-    "node": ">=24 <25"
+    "qrcode": "^1.5.4"
   }
 }

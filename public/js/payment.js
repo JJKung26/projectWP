@@ -1,66 +1,47 @@
-// เลือกวิธีชำระ คำนวณเงินทอน และส่งข้อมูลรับเงิน
-// อ่านวิธีชำระเงินที่เลือก
-function selectedPayMethod() {
-  return byId('payMethod').querySelector('input:checked').value;
-}
-
-// ปิดหน้าต่างรับชำระเงิน
+// เปิดและปิดป๊อปอัปรับเงิน โดยเริ่มที่เงินสด
 function closeModal() {
   dialogClose('paymentModal');
 }
 
-// เปิดหน้าต่างรับเงินโดยเลือกเงินสดไว้ก่อน
 function openPayment() {
   byId('payCash').checked = true;
   togglePayDetails();
   dialogOpen('paymentModal');
 }
 
-// แสดงช่องเงินสด รูปพร้อมเพย์ หรือข้อความบัตรตามที่เลือก
+// แสดงช่องเงินสด QR พร้อมเพย์ หรือรูปบัตรตามที่เลือก
 function togglePayDetails() {
-  const method = selectedPayMethod();
+  const method = byId('payMethod').querySelector('input:checked').value;
   byId('cashDetails').hidden = method !== 'CASH';
   byId('promptpayDetails').hidden = method !== 'PROMPTPAY';
   byId('cardNotice').hidden = method !== 'CREDIT_CARD';
   byId('amountReceived').required = method === 'CASH';
-  byId('amountReceived').value = NET;
+  byId('amountReceived').value = method === 'CASH' ? 0 : NET;
   calcChange();
 }
 
-// คำนวณเงินทอนจากเงินรับและยอดสุทธิ
+// คำนวณเงินทอนและแสดงทศนิยมสองตำแหน่ง
 function calcChange() {
   const received = Math.round(Number(byId('amountReceived').value) * 100);
-  const change = Math.max(0, received - NET * 100) / 100;
-  byId('changeAmount').textContent = change.toFixed(2);
+  const change = Math.max(0, received - NET * 100);
+  byId('changeAmount').textContent = (change / 100).toFixed(2);
 }
 
-// ส่งข้อมูลรับเงิน แล้วเปิดใบเสร็จเมื่อบันทึกสำเร็จ
+// ส่งยอดรับเงินและวิธีจ่าย แล้วเปิดใบเสร็จเมื่อสำเร็จ
 async function submitPayment(event) {
   event.preventDefault();
   const button = byId('confirmPayment');
   if (button.disabled) return;
-  const payment_method = selectedPayMethod();
+  const method = byId('payMethod').querySelector('input:checked').value;
+  const received = method === 'CASH' ? byId('amountReceived').value : NET;
+  const body = {
+    session_id: SESSION_ID,
+    payment_method: method,
+    expected_total: NET,
+    amount_received: received
+  };
   byId('payMethod').disabled = true;
-  button.disabled = true;
-  try {
-    let amount_received = NET;
-    if (payment_method === 'CASH') amount_received = byId('amountReceived').value;
-    const data = await requestData('/cashier/payment', {
-      session_id: SESSION_ID,
-      payment_method,
-      amount_received,
-      expected_total: NET
-    });
-    if (data.success) {
-      location.href = data.receipt_url;
-      return;
-    }
-    alert(data.message);
-    if (data.httpStatus === 409) location.reload();
-  } catch {
-    alert('เชื่อมต่อไม่ได้ กดอีกครั้งเพื่อรับผลการชำระเดิม');
-  } finally {
-    byId('payMethod').disabled = false;
-    button.disabled = false;
-  }
+  const data = await requestAction('/cashier/payment', body, button);
+  byId('payMethod').disabled = false;
+  if (data) location.assign(data.receipt_url);
 }

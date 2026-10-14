@@ -1,272 +1,131 @@
-// ควบคุมโต๊ะ คิว และใบ QR บนหน้าแคชเชียร์
-// จำนวนลูกค้าและหน้าต่าง
+// รวมจำนวนผู้ใหญ่กับเด็ก และตั้งจำนวนเริ่มต้นของฟอร์มเปิดโต๊ะหรือจัดคิว
 function updateGuestTotal(prefix) {
-  let total = 0;
-  for (const type of ['Adult', 'Child', 'FreeChild']) {
-    total += Number(byId(prefix + type + 'Count').value);
-  }
-  byId(prefix + 'GuestTotal').textContent = total;
+  const adults = Number(byId(prefix + 'AdultCount').value);
+  const children = Number(byId(prefix + 'ChildCount').value);
+  const freeChildren = Number(byId(prefix + 'FreeChildCount').value);
+  byId(prefix + 'GuestTotal').textContent = adults + children + freeChildren;
 }
 
-// ตั้งจำนวนผู้ใหญ่ เด็ก และราคาเด็กเริ่มต้น
 function resetGuestCounts(prefix, adults) {
   byId(prefix + 'AdultCount').value = adults;
   byId(prefix + 'ChildCount').value = 0;
   byId(prefix + 'FreeChildCount').value = 0;
+  byId(prefix + 'AdultPrice').value = 279;
   byId(prefix + 'ChildPrice').value = 179;
   updateGuestTotal(prefix);
 }
 
-// เพิ่มหรือลดตัวเลขในช่องกรอกตามค่าที่อนุญาต
+// ปุ่มบวกและลบจำนวน โดยใช้ค่าต่ำสุดกับสูงสุดของช่องกรอก
 function stepInput(id, delta) {
   const input = byId(id);
-  const next = (parseInt(input.value, 10) || 0) + delta;
-  input.value = Math.min(Number(input.max || 99), Math.max(Number(input.min || 0), next));
+  const value = Number(input.value) + delta;
+  input.value = Math.max(Number(input.min), Math.min(Number(input.max), value));
   input.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
-// คำนวณและแสดงเวลาที่ลูกค้าใช้โต๊ะ
+// เวลาในช่องโต๊ะใช้ ชั่วโมง:นาที เพื่อไม่ให้ข้อความตัดบรรทัด
 function renderElapsed() {
-  for (const element of document.querySelectorAll('.elapsed')) {
-    const started = new Date(element.dataset.started.replace(' ', 'T') + 'Z');
-    const mins = Math.max(0, Math.floor((Date.now() - started) / 60000));
-    if (mins < 60) {
-      element.textContent = `${mins} นาที`;
-    } else if (mins < 1440) {
-      element.textContent = `${Math.floor(mins / 60)}:${String(mins % 60).padStart(2, '0')} ชม.`;
-    } else {
-      element.textContent = `${Math.floor(mins / 1440)} วัน`;
-    }
+  const labels = document.querySelectorAll('.elapsed');
+  for (const label of labels) {
+    const start = new Date(label.dataset.started.replace(' ', 'T') + 'Z');
+    const minutes = Math.max(0, Math.floor((Date.now() - start) / 60000));
+    const hours = Math.floor(minutes / 60);
+    const remainder = String(minutes % 60).padStart(2, '0');
+    label.textContent = hours + ':' + remainder;
   }
 }
 
-// ปิดหน้าต่างเดิม แล้วเปิดหน้าต่างที่เลือก
+// เปิดป๊อปอัปทีละอัน และรีเฟรชโต๊ะหลังปิด
 function openModal(id) {
-  for (const dialog of document.querySelectorAll('.modal-overlay.active')) dialogClose(dialog.id);
+  for (const dialog of document.querySelectorAll('.modal-overlay.active')) {
+    dialogClose(dialog.id);
+  }
   dialogOpen(id);
 }
 
-// ปิดหน้าต่าง แล้วอัปเดตข้อมูลโต๊ะเมื่อจำเป็น
 function closeModal(id) {
   dialogClose(id);
-  if (['slipModal', 'queueSlipModal', 'openTableModal', 'seatQueueModal'].includes(id)) {
-    refreshTables();
-  }
+  setTimeout(refreshTables, 350);
 }
-// เปิดและจัดการโต๊ะ
-let selectedTable = {};
 
-// เลือกโต๊ะแล้วเปิดฟอร์มหรือเมนูจัดการตามสถานะ
+// จำโต๊ะที่กด แล้วเลือกแสดงฟอร์มเปิดโต๊ะหรือเมนูโต๊ะมีลูกค้า
+let selectedTable;
 function handleTableClick(tableId, tableNo, status, sessionId, qrToken) {
-  selectedTable = { tableId, tableNo, status, sessionId, qrToken };
+  selectedTable = { tableId, tableNo, qrToken };
   if (status === 'AVAILABLE') {
     byId('openTableId').value = tableId;
-    byId('openTableNo').innerText = tableNo;
+    byId('openTableNo').textContent = tableNo;
     resetGuestCounts('open', 0);
-    byId('buffetPrice').value = 279;
     openModal('openTableModal');
-  } else if (status === 'OCCUPIED') {
-    byId('occTableNo').innerText = tableNo;
-    byId('checkBillBtn').href = `/cashier/bill/${sessionId}`;
+  } else {
+    byId('occTableNo').textContent = tableNo;
+    byId('checkBillBtn').href = '/cashier/bill/' + sessionId;
     openModal('occupiedTableModal');
   }
 }
 
-// เปิดโต๊ะโดยตรง หรือจัดลูกค้าจากคิวเข้าโต๊ะ
-async function submitTable(event, prefix) {
+// ใช้ action ของฟอร์ม จึงไม่ต้องเลือก URL ซ้ำใน JavaScript
+async function submitTable(event) {
   event.preventDefault();
-  const fromQueue = prefix === 'seat';
-  const body = Object.fromEntries(new FormData(event.target));
-  if (fromQueue && !body.table_id) return alert('กรุณาเลือกโต๊ะว่าง');
-  const data = await requestAction(
-    fromQueue ? '/cashier/queue/seat' : '/cashier/open-table',
-    body,
-    event.submitter
-  );
+  const form = event.target;
+  const data = await requestAction(form.action, readForm(form), event.submitter);
   if (data) {
-    closeModal(fromQueue ? 'seatQueueModal' : 'openTableModal');
+    closeModal(form.closest('dialog').id);
     displaySlipData(data);
     openModal('slipModal');
   }
 }
 
-// ส่งคำขอคืนโต๊ะเป็นว่างหลังยืนยัน
+// ขอยกเลิกโต๊ะที่เปิดผิดและยังไม่มีอาหาร
 async function resetTableStatus() {
-  const table = selectedTable;
-  if (!confirm('โต๊ะ ' + table.tableNo + ': ยกเลิกรอบบริการที่ยังไม่มีอาหาร และเปลี่ยนเป็นว่าง?')) {
-    return;
-  }
+  if (!confirm('ยกเลิกโต๊ะ ' + selectedTable.tableNo + ' ที่ยังไม่มีอาหาร?')) return;
   const data = await requestAction('/cashier/reset-table', {
-    table_id: table.tableId,
-    expected_status: table.status,
-    expected_session_id: table.sessionId
+    table_id: selectedTable.tableId
   });
-  if (data) {
-    closeModal('occupiedTableModal');
-    refreshTables();
-  }
+  if (data) closeModal('occupiedTableModal');
 }
-// ใบเปิดโต๊ะ
+
+// แสดงใบ QR จากเซิร์ฟเวอร์ และจำลิงก์ไว้คัดลอกหรือพิมพ์
 let currentCustomerUrl = '';
-
-// อ่านและแสดงใบ QR ของโต๊ะที่เลือก
-async function showReceiptSlipModal() {
-  closeModal('occupiedTableModal');
-  const data = await requestAction(`/cashier/qr/${selectedTable.qrToken}`);
-  if (data) {
-    displaySlipData(data);
-    openModal('slipModal');
-  }
-}
-
-// ใส่เนื้อหาใบเปิดโต๊ะและเก็บลิงก์ลูกค้า
 function displaySlipData(data) {
   byId('slipPrintArea').innerHTML = data.slip_html;
   currentCustomerUrl = data.customer_url;
 }
 
-// เลือกใบ QR หรือบัตรคิวที่กำลังเปิดอยู่เพื่อพิมพ์
-function printSlip() {
-  printDocument(
-    byId('slipModal').classList.contains('active') ? 'slipPrintArea' : 'queueSlipPrintArea'
-  );
+async function showReceiptSlipModal() {
+  const data = await requestAction('/cashier/qr/' + selectedTable.qrToken);
+  if (data) {
+    displaySlipData(data);
+    openModal('slipModal');
+  }
 }
 
-// คัดลอกลิงก์สั่งอาหารให้ลูกค้า
+function printSlip() {
+  const id = byId('slipModal').open ? 'slipPrintArea' : 'queueSlipPrintArea';
+  printDocument(id);
+}
+
+// คัดลอกลิงก์ลูกค้า ถ้าคัดลอกไม่ได้ให้แสดงช่องคัดลอกเอง
 async function copySlipUrl() {
-  if (!currentCustomerUrl) return;
-  if (!navigator.clipboard) return prompt('คัดลอกลิงก์:', currentCustomerUrl);
   try {
     await navigator.clipboard.writeText(currentCustomerUrl);
-    alert('คัดลอกลิงก์เรียบร้อยแล้ว: ' + currentCustomerUrl);
+    alert('คัดลอกลิงก์แล้ว');
   } catch {
     prompt('คัดลอกลิงก์:', currentCustomerUrl);
   }
 }
-// จัดการคิว
-let lastTicketId = readStorage('lastQueueTicket') || '';
 
-// ใส่เลขคิว เวลา และจำนวนลูกค้าลงบนบัตร
-function displayQueueTicket(ticket) {
-  lastTicketId = ticket.queue_ticket_id;
-  writeStorage('lastQueueTicket', lastTicketId);
-  byId('qsQueueNo').innerText = ticket.queue_no;
-  byId('qsDate').innerText = ticket.queue_date;
-  let time = 'ไม่พบเวลาเดิม';
-  if (ticket.created_at) {
-    const created = new Date(ticket.created_at.replace(' ', 'T') + 'Z');
-    time = created.toLocaleTimeString('th-TH', { timeZone: 'Asia/Bangkok' });
-  }
-  byId('qsTime').innerText = time;
-  byId('qsGuests').innerText = ticket.guest_count;
-  byId('qsAhead').innerText = ticket.count_ahead;
-  openModal('queueSlipModal');
-}
-
-// โหลดรายการคิวแล้วเปิดหน้าจัดการคิว
-function openQueueModal() {
-  loadQueues();
-  openModal('queueModal');
-}
-
-// เปิดหน้าต่างคิวและให้กรอกจำนวนลูกค้า
-function openIssueQueueModal() {
-  openModal('queueModal');
-  byId('newQueueGuestCount').focus();
-}
-let queueVersion = 0;
-
-// อ่านวันที่และตัวเลือกดูประวัติเพื่อใช้ค้นหาคิว
-function queueFilters() {
-  return new URLSearchParams({
-    date: byId('queueDate').value,
-    history: byId('queueHistory').checked ? '1' : '0'
-  }).toString();
-}
-
-// ขอรายการคิวล่าสุดแล้วอัปเดตจำนวนคิวบนหน้าจอ
-async function loadQueues() {
-  const version = ++queueVersion;
-  const filters = queueFilters();
-  const container = byId('queueListContainer');
-  try {
-    const response = await requestFetch('/cashier/queue/list?' + filters, {
-      headers: { Accept: 'text/html' }
-    });
-    const html = await response.text();
-    if (version !== queueVersion || filters !== queueFilters()) return;
-    if (!response.ok) throw Error('โหลดคิวไม่สำเร็จ');
-    if (container.innerHTML !== html) container.innerHTML = html;
-    const count = container.querySelector('template').dataset.waiting;
-    byId('waitingCountDisplay').innerText = count;
-    byId('queueBadge').innerText = count;
-  } catch {
-    if (version !== queueVersion) return;
-    container.innerHTML =
-      '<div class="empty" style="padding: 24px; color: var(--danger);">โหลดคิวไม่สำเร็จ</div>';
-  }
-}
-
-// ส่งจำนวนลูกค้าเพื่อออกบัตรคิวใหม่
-async function submitIssueQueue(event) {
-  event.preventDefault();
-  const data = await requestAction(
-    '/cashier/queue/issue',
-    Object.fromEntries(new FormData(event.target)),
-    event.submitter
-  );
-  if (data) {
-    closeModal('queueModal');
-    displayQueueTicket(data.ticket);
-    loadQueues();
-  }
-}
-
-// ส่งคำสั่งเรียกคิว แล้วเล่นเสียงตามเลขคิวที่ได้รับ
-async function callQueue(queue_ticket_id) {
-  await enableSound();
-  const data = await requestAction('/cashier/queue/call', { queue_ticket_id });
-  if (data) {
-    announceQueue(data.queue_no);
-    loadQueues();
-  }
-}
-
-// ใส่ข้อมูลคิวลงฟอร์มเลือกโต๊ะว่าง
-function openSeatModal(queue_ticket_id, queue_no, guest_count) {
-  byId('seatQueueTicketId').value = queue_ticket_id;
-  byId('seatQueueNo').innerText = queue_no;
-  byId('seatQueueGuests').innerText = guest_count;
-  resetGuestCounts('seat', guest_count);
-  byId('seatBuffetPrice').value = 279;
-  closeModal('queueModal');
-  openModal('seatQueueModal');
-}
-
-// ยืนยันแล้วส่งคำสั่งยกเลิกบัตรคิว
-async function cancelQueue(queue_ticket_id) {
-  if (!confirm('ยืนยันการยกเลิกบัตรคิวนี้หรือไม่?')) return;
-  const data = await requestAction('/cashier/queue/cancel', { queue_ticket_id });
-  if (data) loadQueues();
-}
-
-// อ่านบัตรคิวเดิมเพื่อแสดงและพิมพ์ซ้ำ
-async function reprintQueue(id = lastTicketId) {
-  if (!id) return openQueueModal();
-  const data = await requestAction('/cashier/queue/ticket/' + encodeURIComponent(id));
-  if (data) displayQueueTicket(data.ticket);
-}
-// อัปเดตหน้าแคชเชียร์
-function updateTableControls() {
+// อัปเดตเวลาบนโต๊ะและปุ่มจัดโต๊ะ หลังโหลดข้อมูลใหม่
+function afterTableRefresh() {
   renderElapsed();
+  const button = document.querySelector('#seatQueueModal button[type=submit]');
   const selected = document.querySelector('#seatTableSelect input:checked');
-  document.querySelector('#seatQueueModal button[type=submit]').disabled = !selected;
+  button.disabled = !selected;
 }
+// รีเฟรชเฉพาะผังโต๊ะและยอดรวม พร้อมอัปเดตเวลาเป็นระยะ
 const refreshTables = liveRegion(
   ['.grid-50-tables', '.stat-strip', '#seatTableSelect', '#tableAlert'],
-  updateTableControls
+  afterTableRefresh
 );
 renderElapsed();
 setInterval(renderElapsed, 30000);
-loadQueues();
-setInterval(loadQueues, 5000);

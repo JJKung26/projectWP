@@ -1,0 +1,9 @@
+/* ช่องว่างระหว่างรอบที่พร้อมนำไปเสิร์ฟ */
+.serving-page .round-card-list { gap: 16px; }
+/* ป้ายโต๊ะสีเขียวสำหรับงานเสิร์ฟ */
+.serving-page .round-card-table { color: #34734a; background: #e3f1e4; }
+
+/* ใช้กับ EJS:
+   views/serving/dashboard.ejs
+   views/partials/staff-order-card.ejs
+*/
