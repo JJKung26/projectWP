@@ -14,10 +14,11 @@ function changeItems(req, res, serving = false) {
   const body = req.body;
   const status = serving ? 'SERVED' : body.status;
   if (!['COOKING', 'READY', 'SERVED', 'CANCELLED'].includes(status)) fail('สถานะอาหารไม่ถูกต้อง');
-  const sql = `SELECT oi.* FROM OrderItem oi
-    JOIN FoodOrder fo ON fo.order_id = oi.order_id
-    JOIN DiningSession s ON s.session_id = fo.session_id
-    WHERE s.session_status = 'ACTIVE' AND (oi.order_id = ? OR oi.order_item_id = ?)`;
+  const sql = `SELECT orderItem.* FROM OrderItem orderItem
+    JOIN FoodOrder foodOrder ON foodOrder.order_id = orderItem.order_id
+    JOIN DiningSession diningSession ON diningSession.session_id = foodOrder.session_id
+    WHERE diningSession.session_status = 'ACTIVE'
+    AND (orderItem.order_id = ? OR orderItem.order_item_id = ?)`;
   // เลือกว่าจะบันทึกพนักงานครัวหรือพนักงานเสิร์ฟ
   const worker = serving ? 'served_by' : 'prepared_by';
   const update = `UPDATE OrderItem

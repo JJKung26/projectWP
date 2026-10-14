@@ -32,15 +32,15 @@ function transaction(work) {
 }
 
 // สร้างโต๊ะเริ่มต้น 50 โต๊ะ พร้อมกำหนดจำนวนที่นั่ง
-for (let n = 1; n <= 50; n++) {
+for (let tableNumber = 1; tableNumber <= 50; tableNumber++) {
   let capacity = 4;
-  if (n % 5 === 0) capacity = 6;
-  if (n % 10 === 0) capacity = 8;
-  if (n === 50) capacity = 10;
+  if (tableNumber % 5 === 0) capacity = 6;
+  if (tableNumber % 10 === 0) capacity = 8;
+  if (tableNumber === 50) capacity = 10;
   run(
     `INSERT OR IGNORE INTO DiningTable (table_id, table_no, capacity)
       VALUES (?, ?, ?)`,
-    ['TBL-' + String(n).padStart(2, '0'), String(n), capacity]
+    ['TBL-' + String(tableNumber).padStart(2, '0'), String(tableNumber), capacity]
   );
 }
 // เติมเมนูและบัญชีเริ่มต้น โดยไม่เขียนทับข้อมูลเดิม

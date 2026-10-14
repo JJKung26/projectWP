@@ -1,11 +1,11 @@
 <%# ชื่อและสีของแต่ละสถานะ พร้อมนับจำนวนอาหารในโต๊ะ %>
 <%
   const statusInfo = {
-    PENDING: { cls: 'badge-pending', label: 'รอคิวครัว' },
-    COOKING: { cls: 'badge-cooking', label: 'กำลังเตรียม' },
-    READY: { cls: 'badge-ready', label: 'กำลังนำไปเสิร์ฟ', roundLabel: 'กำลังนำมาเสิร์ฟ' },
-    SERVED: { cls: 'badge-served', label: 'เสิร์ฟแล้ว', roundLabel: 'เสิร์ฟครบแล้ว' },
-    CANCELLED: { cls: 'badge-cancelled', label: 'ยกเลิก', roundLabel: 'ยกเลิกทั้งรอบ' }
+    PENDING: { className: 'badge-pending', label: 'รอคิวครัว' },
+    COOKING: { className: 'badge-cooking', label: 'กำลังเตรียม' },
+    READY: { className: 'badge-ready', label: 'กำลังนำไปเสิร์ฟ', roundLabel: 'กำลังนำมาเสิร์ฟ' },
+    SERVED: { className: 'badge-served', label: 'เสิร์ฟแล้ว', roundLabel: 'เสิร์ฟครบแล้ว' },
+    CANCELLED: { className: 'badge-cancelled', label: 'ยกเลิก', roundLabel: 'ยกเลิกทั้งรอบ' }
   };
   const summary = { PENDING: 0, COOKING: 0, READY: 0, SERVED: 0, CANCELLED: 0 };
   const summaryLabels = {
@@ -51,38 +51,41 @@
       </div>
       <%
         // แสดงรอบล่าสุดก่อน แล้วดูสถานะอาหารที่ยังไม่ถูกยกเลิก
-        for (let idx = groups.length - 1; idx >= 0; idx--) {
-          const g = groups[idx];
-          const isLatest = idx === groups.length - 1;
-          const badge = statusInfo[g.status];
+        for (let index = groups.length - 1; index >= 0; index--) {
+          const group = groups[index];
+          const isLatest = index === groups.length - 1;
+          const badge = statusInfo[group.status];
       %>
         <%# หัวข้อแต่ละรอบ เวลา สถานะ และปุ่มพับรายการ %>
         <div class="cust-round-card box">
           <div class="cust-round-header row between wrap"
-            onclick="toggleOrderDropdown('<%= g.order_id %>')">
+            onclick="toggleOrderDropdown('<%= group.order_id %>')">
             <div class="row">
-              <span class="cust-round-badge">รอบที่ <%= g.round_no %></span>
-              <span class="digits small muted">สั่งเมื่อ <%= thaiTime(g.ordered_at) %> น.</span>
+              <span class="cust-round-badge">รอบที่ <%= group.round_no %></span>
+              <span class="digits small muted">สั่งเมื่อ <%= thaiTime(group.ordered_at) %> น.</span>
             </div>
             <div class="row wrap">
-              <span class="badge <%= badge.cls %> inline-row">
+              <span class="badge <%= badge.className %> inline-row">
                 <%= badge.roundLabel || badge.label %>
               </span>
               <button class="<%= isLatest ? '' : ' collapsed' %> row plain-button"
-                id="toggle-btn-<%= g.order_id %>" type="button" aria-label="แสดง/ซ่อนรายการ">
-                <span class="muted" style="font-size: 0.8rem;"><%= g.items.length %> รายการ</span>
+                id="toggle-btn-<%= group.order_id %>" type="button" aria-label="แสดง/ซ่อนรายการ">
+                <span class="muted" style="font-size: 0.8rem;">
+                  <%= group.items.length %> รายการ
+                </span>
                 <img class="chevron-icon" src="/images/icons/chevron.svg"
                   width="16" height="16" alt="" />
               </button>
             </div>
           </div>
-          <div class="order-dropdown<%= isLatest ? ' open' : '' %>" id="dropdown-<%= g.order_id %>"
-            data-order="<%= g.order_id %>">
+          <div class="order-dropdown<%= isLatest ? ' open' : '' %>"
+            id="dropdown-<%= group.order_id %>"
+            data-order="<%= group.order_id %>">
             <%# รูป ชื่อ จำนวน และสถานะของอาหารในรอบ %>
             <div>
               <%
-                for (const item of g.items) {
-                  const st = statusInfo[item.item_status];
+                for (const item of group.items) {
+                  const statusDetail = statusInfo[item.item_status];
               %>
                 <div
                   class="order-line<%= item.item_status === 'CANCELLED' ? ' cancelled' : '' %> row">
@@ -96,7 +99,9 @@
                       <% } %>
                     </small>
                   </div>
-                  <span class="badge <%= st.cls %> inline-row"><%= st.label %></span>
+                  <span class="badge <%= statusDetail.className %> inline-row">
+                    <%= statusDetail.label %>
+                  </span>
                 </div>
               <% } %>
             </div>

@@ -10,10 +10,11 @@ const { thaiDay, thaiTime } = require('../utils/datetime');
 
 // อ่านสถานะโต๊ะและคิวรอ เพื่อแสดงผังโต๊ะกับจำนวนรวม
 function getTables(req, res) {
-  const sql = `SELECT t.*, s.session_id, s.qr_token, s.guest_count, s.started_at
-    FROM DiningTable t LEFT JOIN DiningSession s
-    ON t.table_id = s.table_id AND s.session_status = 'ACTIVE'
-    ORDER BY CAST(t.table_no AS INTEGER)`;
+  const sql = `SELECT diningTable.*, diningSession.session_id, diningSession.qr_token,
+    diningSession.guest_count, diningSession.started_at
+    FROM DiningTable diningTable LEFT JOIN DiningSession diningSession
+    ON diningTable.table_id = diningSession.table_id AND diningSession.session_status = 'ACTIVE'
+    ORDER BY CAST(diningTable.table_no AS INTEGER)`;
   const tables = db.query(sql);
   const waitingQueues = db.query(
     `SELECT * FROM QueueTicket
@@ -59,9 +60,9 @@ async function openTable(req, res) {
 
 // อ่านโต๊ะที่เปิดอยู่ เพื่อแสดงหรือพิมพ์ใบ QR ซ้ำ
 async function getQrCode(req, res) {
-  const sql = `SELECT s.*, t.table_no FROM DiningSession s
-    JOIN DiningTable t ON t.table_id = s.table_id
-    WHERE s.qr_token = ? AND s.session_status = 'ACTIVE'`;
+  const sql = `SELECT diningSession.*, diningTable.table_no FROM DiningSession diningSession
+    JOIN DiningTable diningTable ON diningTable.table_id = diningSession.table_id
+    WHERE diningSession.qr_token = ? AND diningSession.session_status = 'ACTIVE'`;
   const session = db.get(sql, [req.params.token]);
   if (!session) fail('ไม่พบโต๊ะที่เปิดอยู่', 404);
   res.json(await qrData(req, session));

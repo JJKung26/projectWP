@@ -12,26 +12,26 @@ function totals(session, items) {
     }
   }
   // คิด VAT ปัดยอดสุทธิลงเป็นบาท แล้วส่งยอดต่าง ๆ กลับ
-  const tax = Math.round((subtotal * 7) / 100);
-  const before = subtotal + tax;
-  const net = Math.floor(before / 100) * 100;
+  const taxCents = Math.round((subtotal * 7) / 100);
+  const beforeRoundingCents = subtotal + taxCents;
+  const netCents = Math.floor(beforeRoundingCents / 100) * 100;
   return {
     subtotal: subtotal / 100,
-    taxAmount: tax / 100,
-    beforeRounding: before / 100,
-    roundingAmount: (net - before) / 100,
-    netAmount: net / 100
+    taxAmount: taxCents / 100,
+    beforeRounding: beforeRoundingCents / 100,
+    roundingAmount: (netCents - beforeRoundingCents) / 100,
+    netAmount: netCents / 100
   };
 }
 
 // อ่านอาหารของรอบบริการที่ยังไม่ถูกยกเลิก พร้อมราคาตอนสั่ง
 function itemsFor(sessionId) {
-  const sql = `SELECT oi.*, oi.item_name_at_order AS item_name,
-    oi.charge_type_at_order AS charge_type
-    FROM OrderItem oi
-    JOIN FoodOrder fo ON fo.order_id = oi.order_id
-    WHERE fo.session_id = ? AND oi.item_status != 'CANCELLED'
-    ORDER BY fo.rowid, oi.rowid`;
+  const sql = `SELECT orderItem.*, orderItem.item_name_at_order AS item_name,
+    orderItem.charge_type_at_order AS charge_type
+    FROM OrderItem orderItem
+    JOIN FoodOrder foodOrder ON foodOrder.order_id = orderItem.order_id
+    WHERE foodOrder.session_id = ? AND orderItem.item_status != 'CANCELLED'
+    ORDER BY foodOrder.rowid, orderItem.rowid`;
   return db.query(sql, [sessionId]);
 }
 module.exports = { totals, itemsFor };

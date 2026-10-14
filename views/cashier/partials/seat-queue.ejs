@@ -25,14 +25,14 @@
           <% } else { %>
             <%
               for (let index = 0; index < availableTables.length; index++) {
-                const at = availableTables[index];
+                const table = availableTables[index];
             %>
               <label>
-                <input type="radio" name="table_id" value="<%= at.table_id %>" required
+                <input type="radio" name="table_id" value="<%= table.table_id %>" required
                   <%= index === 0 ? 'checked' : '' %> />
                 <span>
-                  <strong>โต๊ะ <%= at.table_no %></strong>
-                  <small><%= at.capacity %> ที่นั่ง</small>
+                  <strong>โต๊ะ <%= table.table_no %></strong>
+                  <small><%= table.capacity %> ที่นั่ง</small>
                 </span>
               </label>
             <% } %>

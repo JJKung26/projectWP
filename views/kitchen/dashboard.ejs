@@ -1,9 +1,9 @@
 <%- include('../partials/header') %>
 <%# นับรายการรอทำ กำลังทำ และเมนูที่หมด %>
 <%
-  const pending = orderItems.filter(i => i.item_status === 'PENDING').length;
-  const cooking = orderItems.filter(i => i.item_status === 'COOKING').length;
-  const soldOut = menuItems.filter(m => m.availability === 0).length;
+  const pending = orderItems.filter(item => item.item_status === 'PENDING').length;
+  const cooking = orderItems.filter(item => item.item_status === 'COOKING').length;
+  const soldOut = menuItems.filter(menuItem => menuItem.availability === 0).length;
 %>
 <div class="container">
   <%# หัวข้อครัวและจำนวนรายการในแต่ละสถานะ %>
@@ -71,21 +71,22 @@
         </div>
         <div class="stock-grid">
           <%
-            for (const mi of category.items) {
-              const on = mi.availability === 1;
+            for (const menuItem of category.items) {
+              const isAvailable = menuItem.availability === 1;
+              const badgeClass = isAvailable ? 'badge-available' : 'badge-cancelled';
           %>
-            <div class="stock-row<%= on ? '' : ' off' %> row box"
-              onclick="toggleStock('<%= mi.menu_item_id %>', <%= on ? 0 : 1 %>)"
+            <div class="stock-row<%= isAvailable ? '' : ' off' %> row box"
+              onclick="toggleStock('<%= menuItem.menu_item_id %>', <%= isAvailable ? 0 : 1 %>)"
               style="cursor: pointer;">
-              <img src="<%= mi.image_url %>" alt="" />
+              <img src="<%= menuItem.image_url %>" alt="" />
               <div>
-                <div class="name"><%= mi.item_name %></div>
-                <span class="badge <%= on ? 'badge-available' : 'badge-cancelled' %> inline-row">
-                  <%= on ? 'มีของ' : 'หมด' %>
+                <div class="name"><%= menuItem.item_name %></div>
+                <span class="badge <%= badgeClass %> inline-row">
+                  <%= isAvailable ? 'มีของ' : 'หมด' %>
                 </span>
               </div>
-              <button class="switch plain-button" role="switch" aria-checked="<%= on %>"
-                aria-label="<%= mi.item_name %>"></button>
+              <button class="switch plain-button" role="switch" aria-checked="<%= isAvailable %>"
+                aria-label="<%= menuItem.item_name %>"></button>
             </div>
           <% } %>
         </div>

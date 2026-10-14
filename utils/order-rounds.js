@@ -2,15 +2,15 @@ const db = require('../database/database');
 
 // อ่านอาหารตามสถานะ พร้อมข้อมูลโต๊ะของรอบที่ยังเปิดอยู่
 function activeOrderItems(first, second = first) {
-  const sql = `SELECT oi.*, mi.item_name, mi.image_url,
-    t.table_no, fo.session_id, fo.ordered_at
-    FROM OrderItem oi
-    JOIN FoodOrder fo ON oi.order_id = fo.order_id
-    JOIN DiningSession s ON fo.session_id = s.session_id
-    JOIN DiningTable t ON s.table_id = t.table_id
-    JOIN MenuItem mi ON oi.menu_item_id = mi.menu_item_id
-    WHERE oi.item_status IN (?, ?) AND s.session_status = 'ACTIVE'
-    ORDER BY fo.rowid, oi.rowid`;
+  const sql = `SELECT orderItem.*, menuItem.item_name, menuItem.image_url,
+    diningTable.table_no, foodOrder.session_id, foodOrder.ordered_at
+    FROM OrderItem orderItem
+    JOIN FoodOrder foodOrder ON orderItem.order_id = foodOrder.order_id
+    JOIN DiningSession diningSession ON foodOrder.session_id = diningSession.session_id
+    JOIN DiningTable diningTable ON diningSession.table_id = diningTable.table_id
+    JOIN MenuItem menuItem ON orderItem.menu_item_id = menuItem.menu_item_id
+    WHERE orderItem.item_status IN (?, ?) AND diningSession.session_status = 'ACTIVE'
+    ORDER BY foodOrder.rowid, orderItem.rowid`;
   return db.query(sql, [first, second]);
 }
 
@@ -18,10 +18,10 @@ function activeOrderItems(first, second = first) {
 function groupOrderItems(items) {
   const rounds = {};
   for (const item of items) {
-    const id = item.order_id;
-    if (!rounds[id]) {
-      rounds[id] = {
-        order_id: id,
+    const orderId = item.order_id;
+    if (!rounds[orderId]) {
+      rounds[orderId] = {
+        order_id: orderId,
         table_no: item.table_no,
         session_id: item.session_id,
         ordered_at: item.ordered_at,
@@ -31,14 +31,14 @@ function groupOrderItems(items) {
         counts: { PENDING: 0, COOKING: 0, READY: 0, SERVED: 0, CANCELLED: 0 }
       };
     }
-    const round = rounds[id];
+    const round = rounds[orderId];
     round.items.push(item);
     round.quantity += item.quantity;
     round.counts[item.item_status] += item.quantity;
   }
   // สรุปสถานะทั้งรอบจากสถานะอาหารแต่ละรายการ
-  for (const id in rounds) {
-    const round = rounds[id];
+  for (const orderId in rounds) {
+    const round = rounds[orderId];
     const count = round.counts;
     round.status = 'PENDING';
     if (count.CANCELLED === round.quantity) round.status = 'CANCELLED';

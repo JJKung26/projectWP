@@ -52,26 +52,26 @@
   <%# การ์ดแต่ละโต๊ะ แสดงจำนวนคนและเวลาหรือจำนวนที่นั่ง %>
   <div class="grid-50-tables">
     <%
-      for (const t of tables) {
-        const busy = t.table_status === 'OCCUPIED';
+      for (const table of tables) {
+        const isOccupied = table.table_status === 'OCCUPIED';
     %>
-      <button type="button" class="table-card <%= t.table_status.toLowerCase() %> column box"
-        id="table-card-<%= t.table_id %>"
+      <button type="button" class="table-card <%= table.table_status.toLowerCase() %> column box"
+        id="table-card-<%= table.table_id %>"
         onclick="handleTableClick(
-          '<%= t.table_id %>', '<%= t.table_no %>', '<%= t.table_status %>',
-          '<%= t.session_id %>', '<%= t.qr_token %>'
+          '<%= table.table_id %>', '<%= table.table_no %>', '<%= table.table_status %>',
+          '<%= table.session_id %>', '<%= table.qr_token %>'
         )">
         <div>
           <div class="table-label small muted">โต๊ะ</div>
-          <div class="table-number number digits large"><%= t.table_no %></div>
+          <div class="table-number number digits large"><%= table.table_no %></div>
         </div>
         <div class="table-meta row small muted">
-          <% if (busy) { %>
-            <span><%= t.guest_count %> ท่าน</span>
-            <span class="elapsed" data-started="<%= t.started_at %>"
+          <% if (isOccupied) { %>
+            <span><%= table.guest_count %> ท่าน</span>
+            <span class="elapsed" data-started="<%= table.started_at %>"
               title="เวลาที่ใช้ (ชั่วโมง:นาที)"></span>
           <% } else { %>
-            <span><%= t.capacity %> ที่นั่ง</span>
+            <span><%= table.capacity %> ที่นั่ง</span>
           <% } %>
         </div>
       </button>

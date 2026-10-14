@@ -32,21 +32,21 @@ function placeOrder(req, res) {
   if (!items || items.length === 0) fail('กรุณาเลือกอาหาร');
   const orderId = db.transaction(function () {
     // 1. ถ้ากดส่งรายการเดิมซ้ำ ให้ใช้รหัสออเดอร์เดิม
-    const old = db.get(
+    const existingOrder = db.get(
       `SELECT order_id FROM FoodOrder
         WHERE session_id = ? AND request_key = ?`,
       [sessionId, requestKey]
     );
-    if (old) return old.order_id;
-    const last = db.get(
-      `SELECT COALESCE(MAX(round_no), 0) n FROM FoodOrder
+    if (existingOrder) return existingOrder.order_id;
+    const lastRound = db.get(
+      `SELECT COALESCE(MAX(round_no), 0) AS roundNumber FROM FoodOrder
         WHERE session_id = ?`,
       [sessionId]
     );
-    const id = randomUUID();
+    const newOrderId = randomUUID();
     const orderSql = `INSERT INTO FoodOrder (order_id, session_id, request_key, round_no)
       VALUES (?, ?, ?, ?)`;
-    db.run(orderSql, [id, sessionId, requestKey, last.n + 1]);
+    db.run(orderSql, [newOrderId, sessionId, requestKey, lastRound.roundNumber + 1]);
 
     // 2. อ่านราคาและสต็อก แล้วบันทึกอาหารแต่ละรายการ
     const itemSql = `INSERT INTO OrderItem
@@ -60,24 +60,24 @@ function placeOrder(req, res) {
       ]);
       if (!menu || menu.availability !== 1) fail('อาหารที่เลือกหมดชั่วคราว', 409);
       db.run(itemSql, [
-        randomUUID(), id, menu.menu_item_id, quantity,
+        randomUUID(), newOrderId, menu.menu_item_id, quantity,
         menu.unit_price, menu.item_name, menu.charge_type
       ]);
     }
-    return id;
+    return newOrderId;
   });
   res.json({ success: true, order_id: orderId });
 }
 
 // อ่านอาหารของโต๊ะและรวมตามรอบ เพื่อแสดงสถานะ
 function getOrderStatus(req, res) {
-  const sql = `SELECT oi.*, oi.item_name_at_order AS item_name, mi.image_url,
-    fo.ordered_at, fo.round_no
-    FROM OrderItem oi
-    JOIN FoodOrder fo ON oi.order_id = fo.order_id
-    JOIN MenuItem mi ON oi.menu_item_id = mi.menu_item_id
-    WHERE fo.session_id = ?
-    ORDER BY fo.round_no, oi.rowid`;
+  const sql = `SELECT orderItem.*, orderItem.item_name_at_order AS item_name, menuItem.image_url,
+    foodOrder.ordered_at, foodOrder.round_no
+    FROM OrderItem orderItem
+    JOIN FoodOrder foodOrder ON orderItem.order_id = foodOrder.order_id
+    JOIN MenuItem menuItem ON orderItem.menu_item_id = menuItem.menu_item_id
+    WHERE foodOrder.session_id = ?
+    ORDER BY foodOrder.round_no, orderItem.rowid`;
   const orders = db.query(sql, [req.diningSession.session_id]);
   res.render('customer/orders', { orders, groups: groupOrderItems(orders) });
 }

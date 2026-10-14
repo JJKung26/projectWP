@@ -4,16 +4,16 @@ const { fail, integer, today } = require('../utils/validation');
 const cashier = require('./cashier.controller');
 
 // อ่านบัตรคิวและนับคิวที่รออยู่ก่อนหน้า
-function ticketData(id) {
-  const ticket = db.get('SELECT * FROM QueueTicket WHERE queue_ticket_id = ?', [id]);
+function ticketData(ticketId) {
+  const ticket = db.get('SELECT * FROM QueueTicket WHERE queue_ticket_id = ?', [ticketId]);
   if (!ticket) fail('ไม่พบบัตรคิว', 404);
   ticket.count_ahead = 0;
   if (ticket.queue_status === 'WAITING' || ticket.queue_status === 'CALLED') {
-    const sql = `SELECT COUNT(*) n FROM QueueTicket
+    const sql = `SELECT COUNT(*) AS waitingCount FROM QueueTicket
       WHERE queue_date = ? AND queue_status IN ('WAITING','CALLED')
       AND CAST(SUBSTR(queue_no, 2) AS INTEGER) < ?`;
     const number = Number(ticket.queue_no.slice(1));
-    ticket.count_ahead = db.get(sql, [ticket.queue_date, number]).n;
+    ticket.count_ahead = db.get(sql, [ticket.queue_date, number]).waitingCount;
   }
   return ticket;
 }
@@ -21,18 +21,18 @@ function ticketData(id) {
 // ออกเลขคิวถัดไปของวันนี้และบันทึกจำนวนลูกค้า
 function issueQueue(req, res) {
   const count = integer(req.body.guest_count, 50, 'จำนวนลูกค้า');
-  const id = randomUUID();
+  const ticketId = randomUUID();
   const date = today();
   const last = db.get(
-    `SELECT MAX(CAST(SUBSTR(queue_no, 2) AS INTEGER)) n FROM QueueTicket
+    `SELECT MAX(CAST(SUBSTR(queue_no, 2) AS INTEGER)) AS queueNumber FROM QueueTicket
       WHERE queue_date = ?`,
     [date]
   );
-  const number = 'Q' + String((last.n || 0) + 1).padStart(3, '0');
+  const number = 'Q' + String((last.queueNumber || 0) + 1).padStart(3, '0');
   const sql = `INSERT INTO QueueTicket (queue_ticket_id, queue_no, queue_date,
       guest_count) VALUES (?, ?, ?, ?)`;
-  db.run(sql, [id, number, date, count]);
-  res.json({ success: true, ticket: ticketData(id) });
+  db.run(sql, [ticketId, number, date, count]);
+  res.json({ success: true, ticket: ticketData(ticketId) });
 }
 
 // อ่านคิวรอหรือประวัติ แล้วส่งเป็น HTML หรือ JSON

@@ -7,12 +7,12 @@
   </div>
   <p>200 ใบล่าสุด · อ่านข้อมูลที่บันทึก ณ เวลาชำระ</p>
   <%# แสดงยอด วันที่ และเลขใบเสร็จ กดเพื่อเปิดใบเดิม %>
-  <% for (const r of receipts) { %>
-    <a class="action-row row box" href="/cashier/bill/<%= r.session_id %>"
+  <% for (const receipt of receipts) { %>
+    <a class="action-row row box" href="/cashier/bill/<%= receipt.session_id %>"
       style="overflow-wrap:anywhere">
       <span>
-        <strong>โต๊ะ <%= r.table_no %> · <%= r.net_amount.toFixed(2) %> บาท</strong>
-        <small><%= thaiDate(r.paid_at) %> · <%= r.receipt_no %></small>
+        <strong>โต๊ะ <%= receipt.table_no %> · <%= receipt.net_amount.toFixed(2) %> บาท</strong>
+        <small><%= thaiDate(receipt.paid_at) %> · <%= receipt.receipt_no %></small>
       </span>
     </a>
   <% } %>

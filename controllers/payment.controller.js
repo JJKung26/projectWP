@@ -5,8 +5,9 @@ const { setTableStatus } = require('../utils/sessions');
 const { totals, itemsFor } = require('../utils/billing');
 // อ่านรอบบริการและหมายเลขโต๊ะสำหรับบิล
 function getBillSession(sessionId) {
-  const sql = `SELECT s.*, t.table_no FROM DiningSession s
-    JOIN DiningTable t ON t.table_id = s.table_id WHERE s.session_id = ?`;
+  const sql = `SELECT diningSession.*, diningTable.table_no FROM DiningSession diningSession
+    JOIN DiningTable diningTable ON diningTable.table_id = diningSession.table_id
+    WHERE diningSession.session_id = ?`;
   const session = db.get(sql, [sessionId]);
   if (!session) fail('ไม่พบรอบบริการ', 404);
   return session;
@@ -42,8 +43,8 @@ function processPayment(req, res) {
   const method = req.body.payment_method;
   db.transaction(function () {
     // 1. ตรวจว่าบิลยังไม่ได้จ่าย และอาหารไม่มีรายการค้าง
-    const old = db.get('SELECT * FROM Bill WHERE session_id = ?', [sessionId]);
-    if (old) return;
+    const existingBill = db.get('SELECT * FROM Bill WHERE session_id = ?', [sessionId]);
+    if (existingBill) return;
     const session = getBillSession(sessionId);
     if (session.session_status !== 'ACTIVE') fail('รอบบริการปิดแล้ว', 409);
     const items = itemsFor(sessionId);
@@ -54,11 +55,13 @@ function processPayment(req, res) {
 
     // 2. คิดยอดสุทธิและเงินทอนเป็นสตางค์
     const amounts = totals(session, items);
-    const net = money(amounts.netAmount);
+    const netCents = money(amounts.netAmount);
     const received = money(req.body.amount_received);
-    if (money(req.body.expected_total) !== net) fail('ยอดบิลเปลี่ยนแล้ว กรุณาโหลดบิลใหม่', 409);
-    if (received < net || (method !== 'CASH' && received !== net)) fail('ยอดรับเงินไม่ถูกต้อง');
-    const change = (received - net) / 100;
+    if (money(req.body.expected_total) !== netCents)
+      fail('ยอดบิลเปลี่ยนแล้ว กรุณาโหลดบิลใหม่', 409);
+    if (received < netCents || (method !== 'CASH' && received !== netCents))
+      fail('ยอดรับเงินไม่ถูกต้อง');
+    const change = (received - netCents) / 100;
     const billId = randomUUID();
     const receiptNo = 'R-' + randomUUID().slice(0, 8).toUpperCase();
     amounts.session = session;
@@ -94,10 +97,10 @@ function processPayment(req, res) {
 
 // อ่านใบเสร็จล่าสุดไม่เกิน 200 ใบ เพื่อแสดงประวัติ
 function getReceipts(req, res) {
-  const sql = `SELECT b.*, t.table_no, p.paid_at FROM Bill b
-    JOIN DiningSession s ON s.session_id = b.session_id
-    JOIN DiningTable t ON t.table_id = s.table_id
-    JOIN Payment p ON p.bill_id = b.bill_id ORDER BY p.rowid DESC LIMIT 200`;
+  const sql = `SELECT bill.*, diningTable.table_no, payment.paid_at FROM Bill bill
+    JOIN DiningSession diningSession ON diningSession.session_id = bill.session_id
+    JOIN DiningTable diningTable ON diningTable.table_id = diningSession.table_id
+    JOIN Payment payment ON payment.bill_id = bill.bill_id ORDER BY payment.rowid DESC LIMIT 200`;
   const receipts = db.query(sql);
   res.render('cashier/receipts', { receipts, title: 'ใบเสร็จย้อนหลัง' });
 }
