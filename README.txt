@@ -6,15 +6,16 @@
 3. นายเจมส์ อัลเฟรด เครก 68070018
 4. นายเจษฎา สมหวังได้ 68070019
 
-ต้องมี Node.js 24 ขึ้นไป สำหรับ START.bat และ Cloudflare ใช้ Windows 64-bit
+ต้องมี Node.js 24 ขึ้นไป และใช้ Windows 64-bit
 
 ขั้นตอนการใช้งานเว็บ
 
-1. เปิด PowerShell ในโฟลเดอร์ที่มี package.json
-2. ติดตั้งแพ็กเกจครั้งแรก: npm.cmd ci
-3. เปิดเว็บ: npm.cmd start
-4. เข้า URL หลังคำว่า Web ที่โปรแกรมแสดง เช่น http://localhost:3000
-5. QR และลิงก์public จะใช้ https://...trycloudflare.com ที่โปรแกรมแสดง
+1. แตก ZIP แล้วเปิด PowerShell ในโฟลเดอร์ที่มี package.json
+2. พิมพ์ npm.cmd start หรือดับเบิลคลิก START.bat
+3. เข้า URL หลังคำว่า Web Local หรือ Web Public ที่โปรแกรมแสดง
+4. QR สำหรับลูกค้าจะใช้ลิงก์ https://...trycloudflare.com ที่โปรแกรมแสดง
+
+ครั้งแรกโปรแกรมติดตั้งแพ็กเกจ ดาวน์โหลด Cloudflare และสร้างฐานข้อมูลให้อัตโนมัติ
 ต้องใช้อินเทอร์เน็ต และเปิดโปรแกรมไว้ระหว่างใช้งาน
 
 บัญชีเริ่มต้น (Username / Password)

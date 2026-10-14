@@ -1,14 +1,21 @@
 // เลือกพอร์ตเว็บก่อน แล้วเปิด Cloudflare สำหรับแชร์ QR
 const fs = require('fs');
 const path = require('path');
-const { spawn } = require('child_process');
-const binary = path.join(__dirname, '../tools/cloudflared.exe');
+const { spawn, execSync } = require('child_process');
+const projectFolder = path.join(__dirname, '..');
+const binary = path.join(projectFolder, 'tools/cloudflared.exe');
 const port = process.env.PORT || 3000;
 let cloud;
 let server;
 
-// ดาวน์โหลด Cloudflare ถ้ายังไม่มี แล้วเปิดเว็บเพื่อเลือกพอร์ต
+// ติดตั้งแพ็กเกจและ Cloudflare ครั้งแรก แล้วเปิดเว็บเพื่อเลือกพอร์ต
 async function start() {
+  if (!fs.existsSync(path.join(projectFolder, 'node_modules'))) {
+    console.log('Installing packages...');
+    execSync('npm.cmd ci --no-audit --no-fund', {
+      cwd: projectFolder, stdio: 'inherit', windowsHide: true
+    });
+  }
   if (!fs.existsSync(binary)) {
     console.log('Downloading Cloudflare...');
     const response = await fetch(
