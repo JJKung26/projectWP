@@ -1,7 +1,6 @@
 const db = require('../database/database');
 // กำหนดหน้าแรกของพนักงานแต่ละหน้าที่
 const HOME_BY_ROLE = {
-  ADMIN: '/cashier/tables',
   CASHIER: '/cashier/tables',
   KITCHEN: '/kitchen',
   SERVICE: '/serving'
@@ -14,17 +13,15 @@ const COOKIE_OPTIONS = {
   maxAge: 12 * 60 * 60 * 1000
 };
 
-// ยอมให้พนักงานหน้าที่นั้นหรือ ADMIN เข้าได้
+// ให้พนักงานเข้าได้เฉพาะหน้าที่ของตนเอง
 function requireRole(role) {
   return function (req, res, next) {
-    const allowedRoles = [role, 'ADMIN'];
-    for (const allowed of allowedRoles) {
-      const employeeId = req.signedCookies['staff_' + allowed];
-      if (!employeeId) continue;
+    const employeeId = req.signedCookies['staff_' + role];
+    if (employeeId && Object.hasOwn(HOME_BY_ROLE, role)) {
       const sql = `SELECT employee_id, full_name, role FROM Employee WHERE
           employee_id = ?`;
       const staff = db.get(sql, [employeeId]);
-      if (staff && staff.role === allowed) {
+      if (staff && staff.role === role) {
         req.staff = staff;
         res.locals.staff = staff;
         next();

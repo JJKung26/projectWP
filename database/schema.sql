@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS Employee (
     username      TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
     full_name     TEXT NOT NULL,
-    role          TEXT NOT NULL
+    role          TEXT NOT NULL CHECK(role IN ('CASHIER', 'KITCHEN', 'SERVICE'))
 );
 
 -- เก็บหมายเลขโต๊ะ ความจุ และสถานะว่างหรือมีลูกค้า

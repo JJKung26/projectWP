@@ -13,7 +13,8 @@ function login(req, res) {
   const password = req.body.password || '';
   const sql = 'SELECT * FROM Employee WHERE username = ?';
   const employee = db.get(sql, [username]);
-  if (!employee || !bcrypt.compareSync(password, employee.password_hash)) {
+  if (!employee || !Object.hasOwn(HOME_BY_ROLE, employee.role) ||
+      !bcrypt.compareSync(password, employee.password_hash)) {
     res.status(401).render('auth/login', {
       title: 'เข้าสู่ระบบ',
       error: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง',

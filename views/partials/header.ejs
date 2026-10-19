@@ -9,13 +9,13 @@
     </a>
     <%# แสดงเมนูตามสิทธิ์ แคชเชียร์ ครัว หรือเสิร์ฟ %>
     <nav class="nav-links row">
-      <% if (['ADMIN', 'CASHIER'].includes(staff.role)) { %>
+      <% if (staff.role === 'CASHIER') { %>
         <a href="/cashier/tables" class="nav-link row" data-match="/cashier">แคชเชียร์</a>
       <% } %>
-      <% if (['ADMIN', 'KITCHEN'].includes(staff.role)) { %>
+      <% if (staff.role === 'KITCHEN') { %>
         <a href="/kitchen" class="nav-link row" data-match="/kitchen">ครัว</a>
       <% } %>
-      <% if (['ADMIN', 'SERVICE'].includes(staff.role)) { %>
+      <% if (staff.role === 'SERVICE') { %>
         <a href="/serving" class="nav-link row" data-match="/serving">เสิร์ฟ</a>
       <% } %>
       <%# ชื่อพนักงานและปุ่มออกจากระบบของหน้าที่นี้ %>

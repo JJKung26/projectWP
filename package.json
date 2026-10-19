@@ -5,6 +5,7 @@
   "main": "server.js",
   "type": "commonjs",
   "scripts": {
+    "test": "node --test",
     "start": "node scripts/start-cloudflare.js",
     "start:local": "node server.js",
     "start:cloudflare": "node scripts/start-cloudflare.js"

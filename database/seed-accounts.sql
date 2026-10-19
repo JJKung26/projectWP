@@ -1,9 +1,6 @@
 -- บัญชีเริ่มต้นของสมาชิกกลุ่ม ดูรหัสผ่านใน README.txt
 INSERT OR IGNORE INTO Employee (employee_id, username, password_hash, full_name,
     role) VALUES
--- ผู้ดูแลระบบ เข้าได้ทุกหน้าที่
-('EMP-000', 'admin', '$2b$10$QNHpUKjBGGDBYxOJYOJ04eLtBdv9ZqVRvXTYB9.KISpEqWb7iF6je',
-    'ผู้ดูแลระบบ', 'ADMIN'),
 -- บัญชีพนักงานแคชเชียร์ ครัว และเสิร์ฟ
 ('EMP-001', 'cashier1', '$2b$10$V7X9IJTeiC9zDuWST35gR.BlZA2C7IyWoQ/a4ue6k5bzjyGQBLcPu',
     'แคชเชียร์ สมศรี', 'CASHIER'),
